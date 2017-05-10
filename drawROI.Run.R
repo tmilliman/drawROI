@@ -10,6 +10,8 @@ library(jpeg)
 library(shiny)
 library(lubridate)
 
+source('drawROI.Funcs.R')
+
 ui <- fluidPage(
   
   # Application title
@@ -26,17 +28,75 @@ ui <- fluidPage(
                 min = 1, max = 365, 
                 value = 50, round = T, step = 1),
     
-    actionButton(inputId = 'go',label = " Extract the time series", icon("refresh")),
+    actionButton(inputId = 'extract',label = " Extract the time series", icon("refresh")),
     actionButton(inputId = 'draw',label = "Let's draw ROI", icon("pencil"))
+    
   ),
   
   mainPanel(
-    plotOutput(outputId = "imagePlot", width = "500px"),
+    plotOutput("plot", click = "newCenter", width = "500px"),
+    actionButton("ok", "Accept"),
+    actionButton("undo", "Undo"),
+    actionButton("cancel", "Cancel"),
     plotOutput(outputId = "timeSeries", height = "200px", width = "500px")
   )
 )
 
 server <- function(input, output, session) {
+  
+    values <- reactiveValues(centers = matrix(numeric(), 0, 2))
+    
+
+  output$plot <- renderPlot({
+    imgFile <- imgDT[Site==input$site&Year==input$year&DOY==input$viewDay&Hour==12, path][1]
+    
+    if(is.na(imgFile)){
+      par(mar=c(1,0,0,0))
+      plot(NA, xlim=c(0,1), ylim=c(0,1), xaxt='n', yaxt='n', bty='o', xlab='',ylab='')
+      text(0.5,0.5, 'No image for this date was found!', font=2, adj=.5)
+    }else{
+      par(mar=c(1,0,0,0))
+      plotJPEG(imgFile)
+      polygon(values$centers, col = '#30aa2080', pch = 9)
+      }
+  })
+  
+  observe({
+    if (is.null(input$newCenter))
+      return()
+    isolate({
+      newCenter <- matrix(c(input$newCenter[['x']], input$newCenter[['y']]),
+                          1, 2)
+      values$centers <- rbind(values$centers, newCenter)
+    })
+  })
+  
+  observe({
+    if (input$ok == 0)
+      return()
+    #stopApp(clusters())
+  })
+  
+  observe({
+    if (input$cancel == 0)
+      return()
+    values$centers <- matrix(numeric(), 0, 2)
+  })
+  
+  observe({
+    if (input$undo == 0)
+      return()
+    isolate({
+      if (nrow(values$centers) > 2)
+        values$centers <- values$centers[-nrow(values$centers),]
+      else if (nrow(values$centers) == 2)
+        values$centers <- matrix(values$centers[1,], 1, 2)
+      else if (nrow(values$centers) == 1)
+        values$centers <- matrix(numeric(), 0, 2)
+    })
+  })
+  
+  
   observe({
     x <- imgDT[Site==input$site, unique(Year)]
     
@@ -59,35 +119,11 @@ server <- function(input, output, session) {
   #   )
   # })
   
-  output$imagePlot <- renderPlot({
-    tIndex <- input$daterange[1]
-    imgFile <- imgDT[Site==input$site&Year==input$year&DOY==input$viewDay&Hour==12, path]
-    if(length(imgFile)>1) imgFile <- imgFile[1]
-    
-    if(length(imgFile)==0){
-      par(mar=c(0,0,0,0))
-      plot(NA, xlim=c(0,1), ylim=c(0,1), xaxt='n', yaxt='n', bty='o', xlab='',ylab='')
-      text(0.5,0.5, 'No image for this date was found!', font=2, adj=.5)
-    }else{
-      par(mar=c(0,0,0,0))
-      plot(NA, xlim=c(0,1), ylim=c(0,1),
-           xaxt='n', yaxt='n',
-           xaxs = 'i', yaxs='i',
-           xlab='',ylab='',
-           bty='o')
-      rasterImage(readJPEG(imgFile), 0,0,1,1)
-      x <- draw.polygon()
-      input$draw
-      text(0.5,0.5, 'TEST', font=2, adj=.5, col='white')
-    }
-    # plot(NA, xlim=c(0,1), ylim=c(0,1))
-    # text(0,0,labels=imgFile)
-    
-  })
   
   output$timeSeries <- renderPlot({
-    par(mar=c(4,4,1,1))
-    input$go
+    if(input$extract==0) return()
+    par(mar=c(4,4,3,1))
+    # input$extract
     x <- input$dateRange[1]:input$dateRange[2]
     plot(x, cumsum(runif(length(x))),  type = 'l', xlab='', ylab='')
     mtext(side = 1, text = 'Day of year', font=2, line=2.5)
