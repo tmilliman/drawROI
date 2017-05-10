@@ -26,16 +26,14 @@ ui <- fluidPage(
                 value = c(50,350), round = T, step = 1, dragRange = T),
     sliderInput(inputId = "viewDay", label =  "View day", 
                 min = 1, max = 365, 
-                value = 50, round = T, step = 1),
+                value = 50, round = T, step = 1)
     
-    actionButton(inputId = 'extract',label = " Extract the time series", icon("refresh")),
-    actionButton(inputId = 'draw',label = "Let's draw ROI", icon("pencil"))
     
   ),
   
   mainPanel(
     plotOutput("plot", click = "newCenter", width = "500px"),
-    actionButton("ok", "Accept"),
+    actionButton("accept", "Accept"),
     actionButton("undo", "Undo"),
     actionButton("cancel", "Cancel"),
     plotOutput(outputId = "timeSeries", height = "200px", width = "500px")
@@ -44,9 +42,9 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
   
-    values <- reactiveValues(centers = matrix(numeric(), 0, 2))
-    
-
+  values <- reactiveValues(centers = matrix(numeric(), 0, 2))
+  
+  
   output$plot <- renderPlot({
     imgFile <- imgDT[Site==input$site&Year==input$year&DOY==input$viewDay&Hour==12, path][1]
     
@@ -58,7 +56,7 @@ server <- function(input, output, session) {
       par(mar=c(1,0,0,0))
       plotJPEG(imgFile)
       polygon(values$centers, col = '#30aa2080', pch = 9)
-      }
+    }
   })
   
   observe({
@@ -72,8 +70,11 @@ server <- function(input, output, session) {
   })
   
   observe({
-    if (input$ok == 0)
+    if (input$accept == 0)
       return()
+    if (values$centers <3 )
+      return()
+    
     #stopApp(clusters())
   })
   
@@ -121,13 +122,26 @@ server <- function(input, output, session) {
   
   
   output$timeSeries <- renderPlot({
-    if(input$extract==0) return()
     par(mar=c(4,4,3,1))
-    # input$extract
-    x <- input$dateRange[1]:input$dateRange[2]
-    plot(x, cumsum(runif(length(x))),  type = 'l', xlab='', ylab='')
+    plot(NA, 
+         xlim=c(input$dateRange[1], input$dateRange[2]), ylim = c(0,1),
+         type = 'l', xlab='', ylab='')
     mtext(side = 1, text = 'Day of year', font=2, line=2.5)
     mtext(side = 2, text = 'GCC (-)', font=2, line=2.5)
+    
+    imgFile <- imgDT[Site==input$site&Year==input$year&DOY==input$viewDay&Hour==12, path][1]
+    
+    if(is.na(imgFile)|input$accept==0) return()
+
+    # x <- input$dateRange[1]:input$dateRange[2]
+    paths <- imgDT[Site==input$site&Year==input$year&DOY%in%(input$dateRange[1]:input$dateRange[2])&Hour==12&Minute<30, path]
+    t <- imgDT[Site==input$site&Year==input$year&DOY%in%(input$dateRange[1]:input$dateRange[2])&Hour==12&Minute<30, DOY]
+    pnts <- values$centers
+    vals <- extractCCCTimeSeries(pnts, paths )
+    lines(t, vals$rcc,  col='red')
+    lines(t, vals$gcc,  col='green')
+    lines(t, vals$bcc,  col='blue')
+    input$accept==0
   })
   
 }
