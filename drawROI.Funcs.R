@@ -1,5 +1,6 @@
 library(data.table)
 library(raster)
+library(shiny)
 library(jpeg)
 
 plotJPEG <- function(path, add=FALSE)
@@ -75,10 +76,14 @@ extractCCCTimeSeries <- function(pnts, paths){
   n <- length(paths)
   CCCT <- as.data.table(matrix(0, nrow=n, ncol=3))
   colnames(CCCT) <- c('rcc','gcc','bcc')
-  
+  withProgress(value = 0, message = 'Extracting CCs',
   for(i in 1:n){
     ccc <- extractCCC(paths[i], rmsk = rmsk)
     CCCT[i,] <- as.data.table(ccc[c("rcc", "gcc", "bcc")])
+    incProgress(1/n)
   }
+  )
   CCCT
 }
+
+
