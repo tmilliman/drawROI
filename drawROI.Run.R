@@ -6,7 +6,9 @@
 library(raster)
 library(jpeg)
 library(shiny)
+library(shinyTime)
 library(lubridate)
+library(colourpicker)
 
 source('Resources/SwitchButton.R')
 
@@ -15,53 +17,56 @@ source('drawROI.Init.R')
 
 sites <- unique(imgDT$Site)
 
-ROIs <- list()
+# ROIs <- list()
 
 
 ui <- fluidPage(
   
   theme = "button.css",
   # Application title
-  fluidRow(titlePanel("PhenoCam ROI Tool")),
+  headerPanel("PhenoCam ROI Tool"),
   
   # Sidebar with a slider input for number of bins
   sidebarPanel(width = 4,
                selectInput("site", "Site", sites),
                selectInput("year", "Year", ''),
-               selectInput("rois", "ROI", names(ROIs)),
-               dateRangeInput(inputId = 'roiDateRange', label = 'ROI Start/End Dates:', start = '2001-01-01', end = '2016-01-01'),
+               selectInput("rois", "ROI", choices = NULL),
+               dateRangeInput(inputId = 'roiDateRange', label = 'ROI Start/End Dates:', start = '2001-01-01', end = '2016-01-01', separator = '-', startview='year'),
                
-               fixedRow(
-                 column(width = 5,textInput("starttime", "Start Time:", value = "99:99:99" )),
-                 column(width = 5, offset = 2,textInput("endtime", "End Time:", value = "99:99:99" ))
+               fluidRow(column(width = 6, timeInput("starttime", "Start Time:",  seconds = F)),
+                        column(width = 6, timeInput("endtime", "End Time:",  seconds = F))
+               ),
+               fluidRow(
+                 column(width = 6, colourInput(inputId = 'roicol', label = 'ROI Color',value = '#30aa20', showColour = 'background')),
+                 column(width = 6, sliderInput(inputId = 'roitrans', label = 'Transparency', min = 0, max = 100, value = 50, ticks = F, width = '100%', pre = '%'))
                )
+               ,
+               radioButtons('sevenorall', label = 'Time series range:', choices = c('First 7 days','Entire time range'), width = "100%",inline = T),
+               actionButton("extract", "Extract GCC", icon = icon('line-chart'), width = "100%"),
+               br(),
+               br(),
+               actionButton("generate", "Generate ROI List", icon = icon('area-chart'), width = "100%")
   ),
   
+  
+  
   mainPanel(
-    sliderInput(inputId = "viewDay", label =  "View day", 
-                min = 1, max = 365, 
+    sliderInput(inputId = "viewDay", label =  NULL, 
+                min = 1, max = 365, ticks = F, 
                 value = 50, round = T, step = 1, width = '500px'),
     shiny::fluidRow( 
-      column(1, actionButton("back", "", icon = icon('backward'), width = '40px', style="border-color: #fff")),
-      column(8, plotOutput("plot", click = "newPoint", width = "420px", height = '300px')),
-      column(1, actionButton("forw", "", icon = icon('forward'), width = '40px',  style="border-color: #fff"))
+      column(1, actionButton("back", "", icon = icon('backward'), width = '100%', style="border-color: #fff")),
+      column(7, plotOutput("plot", click = "newPoint", width = "350px", height = '260px')),
+      column(1, actionButton("forw", "", icon = icon('forward'), width = '100%',  style="border-color: #fff"))
     ),
     actionButton("cancel", "Start over", icon = icon('refresh'), width = "160px"),
     actionButton("undo", "Undo", icon = icon('undo'), width = "160px"),
     actionButton("accept", "Accept", icon = icon('thumbs-up'), width = "160px"),
-    br(),
-    HTML("<hr>"),
-    fluidRow(
-      column(radioButtons('sevenorall', label = 'Time series range:', choices = c('First 7 days','Entire time range'), width = "200px",inline = F), width = 4),
-      fluidRow(column(actionButton("extract", "Extract GCC", icon = icon('line-chart'), width = "160px"), width = 4),
-               br(),
-               br(),
-               column(actionButton("generate", "Generate", icon = icon('area-chart'), width = "160px"), width = 4 ))
-    ),
-    br(),
-    fluidRow(sliderInput(inputId = "dateRange", label =  "Time series range", 
+    hr(),
+    fluidRow(sliderInput(inputId = "dateRange", label =  NULL, ticks = F, 
                          min = 1, max = 365, 
                          value = c(70,90), round = T, step = 1, dragRange = T, width = "500px")),
+    
     plotOutput(outputId = "timeSeries", height = "200px", width = "500px")
   )
 )
@@ -74,26 +79,54 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
   
-  values <- reactiveValues(centers = matrix(numeric(), 0, 2))
-  # output$ROIs <- render
+  values <- reactiveValues(centers = matrix(numeric(), 0, 2),
+                           ROIs = list())
   
-  ROI <- reactive({
-    if(length(ROIs)==0) return(NULL)
-    else ROIs[[input$rois]]
+  imgFile <- reactive(imgDT[Site==input$site&Year==input$year&DOY==input$viewDay&Hour==12, path][1])
+  
+  isolate({
+    dmin <- imgDT[Site==input$site, min(Date)]
+    dmax <- imgDT[Site==input$site, max(Date)]
+    updateDateRangeInput(session , inputId = 'roiDateRange', min = dmin, max = dmax)  
   })
   
+  observe(
+               updateSliderInput(session,
+                                 inputId = 'viewDay', 
+                                 value = imgDT[Site==input$site&Year==input$year, min(DOY)]))
+  observeEvent(input$site, 
+               {
+                 dmin <- imgDT[Site==input$site, min(Date)]
+                 dmax <- imgDT[Site==input$site, max(Date)]
+                 updateDateRangeInput(session , inputId = 'roiDateRange',
+                                      min = dmin, max = dmax,
+                                      start = dmin, end = dmax)  
+               })
+  
+  curROI <- reactive({
+    if(length(values$ROIs)==0) return(NULL)
+    else values$ROIs[[input$rois]]
+  })
+  
+  
   output$plot <- renderPlot({
-    imgFile <- imgDT[Site==input$site&Year==input$year&DOY==input$viewDay&Hour==12, path][1]
     
-    if(is.na(imgFile)){
+    
+    if(is.na(imgFile())){
       par(mar=c(1,0,0,0))
       plot(NA, xlim=c(0,1), ylim=c(0,1), xaxt='n', yaxt='n', bty='o', xlab='',ylab='')
       text(0.5,0.5, 'No image for this date was found!', font=2, adj=.5)
     }else{
       par(mar=c(1,0,0,0))
-      plotJPEG(imgFile)
-      polygon(values$centers, col = '#30aa2080', pch = 9)
+      plotJPEG(imgFile())
+      trans <- as.hexmode(floor((1-input$roitrans/100)*255))
+      if(nchar(trans)==1) trans <- paste0('0',trans)
+      polygon(values$centers, col = paste0(input$roicol, trans), pch = 9)
+      # polygon(values$centers, col = 'red', pch = 9)
     }
+  })
+  observeEvent(input$rois, {
+    values$centers <- values$ROIs[[input$rois]]
   })
   
   observeEvent(input$newPoint, {
@@ -110,10 +143,11 @@ server <- function(input, output, session) {
   observeEvent(input$accept,
                {
                  if (nrow(values$centers)<3) return()
-                 
-                 ROIs[[length(ROIs)+1]] <-  values$centers
-                 names(ROIs)[length(ROIs)] <- paste('ROI', length(ROIs))
-                 updateSelectInput(session, inputId = 'rois', choices = names(ROIs))
+                 tmp <- values$ROIs
+                 tmp[[length(tmp)+1]] <-  values$centers
+                 names(tmp)[length(tmp)] <- paste('ROI', length(tmp), sep = '.')
+                 # updateSelectInput(session, inputId = 'rois', choices = names(tmp))
+                 values$ROIs <- tmp
                })
   
   observeEvent(input$cancel, 
@@ -133,6 +167,9 @@ server <- function(input, output, session) {
   })
   
   observe({
+    updateSelectInput(session, inputId = 'rois', choices = names(values$ROIs), selected = names(values$ROIs)[length(values$ROIs)])
+  })
+  observe({
     x <- imgDT[Site==input$site, unique(Year)]
     if (is.null(x)) x <- character(0)
     
@@ -150,14 +187,14 @@ server <- function(input, output, session) {
   })
   
   ccVals <- eventReactive(input$extract,{
-    if(is.null(ROI())) return(data.frame(rcc=NA, gcc=NA, bcc=NA))
-    pnts <- isolate(ROI())
+    if(is.null(curROI())) return(data.frame(rcc=NA, gcc=NA, bcc=NA))
+    pnts <- isolate(curROI())
     paths <- imgDT[Site==input$site&Year==input$year&DOY%in%ccRange()&Hour==12&Minute<30, path]
     extractCCCTimeSeries(pnts, paths )
   })
   
   ccTime <- eventReactive(input$extract,{
-    if(is.null(ROI())) return(NA)
+    if(is.null(curROI())) return(NA)
     if(input$sevenorall=="First 7 days")
       return(imgDT[Site==input$site&Year==input$year&DOY%in%(input$dateRange[1]:(input$dateRange[1]+7))&Hour==12&Minute<30, DOY])
     else 

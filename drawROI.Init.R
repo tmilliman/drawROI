@@ -26,5 +26,8 @@ imgDT[,Minute:=floor((HHMMSS%%10000)/100)]
 imgDT[,Second:=HHMMSS%%100]
 imgDT[,DOY:=yday(ISOdate(Year, Month, Day))]
 
+imgDT[,DOY:=yday(ISOdate(Year, Month, Day))]
+imgDT[,Date:=date(ISOdate(Year, Month, Day))]
+imgDT[,DateTime:=ISOdatetime(Year, Month, Day, Hour, Minute, Second)]
 
 
