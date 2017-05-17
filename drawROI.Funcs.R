@@ -66,16 +66,18 @@ createRasteredROI <- function(pnts, path){
   ext <- extent(1,res[2], 1, res[1])
   poly <- as(ext  ,"SpatialPolygons")
   poly@polygons[[1]]@Polygons[[1]]@coords <- as.matrix(pnts)
-  plot(poly, add=T)
+  # plot(poly, add=T)
   r <- rasterize(poly, raster(ext, ncol = res[2], nrow = res[1]))
   r
 }
 
 extractCCCTimeSeries <- function(pnts, paths){
   rmsk <- createRasteredROI(pnts, paths[1])
+  
   n <- length(paths)
   CCCT <- as.data.table(matrix(0, nrow=n, ncol=3))
   colnames(CCCT) <- c('rcc','gcc','bcc')
+  
   withProgress(value = 0, message = 'Extracting CCs',
   for(i in 1:n){
     ccc <- extractCCC(paths[i], rmsk = rmsk)
@@ -83,7 +85,7 @@ extractCCCTimeSeries <- function(pnts, paths){
     incProgress(1/n)
   }
   )
-  CCCT
+  list(TS = CCCT, mask= rmsk)
 }
 
 
