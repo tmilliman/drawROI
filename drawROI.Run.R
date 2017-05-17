@@ -66,10 +66,21 @@ ui <- fluidPage(
   )
 )
 
+
+
+
+
+
+
 server <- function(input, output, session) {
   
   values <- reactiveValues(centers = matrix(numeric(), 0, 2))
   # output$ROIs <- render
+  
+  ROI <- reactive({
+    if(length(ROIs)==0) return(NULL)
+    else ROIs[[input$rois]]
+  })
   
   output$plot <- renderPlot({
     imgFile <- imgDT[Site==input$site&Year==input$year&DOY==input$viewDay&Hour==12, path][1]
@@ -105,7 +116,8 @@ server <- function(input, output, session) {
                  updateSelectInput(session, inputId = 'rois', choices = names(ROIs))
                })
   
-  observeEvent(input$cancel, values$centers <- matrix(numeric(), 0, 2))
+  observeEvent(input$cancel, 
+               values$centers <- matrix(numeric(), 0, 2))
   
   observeEvent(input$undo, {
     if (nrow(values$centers) > 2)
@@ -116,6 +128,9 @@ server <- function(input, output, session) {
       values$centers <- matrix(numeric(), 0, 2)
   })
   
+  observeEvent(input$generate,{
+    
+  })
   
   observe({
     x <- imgDT[Site==input$site, unique(Year)]
@@ -127,6 +142,28 @@ server <- function(input, output, session) {
                       selected = tail(x, 1))
   })
   
+  ccRange <- reactive({
+    if(input$sevenorall=="First 7 days")
+      return(input$dateRange[1]:(input$dateRange[1]+7))
+    else
+      return(input$dateRange[1]:input$dateRange[2])
+  })
+  
+  ccVals <- eventReactive(input$extract,{
+    if(is.null(ROI())) return(data.frame(rcc=NA, gcc=NA, bcc=NA))
+    pnts <- isolate(ROI())
+    paths <- imgDT[Site==input$site&Year==input$year&DOY%in%ccRange()&Hour==12&Minute<30, path]
+    extractCCCTimeSeries(pnts, paths )
+  })
+  
+  ccTime <- eventReactive(input$extract,{
+    if(is.null(ROI())) return(NA)
+    if(input$sevenorall=="First 7 days")
+      return(imgDT[Site==input$site&Year==input$year&DOY%in%(input$dateRange[1]:(input$dateRange[1]+7))&Hour==12&Minute<30, DOY])
+    else 
+      return(imgDT[Site==input$site&Year==input$year&DOY%in%(input$dateRange[1]:input$dateRange[2])&Hour==12&Minute<30, DOY])    
+  })
+  
   output$timeSeries <- 
     renderPlot({
       par(mar=c(4,4,0,0))
@@ -135,30 +172,14 @@ server <- function(input, output, session) {
            type = 'l', xlab='', ylab='')
       mtext(side = 1, text = 'Day of year', font=2, line=2.5)
       mtext(side = 2, text = 'GCC (-)', font=2, line=2.5)
-      # isolate({
-        imgFile <- imgDT[Site==input$site&Year==input$year&DOY==input$viewDay&Hour==12, path][1]
-        
-        if(is.na(imgFile)|input$accept==0|nrow(values$centers)<3|input$extract==0) return()
-        
-        t <- imgDT[Site==input$site&Year==input$year&DOY%in%(input$dateRange[1]:input$dateRange[2])&Hour==12&Minute<30, DOY]
-        vals <- data.frame(t=t, rcc=NA, gcc=NA, bcc=NA)
-        
-        if(input$sevenorall=="First 7 days")
-        {
-          paths <- imgDT[Site==input$site&Year==input$year&DOY%in%(input$dateRange[1]:(input$dateRange[1]+7))&Hour==12&Minute<30, path]
-          pnts <- isolate(values$centers)
-          vals <- extractCCCTimeSeries(pnts, paths )
-        }else {
-          paths <- imgDT[Site==input$site&Year==input$year&DOY%in%(input$dateRange[1]:(input$dateRange[2]))&Hour==12&Minute<30, path]
-          pnts <- isolate(values$centers)
-          vals <- extractCCCTimeSeries(pnts, paths )
-        }
-        
-        
-        lines(t, vals$rcc,  col='red', lwd=2)
-        lines(t, vals$gcc,  col='green', lwd=2)
-        lines(t, vals$bcc,  col='blue', lwd=2)
-      # })
+      if(input$extract==0) return()
+      # imgFile <- imgDT[Site==input$site&Year==input$year&DOY==input$viewDay&Hour==12, path][1]
+      # if(is.na(imgFile)|input$accept==0|nrow(values$centers)<3) return()
+      # if(is.na(imgFile)|input$accept==0|nrow(values$centers)<3|input$extract==0) return()
+      
+      lines(ccTime(), ccVals()$rcc,  col='red', lwd=2)
+      lines(ccTime(), ccVals()$gcc,  col='green', lwd=2)
+      lines(ccTime(), ccVals()$bcc,  col='blue', lwd=2)
     })
 }
 
