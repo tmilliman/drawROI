@@ -3,11 +3,13 @@
 #
 # http://shiny.rstudio.com
 
+library(sp)
 library(raster)
 library(jpeg)
 library(shiny)
 library(shinyTime)
 library(lubridate)
+library(data.table)
 library(colourpicker)
 
 source('Resources/SwitchButton.R')

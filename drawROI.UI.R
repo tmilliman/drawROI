@@ -1,6 +1,6 @@
 ui <- fluidPage(
   
-  theme = "button.css",
+  # theme = "bootstrap.min.css",
   # Application title
   headerPanel("PhenoCam ROI Tool"),
   
@@ -30,23 +30,32 @@ ui <- fluidPage(
   
   mainPanel(
     sliderInput(inputId = "viewDay", label =  NULL, 
-                min = 1, max = 365, ticks = F, 
+                min = 1, max = 365, ticks = F, animate=F,
                 value = 50, round = T, step = 1, width = '500px'),
     fluidRow( 
       column(1, actionButton("back", "", icon = icon('backward'), width = '100%', style="border-color: #fff")),
       column(7, plotOutput("plot", click = "newPoint", width = "350px", height = '260px')),
       column(1, actionButton("forw", "", icon = icon('forward'), width = '100%',  style="border-color: #fff"))
     ),
+    br(),
     actionButton("cancel", "Start over", icon = icon('refresh'), width = "160px"),
     actionButton("undo", "Undo", icon = icon('undo'), width = "160px"),
     actionButton("accept", "Accept", icon = icon('thumbs-up'), width = "160px"),
+    br(),
+    br(),
+    fluidRow( 
+      column(1 ),
+      column(7, plotOutput("maskplot", width = "350px", height = '260px')),
+      column(1)
+    ),
+    hr(),
     fluidRow(sliderInput(inputId = "dateRange", label =  NULL, ticks = F, 
                          min = 1, max = 365, 
                          value = c(70,90), round = T, step = 1, dragRange = T, width = "500px")),
     
-    plotOutput(outputId = "timeSeries", height = "200px", width = "500px"),
-    hr(),
-    plotOutput(outputId = "maskplot", height = "200px", width = "300px")
+    plotOutput(outputId = "timeSeries", height = "200px", width = "500px")
+    
+    
   )
 )
 

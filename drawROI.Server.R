@@ -8,15 +8,15 @@ server <- function(input, output, session) {
   imgFile <- reactive(imgDT[Site==input$site&Year==input$year&DOY==input$viewDay&Hour==12, path][1])
   
   isolate({
-    dmin <- imgDT[Site==input$site, min(Date)]
-    dmax <- imgDT[Site==input$site, max(Date)]
+    dmin <- imgDT[Site==input$site, min(Date, na.rm = T)]
+    dmax <- imgDT[Site==input$site, max(Date, na.rm = T)]
     updateDateRangeInput(session , inputId = 'roiDateRange', min = dmin, max = dmax)  
   })
   
   observe(
     updateSliderInput(session,
                       inputId = 'viewDay', 
-                      value = imgDT[Site==input$site&Year==input$year, min(DOY)]))
+                      value = imgDT[Site==input$site&Year==input$year, min(DOY, na.rm = T)]))
   observeEvent(input$site, 
                {
                  dmin <- imgDT[Site==input$site, min(Date)]
@@ -41,11 +41,11 @@ server <- function(input, output, session) {
     
     
     if(is.na(imgFile())){
-      par(mar=c(1,0,0,0))
+      par(mar=c(0,0,0,0))
       plot(NA, xlim=c(0,1), ylim=c(0,1), xaxs='i',yaxs='i', xaxt='n', yaxt='n', bty='o', xlab='',ylab='')
       text(0.5,0.5, 'No image for this date was found!', font=2, adj=.5)
     }else{
-      par(mar=c(1,0,0,0))
+      par(mar=c(0,0,0,0))
       plotJPEG(imgFile())
       trans <- as.hexmode(floor((1-input$roitrans/100)*255))
       if(nchar(trans)==1) trans <- paste0('0',trans)
@@ -113,12 +113,13 @@ server <- function(input, output, session) {
     else
       return(input$dateRange[1]:input$dateRange[2])
   })
+  paths <- reactive(imgDT[Site==input$site&Year==input$year&DOY%in%ccRange()&Hour==12&Minute<30, path])
   
   ccVals <- eventReactive(input$extract,{
-    if(is.null(curROI())) return(data.frame(rcc=NA, gcc=NA, bcc=NA))
+    if(is.null(curROI())|length(paths())==0) return(data.frame(rcc=NA, gcc=NA, bcc=NA))
     pnts <- isolate(curROI())
-    paths <- imgDT[Site==input$site&Year==input$year&DOY%in%ccRange()&Hour==12&Minute<30, path]
-    extractCCCTimeSeries(pnts, paths )
+    # paths <- imgDT[Site==input$site&Year==input$year&DOY%in%ccRange()&Hour==12&Minute<30, path]
+    extractCCCTimeSeries(pnts, paths() )
   })
   
   ccTime <- eventReactive(input$extract,{
@@ -160,22 +161,40 @@ server <- function(input, output, session) {
       
     })
   
-  # mask <- eventReactive(input$accept,{
-  #   if(is.null(curROI())) return(data.frame(rcc=NA, gcc=NA, bcc=NA))
-  #   pnts <- isolate(curROI())
-  #   paths <- imgDT[Site==input$site&Year==input$year&DOY%in%ccRange()&Hour==12&Minute<30, path]
-  #   createRasteredROI(pnts, paths[1])
-  # })
+  msk <- eventReactive(input$accept,{
+    pnts <- values$centers
+    if(nrow(pnts)<3) return(NULL)
+    # paths <- imgDT[Site==input$site&Year==input$year&DOY%in%ccRange()&Hour==12&Minute<30, path]
+    
+    createRasteredROI(pnts, imgFile())
+  })
+  
+  output$testplot <- renderPlot({
+    par(mar=c(0,0,0,0))
+    plot(1:10)
+  })
   
   output$maskplot <- 
     renderPlot({
-      mask <- ccVals()$mask
-      # plot(mask, legend=F)
-      res <- dim(mask)
-      par(mar=c(1,0,0,0))
-      plot(NA,xlim=c(1,res[1]),ylim=c(1,res[2]), type='n',
-           xaxs='i',yaxs='i',xaxt='n',yaxt='n',xlab='',ylab='',bty='o')
-      plot(mask,legend=F, add=T, col='black')
-      
+      par(mar=c(0,0,0,0))
+      if(is.null(msk())){
+        plot(1:10,
+             type='n',
+             xaxs='i',yaxs='i',
+             xaxt='n',yaxt='n',
+             xlab='',ylab='',
+             bty='o'
+        )
+      }else{
+        
+        # mask <- ccVals()$mask
+        
+        mask <- msk()
+        res <- dim(mask)
+        par(mar=c(0,0,0,0))
+        plot(NA,xlim=c(1,res[1]),ylim=c(1,res[2]), type='n',
+             xaxs='i',yaxs='i',xaxt='n',yaxt='n',xlab='',ylab='',bty='o')
+        plot(mask,legend=F, add=T, col='black')
+      }
     })
 }
