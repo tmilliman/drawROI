@@ -17,7 +17,6 @@ source('Resources/SwitchButton.R')
 source('drawROI.Funcs.R')
 source('drawROI.Init.R')
 
-sites <- unique(imgDT$Site)
 
 source('drawROI.UI.R')
 source('drawROI.Server.R')
