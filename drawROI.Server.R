@@ -113,21 +113,24 @@ server <- function(input, output, session) {
     else
       return(input$dateRange[1]:input$dateRange[2])
   })
-  paths <- reactive(imgDT[Site==input$site&Year==input$year&DOY%in%ccRange()&Hour==12&Minute<30, path])
+  
+  paths <- reactive(
+    imgDT[Site==input$site&Year==input$year&DOY%in%ccRange()&Hour==12, .(paths=path[1]),DOY]
+    )
   
   ccVals <- eventReactive(input$extract,{
-    if(is.null(curROI())|length(paths())==0) return(data.frame(rcc=NA, gcc=NA, bcc=NA))
+    if(is.null(curROI())|length(paths()$path)==0) return(data.frame(rcc=NA, gcc=NA, bcc=NA))
     pnts <- isolate(curROI())
     # paths <- imgDT[Site==input$site&Year==input$year&DOY%in%ccRange()&Hour==12&Minute<30, path]
-    extractCCCTimeSeries(pnts, paths() )
+    extractCCCTimeSeries(pnts, paths()$path)
   })
   
   ccTime <- eventReactive(input$extract,{
     if(is.null(curROI())) return(NA)
     if(input$sevenorall=="First 7 days")
-      return(imgDT[Site==input$site&Year==input$year&DOY%in%(input$dateRange[1]:(input$dateRange[1]+7))&Hour==12&Minute<30, DOY])
+      return(paths()[DOY%in%ccRange(),DOY])
     else 
-      return(imgDT[Site==input$site&Year==input$year&DOY%in%(input$dateRange[1]:input$dateRange[2])&Hour==12&Minute<30, DOY])    
+      return(paths()$DOY)
   })
   
   output$timeSeries <- 
