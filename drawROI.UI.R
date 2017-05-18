@@ -23,7 +23,13 @@ ui <- fluidPage(
                fluidRow(column(width = 6, timeInput("starttime", "Start Time:",  seconds = F)),
                         column(width = 6, timeInput("endtime", "End Time:",  seconds = F))
                ),
-               actionButton("generate", "Generate ROI List", icon = icon('area-chart'), width = "100%")
+               actionButton("generate", "Generate ROI List", icon = icon('list-alt'), width = "100%"),
+               br(),
+               br(),
+               actionButton("export", "Export ROI List", icon = icon('save'), width = "100%"),
+               br(),
+               br(),
+               actionButton("submit", "Submit ROI List", icon = icon('upload'), width = "100%")
   ),
   
   
@@ -33,6 +39,13 @@ ui <- fluidPage(
     sliderInput(inputId = "viewDay", label =  NULL, 
                 min = 1, max = 365, ticks = F, animate=F,
                 value = 50, round = T, step = 1, width = '500px'),
+    
+    fluidRow( 
+      column(1, actionButton("play", "", icon = icon('play'), width = '100%', style="border-color: #fff; align:center")),
+      column(1, actionButton("pause", "", icon = icon('pause'), width = '100%',  style="border-color: #fff"))
+    ),
+    
+    
     fluidRow( 
       column(1, actionButton("back", "", icon = icon('backward'), width = '100%', style="border-color: #fff")),
       column(7, plotOutput("plot", click = "newPoint", width = "350px", height = '260px')),
@@ -53,9 +66,9 @@ ui <- fluidPage(
     hr(),
     strong('Extracted Time Series'),
     
-    fluidRow(sliderInput(inputId = "dateRange", label =  NULL, ticks = F, 
-                         min = 1, max = 365, 
-                         value = c(1,365), round = T, step = 1, dragRange = T, width = "500px")),
+    sliderInput(inputId = "dateRange", label =  NULL, ticks = F, 
+                min = 1, max = 365, 
+                value = c(1,365), round = T, step = 1, dragRange = T, width = "500px"),
     
     plotOutput(outputId = "timeSeries", height = "200px", width = "500px")
     

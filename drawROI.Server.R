@@ -4,7 +4,8 @@ server <- function(input, output, session) {
   
   values <- reactiveValues(centers = matrix(numeric(), 0, 2),
                            ROIs = list(),
-                           ROIcols =list())
+                           ROIcols =list(),
+                           slideShow = F)
   
   imgFile <- reactive(imgDT[Site==input$site&Year==input$year&DOY==input$viewDay&Hour==12, path][1])
   
@@ -13,6 +14,14 @@ server <- function(input, output, session) {
     dmax <- imgDT[Site==input$site, max(Date, na.rm = T)]
     updateDateRangeInput(session , inputId = 'roiDateRange', min = dmin, max = dmax)  
   })
+  
+  observeEvent(input$pause, values$slideShow <- FALSE)
+  observeEvent(input$play, values$slideShow <- TRUE)
+  
+  observe({
+      if(!values$slideShow) return()
+      updateSliderInput(session, "viewDay", value = input$viewDay+1)
+    })
   
   observe(
     updateSliderInput(session,
@@ -44,7 +53,7 @@ server <- function(input, output, session) {
     if(is.na(imgFile())){
       par(mar=c(0,0,0,0))
       plot(NA, xlim=c(0,1), ylim=c(0,1), xaxs='i',yaxs='i', xaxt='n', yaxt='n', bty='o', xlab='',ylab='')
-      text(0.5,0.5, 'No image for this date was found!', font=2, adj=.5)
+      text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No image for this date was found!', font=2, adj=.5)
     }else{
       par(mar=c(0,0,0,0))
       plotJPEG(imgFile())
@@ -54,6 +63,8 @@ server <- function(input, output, session) {
       # polygon(values$centers, col = 'red', pch = 9)
     }
   })
+  
+  
   observeEvent(input$rois, {
     values$centers <- values$ROIs[[input$rois]]
   })
@@ -71,6 +82,7 @@ server <- function(input, output, session) {
   
   observeEvent(input$accept,
                {
+                 if(is.null(values$centers)) return()
                  if (nrow(values$centers)<3) return()
                  tmp <- values$ROIs
                  tmp[[length(tmp)+1]] <-  values$centers
@@ -105,7 +117,7 @@ server <- function(input, output, session) {
     updateSelectInput(session, "year",
                       label = 'Year',
                       choices = x,
-                      selected = tail(x, 1))
+                      selected = head(x, 1))
   })
   
   ccRange <- reactive({
@@ -117,7 +129,7 @@ server <- function(input, output, session) {
   
   paths <- reactive(
     imgDT[Site==input$site&Year==input$year&DOY%in%ccRange()&Hour==12, .(paths=path[1]),DOY]
-    )
+  )
   
   ccVals <- eventReactive(input$extract,{
     if(is.null(curROI())|length(paths()$path)==0) return(data.frame(rcc=NA, gcc=NA, bcc=NA))
@@ -143,13 +155,20 @@ server <- function(input, output, session) {
            type = 'l', xlab='', ylab='')
       mtext(side = 1, text = 'Day of year', font=2, line=2.5)
       mtext(side = 2, text = 'GCC (-)', font=2, line=2.5)
-      if(input$extract==0) return()
+      if(input$extract==0) {
+        text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No time series was generated!', font=2, adj=.5)
+        
+        return()
+      }
       # imgFile <- imgDT[Site==input$site&Year==input$year&DOY==input$viewDay&Hour==12, path][1]
       # if(is.na(imgFile)|input$accept==0|nrow(values$centers)<3) return()
       # if(is.na(imgFile)|input$accept==0|nrow(values$centers)<3|input$extract==0) return()
       
       TS <- ccVals()$TS
-      
+      if(is.null(TS)){
+        text(mean(par()$usr[1:2]), mean(par()$usr[3:4]),  'No time series was generated!', font=2, adj=.5)
+        return()
+      }
       lines(ccTime(), TS$rcc,  col='red', lwd=2)
       lines(ccTime(), TS$gcc,  col='green', lwd=2)
       lines(ccTime(), TS$bcc,  col='blue', lwd=2)
@@ -167,6 +186,7 @@ server <- function(input, output, session) {
   
   msk <- eventReactive(input$accept,{
     pnts <- values$centers
+    if(is.null(pnts))return(NULL)
     if(nrow(pnts)<3) return(NULL)
     # paths <- imgDT[Site==input$site&Year==input$year&DOY%in%ccRange()&Hour==12&Minute<30, path]
     
@@ -180,22 +200,34 @@ server <- function(input, output, session) {
   
   output$maskplot <- 
     renderPlot({
+      
       par(mar=c(0,0,0,0))
+      plot(1,
+           type='n',
+           xaxs='i',yaxs='i',
+           xaxt='n',yaxt='n',
+           xlab='',ylab='',
+           bty='o')
+      if(input$accept==0) {
+        text(mean(par()$usr[1:2]), mean(par()$usr[3:4]),  'No mask was generated!', font=2, adj=.5)
+        return()
+      }
       if(is.null(msk())){
-        plot(1:10,
-             type='n',
-             xaxs='i',yaxs='i',
-             xaxt='n',yaxt='n',
-             xlab='',ylab='',
-             bty='o'
-        )
+        text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No mask was generated!', font=2, adj=.5)
+        # plot(1:10,
+        #      type='n',
+        #      xaxs='i',yaxs='i',
+        #      xaxt='n',yaxt='n',
+        #      xlab='',ylab='',
+        #      bty='o'
+        # )
       }else{
         
         # mask <- ccVals()$mask
         
         mask <- msk()
         res <- dim(mask)
-        par(mar=c(0,0,0,0))
+        # par(mar=c(0,0,0,0))
         plot(NA,xlim=c(1,res[1]),ylim=c(1,res[2]), type='n',
              xaxs='i',yaxs='i',xaxt='n',yaxt='n',xlab='',ylab='',bty='o')
         plot(mask,legend=F, add=T, col='black')
