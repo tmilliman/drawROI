@@ -29,6 +29,7 @@ ui <- fluidPage(
   
   
   mainPanel(
+    strong('Daily Image browser'),
     sliderInput(inputId = "viewDay", label =  NULL, 
                 min = 1, max = 365, ticks = F, animate=F,
                 value = 50, round = T, step = 1, width = '500px'),
@@ -43,12 +44,15 @@ ui <- fluidPage(
     actionButton("accept", "Accept", icon = icon('thumbs-up'), width = "160px"),
     br(),
     br(),
+    strong('ROI Mask'),
     fluidRow( 
       column(1 ),
       column(7, plotOutput("maskplot", width = "350px", height = '260px')),
       column(1)
     ),
     hr(),
+    strong('Extracted Time Series'),
+    
     fluidRow(sliderInput(inputId = "dateRange", label =  NULL, ticks = F, 
                          min = 1, max = 365, 
                          value = c(1,365), round = T, step = 1, dragRange = T, width = "500px")),
