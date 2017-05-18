@@ -3,7 +3,8 @@
 server <- function(input, output, session) {
   
   values <- reactiveValues(centers = matrix(numeric(), 0, 2),
-                           ROIs = list())
+                           ROIs = list(),
+                           ROIcols =list())
   
   imgFile <- reactive(imgDT[Site==input$site&Year==input$year&DOY==input$viewDay&Hour==12, path][1])
   

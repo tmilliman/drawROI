@@ -9,11 +9,6 @@ ui <- fluidPage(
                selectInput("site", "Site", sites),
                selectInput("year", "Year", ''),
                selectInput("rois", "ROI", choices = NULL),
-               dateRangeInput(inputId = 'roiDateRange', label = 'ROI Start/End Dates:', start = '2001-01-01', end = '2016-01-01', separator = '-', startview='year'),
-               
-               fluidRow(column(width = 6, timeInput("starttime", "Start Time:",  seconds = F)),
-                        column(width = 6, timeInput("endtime", "End Time:",  seconds = F))
-               ),
                fluidRow(
                  column(width = 6, colourInput(inputId = 'roicol', label = 'ROI Color',value = '#30aa20', showColour = 'background')),
                  column(width = 6, sliderInput(inputId = 'roitrans', label = 'Transparency', min = 0, max = 100, value = 50, ticks = F, width = '100%', pre = '%'))
@@ -22,7 +17,12 @@ ui <- fluidPage(
                radioButtons('sevenorall', label = 'Time series range:', choices = c('First 7 days','Entire time range'), width = "100%",inline = T),
                actionButton("extract", "Extract GCC", icon = icon('line-chart'), width = "100%"),
                br(),
-               br(),
+               hr(),
+               dateRangeInput(inputId = 'roiDateRange', label = 'ROI Start/End Dates:', start = '2001-01-01', end = '2016-01-01', separator = '-', startview='year'),
+               
+               fluidRow(column(width = 6, timeInput("starttime", "Start Time:",  seconds = F)),
+                        column(width = 6, timeInput("endtime", "End Time:",  seconds = F))
+               ),
                actionButton("generate", "Generate ROI List", icon = icon('area-chart'), width = "100%")
   ),
   
@@ -51,7 +51,7 @@ ui <- fluidPage(
     hr(),
     fluidRow(sliderInput(inputId = "dateRange", label =  NULL, ticks = F, 
                          min = 1, max = 365, 
-                         value = c(70,90), round = T, step = 1, dragRange = T, width = "500px")),
+                         value = c(1,365), round = T, step = 1, dragRange = T, width = "500px")),
     
     plotOutput(outputId = "timeSeries", height = "200px", width = "500px")
     
