@@ -18,6 +18,7 @@ ui <- fluidPage(
                actionButton("extract", "Extract GCC", icon = icon('line-chart'), width = "100%"),
                br(),
                hr(),
+               
                dateRangeInput(inputId = 'roiDateRange', label = 'ROI Start/End Dates:', start = '2001-01-01', end = '2016-01-01', separator = '-', startview='year'),
                
                fluidRow(column(width = 6, timeInput("starttime", "Start Time:",  seconds = F)),
