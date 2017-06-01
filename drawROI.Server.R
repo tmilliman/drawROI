@@ -3,9 +3,18 @@
 server <- function(input, output, session) {
   
   values <- reactiveValues(centers = matrix(numeric(), 0, 2),
-                           ROIs = list(),
-                           ROIcols =list(),
-                           slideShow = F)
+                           MASKs = list(),
+                           slideShow = 0)
+  
+  output$roilabel <- renderText({
+    roipath <- paste0('phenocamdata/',input$site,'/ROI/')
+    nroi <- length(dir(roipath, pattern = '*roi.csv'))+1
+    paste(input$site, 
+          input$vegtype, 
+          sprintf('%04d',nroi), 
+          'roi.csv',
+          sep = '_')
+  })
   
   imgFile <- reactive(imgDT[Site==input$site&Year==input$year&DOY==input$viewDay&Hour==12, path][1])
   
@@ -15,18 +24,20 @@ server <- function(input, output, session) {
     updateDateRangeInput(session , inputId = 'roiDateRange', min = dmin, max = dmax)  
   })
   
-  observeEvent(input$pause, values$slideShow <- FALSE)
-  observeEvent(input$play, values$slideShow <- TRUE)
+  observeEvent(input$pause, values$slideShow <- 0)
+  observeEvent(input$play, values$slideShow <- 1)
+  observeEvent(input$backplay, values$slideShow <- -1)
   
   observe({
-      if(!values$slideShow) return()
-      updateSliderInput(session, "viewDay", value = input$viewDay+1)
+      if(values$slideShow==0) return()
+      updateSliderInput(session, "viewDay", value = input$viewDay+values$slideShow)
     })
   
   observe(
     updateSliderInput(session,
                       inputId = 'viewDay', 
                       value = imgDT[Site==input$site&Year==input$year, min(DOY, na.rm = T)]))
+  
   observeEvent(input$site, 
                {
                  dmin <- imgDT[Site==input$site, min(Date)]
@@ -36,15 +47,11 @@ server <- function(input, output, session) {
                                       start = dmin, end = dmax)  
                })
   
-  # curROI <- reactive({
-  #   if(length(values$ROIs)==0) return(NULL)
-  #   else values$ROIs[[input$rois]]
-  # })
-  
-  curROI <- eventReactive(input$rois,
+
+  curMask <- eventReactive(input$masks,
                           {
-                            if(length(values$ROIs)==0) return(NULL)
-                            else values$ROIs[[input$rois]]
+                            if(length(values$MASKs)==0) return(NULL)
+                            else values$MASKs[[input$masks]]
                           })
   
   output$plot <- renderPlot({
@@ -65,8 +72,8 @@ server <- function(input, output, session) {
   })
   
   
-  observeEvent(input$rois, {
-    values$centers <- values$ROIs[[input$rois]]
+  observeEvent(input$masks, {
+    values$centers <- values$MASKs[[input$masks]]
   })
   
   observeEvent(input$newPoint, {
@@ -84,11 +91,13 @@ server <- function(input, output, session) {
                {
                  if(is.null(values$centers)) return()
                  if (nrow(values$centers)<3) return()
-                 tmp <- values$ROIs
+                 tmp <- values$MASKs
                  tmp[[length(tmp)+1]] <-  values$centers
-                 names(tmp)[length(tmp)] <- paste('ROI', length(tmp), sep = '.')
-                 updateSelectInput(session, inputId = 'rois', choices = names(tmp))
-                 values$ROIs <- tmp
+                 names(tmp)[length(tmp)] <- paste(input$site, input$vegtype, 
+                                                  sprintf('%04d',length(values$ROIs)),
+                                                  sprintf('%02d',length(tmp)), sep = '_')
+                 updateSelectInput(session, inputId = 'masks', choices = names(tmp))
+                 values$MASKs <- tmp
                })
   
   observeEvent(input$cancel, 
@@ -108,16 +117,14 @@ server <- function(input, output, session) {
   })
   
   observe({
-    updateSelectInput(session, inputId = 'rois', choices = names(values$ROIs), selected = names(values$ROIs)[length(values$ROIs)])
+    updateSelectInput(session, inputId = 'masks', choices = names(values$MASKs), selected = names(values$MASKs)[length(values$MASKs)])
   })
   observe({
     x <- imgDT[Site==input$site, unique(Year)]
     if (is.null(x)) x <- character(0)
     
-    updateSelectInput(session, "year",
-                      label = 'Year',
-                      choices = x,
-                      selected = head(x, 1))
+    updateSelectInput(session, "year", choices = x, selected = head(x, 1))
+    # updateSliderInput(session, 'year', min = min(x), max=max(x), step = 1)
   })
   
   ccRange <- reactive({
@@ -132,14 +139,14 @@ server <- function(input, output, session) {
   )
   
   ccVals <- eventReactive(input$extract,{
-    if(is.null(curROI())|length(paths()$path)==0) return(data.frame(rcc=NA, gcc=NA, bcc=NA))
-    pnts <- isolate(curROI())
+    if(is.null(curMask())|length(paths()$path)==0) return(data.frame(rcc=NA, gcc=NA, bcc=NA))
+    pnts <- isolate(curMask())
     # paths <- imgDT[Site==input$site&Year==input$year&DOY%in%ccRange()&Hour==12&Minute<30, path]
     extractCCCTimeSeries(pnts, paths()$path)
   })
   
   ccTime <- eventReactive(input$extract,{
-    if(is.null(curROI())) return(NA)
+    if(is.null(curMask())) return(NA)
     if(input$sevenorall=="First 7 days")
       return(paths()[DOY%in%ccRange(),DOY])
     else 

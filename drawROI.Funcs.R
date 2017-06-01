@@ -1,3 +1,4 @@
+library(lubridate)
 library(data.table)
 library(raster)
 library(shiny)
@@ -88,10 +89,6 @@ createRasteredROI <- function(pnts, path){
   poly@polygons[[1]]@Polygons[[1]]@coords <- as.matrix(pnts)
   r <- rasterize(poly, raster(ext, nrow = res[1], ncol = res[2]))
   # writeRaster(r, "tmp2.tif")
-  m <- as.matrix(r)
-  m[m==1] <- 0
-  m[is.na(m)] <- 1
-  writeTIFF(m , where = 'tmp6.tif')
   r
 }
 
@@ -121,5 +118,57 @@ extractCCCTimeSeries <- function(pnts, paths, PLUS=F){
   
   list(TS = CCCT, mask= rmsk)
 }
+
+
+
+writeROIListFile <- function(ROIList, path='ROI/'){
+  
+  filename <- paste(ROIList$siteName, ROIList$vegType, sprintf('%04d', ROIList$ID), 'roi.csv', sep = '_')
+  
+  updateTime <- Sys.time()
+  hdrText <- paste0('#\n# ROI List for ', ROIList$siteName,
+                    '\n#',
+                    '\n# Site: ', ROIList$siteName,
+                    '\n# Veg Type: ', ROIList$vegType, 
+                    '\n# ROI ID Number: ', sprintf('%04d', ROIList$ID),
+                    '\n# Owner: ', ROIList$Owner,
+                    '\n# Creation Date: ', strftime(ROIList$createTime, format = '%Y-%m-%d'),
+                    '\n# Creation Time: ', strftime(ROIList$createTime, format = '%H:%M:%S'),
+                    '\n# Update Date: ', strftime(updateTime, format = '%Y-%m-%d'),
+                    '\n# Update Time: ', strftime(updateTime, format = '%H:%M:%S'),
+                    '\n# Description: ', ROIList$Description,
+                    '\n#\n')
+  
+  bdyText <- 'start_date,start_time,end_date,end_time,maskfile,sample_image\n'
+  
+  for(i in 1:length(ROIList$ROIs)){
+    m <- as.matrix(ROIList$ROIs[[i]]$maskfile)
+    m[m==1] <- 0
+    m[is.na(m)] <- 1
+    rName <- paste0(ROIList$siteName, '_',
+                    ROIList$vegType, '_',
+                    sprintf('%04d', ROIList$ID), '_',
+                    sprintf('%02d', i), 
+                    '.tif')
+    
+    writeTIFF(m , where = paste0(path, rName))
+    
+    bdyLine <- paste( ROIList$ROIs[[i]]$start_date,
+                      ROIList$ROIs[[i]]$start_time,
+                      ROIList$ROIs[[i]]$end_date, 
+                      ROIList$ROIs[[i]]$end_time,
+                      rName,
+                      ROIList$ROIs[[i]]$sample_image, sep = ',')
+    bdyText <- paste0(bdyText, bdyLine, '\n')
+  }
+  
+  writeLines(paste0(hdrText, bdyText), con = file(paste0(path,filename)))
+  
+}
+
+readROIFolder <- function(){
+  
+}
+
 
 

@@ -14,7 +14,7 @@ source('drawROI.Funcs.R')
 dataPath <- 'phenocamdata'
 
 imgDT <- data.table(path = dir(dataPath, recursive = T, full.names = T, pattern = '*.jpg'),
-                       tmp =  dir(dataPath, recursive = T, full.names = F, pattern = '*.jpg'))
+                    tmp =  dir(dataPath, recursive = T, full.names = F, pattern = '*.jpg'))
 imgDT$tmp <- unlist(lapply(imgDT$tmp, function(x){strsplit(x,split = '/', fixed = T)[[1]][4]}))
 imgDT[,c('Site', 'Year', 'Month','Day','HHMMSS'):=as.data.table(matrix(unlist(strsplit(gsub(tmp,pattern = '.jpg', replacement = ''), split = '_')), ncol=5, byrow = T))]
 imgDT[,Year:=as.numeric(Year)]
@@ -32,3 +32,21 @@ imgDT[,DateTime:=ISOdatetime(Year, Month, Day, Hour, Minute, Second)]
 sites <- unique(imgDT$Site)
 
 
+vegTypes.Names <-   c('Agriculture (AG)',
+                'Deciduous Broadleaf (DB)',
+                'Evergreen Broadleaf (EB)',
+                'Evergreen Needleleaf (EN)',
+                'Deciduous Needleleaf (DN)',
+                'Grassland (GR)',
+                'Mixed Forest (MX)',
+                'Non-vegetated (NV)',
+                'Reference Panel (RF)',
+                'Shrub (SH)',
+                'Tundra (TN)',
+                'Understory (UN)',
+                'Wetland (WL)',
+                'Other/Canopy (XX)')
+
+vegTypes <-   list('AG','DB','EB','EN','DN','GR','MX',
+                'NV','RF','SH','TN','UN','WL','XX')
+names(vegTypes) <- vegTypes.Names
