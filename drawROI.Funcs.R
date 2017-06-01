@@ -92,8 +92,8 @@ createRasteredROI <- function(pnts, path){
   r
 }
 
-extractCCCTimeSeries <- function(pnts, paths, PLUS=F){
-  rmsk <- createRasteredROI(pnts, paths[1])
+extractCCCTimeSeries <- function(rmsk, paths, PLUS=F){
+  # rmsk <- createRasteredROI(pnts, paths[1])
   mmsk <- as.matrix(rmsk)
   
   n <- length(paths)
@@ -116,8 +116,9 @@ extractCCCTimeSeries <- function(pnts, paths, PLUS=F){
       CCCT[i,] <- as.data.table(ccc[c("rcc", "gcc", "bcc")])
     }
   
-  list(TS = CCCT, mask= rmsk)
-}
+  # list(TS = CCCT, mask= rmsk)
+  CCCT
+  }
 
 
 
@@ -141,8 +142,8 @@ writeROIListFile <- function(ROIList, path='ROI/'){
   
   bdyText <- 'start_date,start_time,end_date,end_time,maskfile,sample_image\n'
   
-  for(i in 1:length(ROIList$ROIs)){
-    m <- as.matrix(ROIList$ROIs[[i]]$maskfile)
+  for(i in 1:length(ROIList$masks)){
+    m <- as.matrix(ROIList$masks[[i]]$rasteredMask)
     m[m==1] <- 0
     m[is.na(m)] <- 1
     rName <- paste0(ROIList$siteName, '_',
@@ -153,17 +154,17 @@ writeROIListFile <- function(ROIList, path='ROI/'){
     
     writeTIFF(m , where = paste0(path, rName))
     
-    bdyLine <- paste( ROIList$ROIs[[i]]$start_date,
-                      ROIList$ROIs[[i]]$start_time,
-                      ROIList$ROIs[[i]]$end_date, 
-                      ROIList$ROIs[[i]]$end_time,
+    bdyLine <- paste( ROIList$masks[[i]]$startdate,
+                      format(ROIList$masks[[i]]$starttime, '%H:%M:%S'),
+                      ROIList$masks[[i]]$enddate, 
+                      format(ROIList$masks[[i]]$endtime, '%H:%M:%S'),
                       rName,
-                      ROIList$ROIs[[i]]$sample_image, sep = ',')
+                      ROIList$masks[[i]]$sampleImage, sep = ',')
     bdyText <- paste0(bdyText, bdyLine, '\n')
   }
-  
-  writeLines(paste0(hdrText, bdyText), con = file(paste0(path,filename)))
-  
+  fcon <- file(paste0(path,filename))
+  writeLines(paste0(hdrText, bdyText), con = fcon)
+  close(fcon)
 }
 
 readROIFolder <- function(){

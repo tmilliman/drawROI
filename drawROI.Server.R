@@ -1,79 +1,120 @@
+# This is the server logic for a Shiny web application.
+# You can find out more about building applications with Shiny here:
+#
+# http://shiny.rstudio.com
+
+library(sp)
+library(raster)
+library(jpeg)
+library(shiny)
+library(shinyTime)
+library(lubridate)
+library(data.table)
+library(colourpicker)
+
+source('Resources/SwitchButton.R')
+
+source('drawROI.Funcs.R')
+source('drawROI.Init.R')
 
 
+source('drawROI.UI.R')
+
+# source('drawROI.Server.R')
 server <- function(input, output, session) {
   
   values <- reactiveValues(centers = matrix(numeric(), 0, 2),
                            MASKs = list(),
-                           slideShow = 0)
+                           slideShow = 0
+                           )
+  roipath <- reactive(paste0('phenocamdata/',input$site,'/ROI/'))
+  nroi <- reactive({
+    length(dir(roipath(), pattern = '*roi.csv'))+1
+  })
   
   output$roilabel <- renderText({
-    roipath <- paste0('phenocamdata/',input$site,'/ROI/')
-    nroi <- length(dir(roipath, pattern = '*roi.csv'))+1
     paste(input$site, 
           input$vegtype, 
-          sprintf('%04d',nroi), 
+          sprintf('%04d',nroi()), 
           'roi.csv',
           sep = '_')
   })
   
-  imgFile <- reactive(imgDT[Site==input$site&Year==input$year&DOY==input$viewDay&Hour==12, path][1])
-  
-  isolate({
-    dmin <- imgDT[Site==input$site, min(Date, na.rm = T)]
-    dmax <- imgDT[Site==input$site, max(Date, na.rm = T)]
-    updateDateRangeInput(session , inputId = 'roiDateRange', min = dmin, max = dmax)  
+  sampleImageName <- reactive({
+    tmp <- unlist(strsplit(sampleImage(), split = '/'))
+    tmp[length(tmp)]
   })
+  output$sampleImagePath <- renderText(
+    sampleImageName()
+  )
+  
+  sampleImage <- reactive(
+    imgDT[Site==input$site&Year==input$year&DOY==input$viewDay&Hour==12, path][1]
+  )
+  
+  # isolate({
+  #   dmin <- imgDT[Site==input$site, min(Date, na.rm = T)]
+  #   dmax <- imgDT[Site==input$site, max(Date, na.rm = T)]
+  #   updateDateRangeInput(session , inputId = 'roiDateRange', min = dmin, max = dmax)  
+  # })
   
   observeEvent(input$pause, values$slideShow <- 0)
   observeEvent(input$play, values$slideShow <- 1)
   observeEvent(input$backplay, values$slideShow <- -1)
   
   observe({
-      if(values$slideShow==0) return()
-      updateSliderInput(session, "viewDay", value = input$viewDay+values$slideShow)
-    })
+    if(values$slideShow==0) return()
+    updateSliderInput(session, "viewDay", value = input$viewDay+values$slideShow)
+  })
   
   observe(
     updateSliderInput(session,
                       inputId = 'viewDay', 
-                      value = imgDT[Site==input$site&Year==input$year, min(DOY, na.rm = T)]))
+                      value = imgDT[Site==input$site&Year==input$year, min(DOY, na.rm = T)])
+  )
   
   observeEvent(input$site, 
                {
                  dmin <- imgDT[Site==input$site, min(Date)]
                  dmax <- imgDT[Site==input$site, max(Date)]
-                 updateDateRangeInput(session , inputId = 'roiDateRange',
-                                      min = dmin, max = dmax,
-                                      start = dmin, end = dmax)  
+                 updateDateRangeInput(session ,
+                                      inputId = 'roiDateRange',
+                                      # min = dmin, 
+                                      # max = dmax,
+                                      start = dmin,
+                                      end = dmax)  
                })
   
-
   curMask <- eventReactive(input$masks,
-                          {
-                            if(length(values$MASKs)==0) return(NULL)
-                            else values$MASKs[[input$masks]]
-                          })
+                                 {
+                                   if(length(values$MASKs)==0) return(NULL)
+                                   else values$MASKs[[input$masks]]$rasteredMask
+                                 })
   
   output$plot <- renderPlot({
-    
-    
-    if(is.na(imgFile())){
+    if(is.na(sampleImage())){
       par(mar=c(0,0,0,0))
       plot(NA, xlim=c(0,1), ylim=c(0,1), xaxs='i',yaxs='i', xaxt='n', yaxt='n', bty='o', xlab='',ylab='')
       text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No image for this date was found!', font=2, adj=.5)
     }else{
       par(mar=c(0,0,0,0))
-      plotJPEG(imgFile())
+      plotJPEG(sampleImage())
       trans <- as.hexmode(floor((1-input$roitrans/100)*255))
       if(nchar(trans)==1) trans <- paste0('0',trans)
       polygon(values$centers, col = paste0(input$roicol, trans), pch = 9)
-      # polygon(values$centers, col = 'red', pch = 9)
     }
   })
   
-  
   observeEvent(input$masks, {
-    values$centers <- values$MASKs[[input$masks]]
+    tmpmask <- values$MASKs[[input$masks]]
+    
+    values$centers <- tmpmask$maskpoints
+    updateDateRangeInput(session, inputId = 'roiDateRange', start=tmpmask$startdate)
+    updateDateRangeInput(session, inputId = 'roiDateRange', end=tmpmask$enddate)
+    updateTimeInput(session, inputId = 'starttime', value = tmpmask$starttime)
+    updateTimeInput(session, inputId = 'endtime', value = tmpmask$endtime)
+    updateSelectInput(session, inputId = 'year', selected = tmpmask$sampleyear)
+    updateSelectInput(session, inputId = 'viewDay', selected = tmpmask$sampleday)
   })
   
   observeEvent(input$newPoint, {
@@ -91,14 +132,33 @@ server <- function(input, output, session) {
                {
                  if(is.null(values$centers)) return()
                  if (nrow(values$centers)<3) return()
+                 
+                 newMask <- list(maskpoints = values$centers, 
+                                 startdate = input$roiDateRange[1], 
+                                 enddate = input$roiDateRange[2], 
+                                 starttime = input$starttime, 
+                                 endtime = input$endtime, 
+                                 sampleyear = input$year, 
+                                 sampleday = input$viewDay,
+                                 sampleImage = sampleImageName(),
+                                 rasteredMask = createRasteredROI(values$centers, sampleImage()))
+                 
                  tmp <- values$MASKs
-                 tmp[[length(tmp)+1]] <-  values$centers
+                 tmp[[length(tmp)+1]] <-  newMask
                  names(tmp)[length(tmp)] <- paste(input$site, input$vegtype, 
-                                                  sprintf('%04d',length(values$ROIs)),
+                                                  sprintf('%04d',nroi()),
                                                   sprintf('%02d',length(tmp)), sep = '_')
                  updateSelectInput(session, inputId = 'masks', choices = names(tmp))
                  values$MASKs <- tmp
+                 # values$msk <- tmp$rasteredMask
                })
+  
+  # msk <- eventReactive(input$accept,{
+  #   pnts <- values$centers
+  #   if(is.null(pnts))return(NULL)
+  #   if(nrow(pnts)<3) return(NULL)
+  #   createRasteredROI(pnts, sampleImage())
+  # })
   
   observeEvent(input$cancel, 
                values$centers <- matrix(numeric(), 0, 2))
@@ -111,9 +171,19 @@ server <- function(input, output, session) {
     else if (nrow(values$centers) == 1)
       values$centers <- matrix(numeric(), 0, 2)
   })
-  
   observeEvent(input$generate,{
+    if(length(values$MASKs)==0) return()
+    systime <- format(Sys.time(), '%Y-%m-%d %H:%M:%S')
+    ROIList <- list(siteName = input$site, 
+                    vegType = input$vegtype, 
+                    ID = nroi(),
+                    Owner= input$owner, 
+                    Description = input$descr, 
+                    createTime = systime, 
+                    updateTime = systime, 
+                    masks = values$MASKs)
     
+    writeROIListFile(ROIList, path = roipath() )
   })
   
   observe({
@@ -128,7 +198,7 @@ server <- function(input, output, session) {
   })
   
   ccRange <- reactive({
-    if(input$sevenorall=="First 7 days")
+    if(input$sevenorall=="7 days")
       return(input$dateRange[1]:(input$dateRange[1]+7))
     else
       return(input$dateRange[1]:input$dateRange[2])
@@ -140,9 +210,7 @@ server <- function(input, output, session) {
   
   ccVals <- eventReactive(input$extract,{
     if(is.null(curMask())|length(paths()$path)==0) return(data.frame(rcc=NA, gcc=NA, bcc=NA))
-    pnts <- isolate(curMask())
-    # paths <- imgDT[Site==input$site&Year==input$year&DOY%in%ccRange()&Hour==12&Minute<30, path]
-    extractCCCTimeSeries(pnts, paths()$path)
+    extractCCCTimeSeries(isolate(curMask()), paths()$path)
   })
   
   ccTime <- eventReactive(input$extract,{
@@ -164,14 +232,9 @@ server <- function(input, output, session) {
       mtext(side = 2, text = 'GCC (-)', font=2, line=2.5)
       if(input$extract==0) {
         text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No time series was generated!', font=2, adj=.5)
-        
         return()
       }
-      # imgFile <- imgDT[Site==input$site&Year==input$year&DOY==input$viewDay&Hour==12, path][1]
-      # if(is.na(imgFile)|input$accept==0|nrow(values$centers)<3) return()
-      # if(is.na(imgFile)|input$accept==0|nrow(values$centers)<3|input$extract==0) return()
-      
-      TS <- ccVals()$TS
+      TS <- ccVals()
       if(is.null(TS)){
         text(mean(par()$usr[1:2]), mean(par()$usr[3:4]),  'No time series was generated!', font=2, adj=.5)
         return()
@@ -179,35 +242,11 @@ server <- function(input, output, session) {
       lines(ccTime(), TS$rcc,  col='red', lwd=2)
       lines(ccTime(), TS$gcc,  col='green', lwd=2)
       lines(ccTime(), TS$bcc,  col='blue', lwd=2)
-      
-      
-      
-      # mask <- ccVals()$mask
-      # # plot(mask, legend=F)
-      # res <- dim(mask)
-      # plot(NA,xlim=c(1,res[1]),ylim=c(1,res[2]), type='n',
-      #      xaxs='i',yaxs='i',xaxt='n',yaxt='n',xlab='',ylab='',bty='o')
-      # plot(mask,legend=F, add=T, col='black')
-      
     })
   
-  msk <- eventReactive(input$accept,{
-    pnts <- values$centers
-    if(is.null(pnts))return(NULL)
-    if(nrow(pnts)<3) return(NULL)
-    # paths <- imgDT[Site==input$site&Year==input$year&DOY%in%ccRange()&Hour==12&Minute<30, path]
-    
-    createRasteredROI(pnts, imgFile())
-  })
-  
-  output$testplot <- renderPlot({
-    par(mar=c(0,0,0,0))
-    plot(1:10)
-  })
   
   output$maskplot <- 
     renderPlot({
-      
       par(mar=c(0,0,0,0))
       plot(1,
            type='n',
@@ -215,29 +254,27 @@ server <- function(input, output, session) {
            xaxt='n',yaxt='n',
            xlab='',ylab='',
            bty='o')
-      if(input$accept==0) {
-        text(mean(par()$usr[1:2]), mean(par()$usr[3:4]),  'No mask was generated!', font=2, adj=.5)
+      if(length(values$MASKs)==0){
+        text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No mask was generated!', font=2, adj=.5)
         return()
       }
-      if(is.null(msk())){
-        text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No mask was generated!', font=2, adj=.5)
-        # plot(1:10,
-        #      type='n',
-        #      xaxs='i',yaxs='i',
-        #      xaxt='n',yaxt='n',
-        #      xlab='',ylab='',
-        #      bty='o'
-        # )
-      }else{
-        
-        # mask <- ccVals()$mask
-        
-        mask <- msk()
-        res <- dim(mask)
-        # par(mar=c(0,0,0,0))
-        plot(NA,xlim=c(1,res[1]),ylim=c(1,res[2]), type='n',
-             xaxs='i',yaxs='i',xaxt='n',yaxt='n',xlab='',ylab='',bty='o')
-        plot(mask,legend=F, add=T, col='black')
-      }
+      # if(input$accept==0) {
+      #   text(mean(par()$usr[1:2]), mean(par()$usr[3:4]),  'No mask was generated!', font=2, adj=.5)
+      #   return()
+      # }
+      # if(is.null(msk())){
+      # if(is.null(values$msk)|length(values$MASKs)==0){
+      #   text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No mask was generated!', font=2, adj=.5)
+      # }else{
+      # mask <- values$msk
+      if(is.null(curMask())) return()
+      mask <- curMask()
+      res <- dim(mask)
+      plot(NA,xlim=c(1,res[1]),ylim=c(1,res[2]), type='n',
+           xaxs='i',yaxs='i',xaxt='n',yaxt='n',xlab='',ylab='',bty='o')
+      plot(mask,legend=F, add=T, col='black')
+      # }
     })
 }
+
+shinyApp(ui, server)

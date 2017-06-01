@@ -7,16 +7,19 @@ ui <- fluidPage(
                selectInput("vegtype", "Vegetation Type", choices = vegTypes, selected = ''),
                textInput('descr','Description', placeholder = 'Enter a description for the ROI'),
                textInput('owner','Owner', placeholder = 'Enter your name'),
-               h4('ROI List filename:'),
+               strong('ROI List filename:'),
                textOutput('roilabel'),
                hr(),
                
                selectInput("masks", "Mask", choices = NULL),
+               strong('Sample Image:'),
+               textOutput('sampleImagePath'),
+               br(),
                dateRangeInput(inputId = 'roiDateRange', label = 'ROI Start/End Dates:', start = '2001-01-01', end = '2016-01-01', separator = '-', startview='year'),
                
                fluidRow(
-                 column(width = 6, timeInput("starttime", "Start Time:",  seconds = F)),
-                 column(width = 6, timeInput("endtime", "End Time:",  seconds = F))
+                 column(width = 6, timeInput("starttime", "Start Time:",  seconds = T)),
+                 column(width = 6, timeInput("endtime", "End Time:",  seconds = T))
                ),
                actionButton("generate", "Generate ROI List", icon = icon('list-alt'), width = "100%")
   ),
@@ -42,7 +45,7 @@ ui <- fluidPage(
     
     fluidRow(
       column(6, plotOutput("plot", click = "newPoint", width = "350px", height = '260px')),
-      column(6,plotOutput("maskplot", width = "350px", height = '260px'))
+      column(6, plotOutput("maskplot", width = "350px", height = '260px'))
     ),
     
     fluidRow(
