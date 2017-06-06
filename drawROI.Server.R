@@ -9,6 +9,7 @@ library(jpeg)
 library(shiny)
 library(shinyTime)
 library(lubridate)
+library(plotly)
 library(data.table)
 library(colourpicker)
 
@@ -121,12 +122,15 @@ server <- function(input, output, session) {
                  updateSelectInput(session, "year", choices = x)
                  
                })
-  
-  curMask <- eventReactive(input$masks,
-                           {
-                             if(length(values$MASKs)==0) return(NULL)
-                             else values$MASKs[[input$masks]]$rasteredMask
-                           })
+  curMask <- reactive({
+    if(length(values$MASKs)==0) return(NULL)
+    values$MASKs[[input$masks]]$rasteredMask
+  })
+  # curMask <- eventReactive(input$masks,
+  #                          {
+  #                            if(length(values$MASKs)==0) return(NULL)
+  #                            else values$MASKs[[input$masks]]$rasteredMask
+  #                          })
   
   output$plot <- renderPlot({
     if(is.na(sampleImage())){
@@ -231,9 +235,11 @@ server <- function(input, output, session) {
   
   tsDayRange <- reactive({
     if(input$sevenorall=="7 days")
-      return(input$dateRange[1]:(input$dateRange[1]+7))
+      # return(input$dateRange[1]:(input$dateRange[1]+7))
+    return(input$viewDay[1]:(input$viewDay[1]+7))
     else
-      return(input$dateRange[1]:input$dateRange[2])
+      return(1:365)
+      # return(input$dateRange[1]:input$dateRange[2])
   })
   
   paths <- reactive(
@@ -244,14 +250,23 @@ server <- function(input, output, session) {
     if(is.null(curMask())|length(paths()$path)==0) return(data.frame(rcc=NA, gcc=NA, bcc=NA))
     extractCCCTimeSeries(isolate(curMask()), paths()$path)
   })
+
+  # ccVals <- reactive({
+  #   if(is.null(curMask())|length(paths()$path)==0) return(data.frame(rcc=NA, gcc=NA, bcc=NA))
+  #   extractCCCTimeSeries(isolate(curMask()), paths()$path)
+  # })
+  # 
+  ccTime <- reactive(paths()[DOY%in%tsDayRange(),DOY])
   
-  ccTime <- eventReactive(input$extract,{
-    if(is.null(curMask())) return(NA)
-    if(input$sevenorall=="First 7 days")
-      return(paths()[DOY%in%tsDayRange(),DOY])
-    else 
-      return(paths()$DOY)
-  })
+  # ccTime <- eventReactive(input$extract,{
+  #   if(is.null(curMask())) return(NA)
+  #   if(input$sevenorall=="First 7 days")
+  #     return(paths()[DOY%in%tsDayRange(),DOY])
+  #   else 
+  #     return(paths()$DOY)
+  # })
+  # 
+  
   output$timeSeriesPlotly <- 
     renderPlotly({
       tvals <- ccTime()
@@ -264,29 +279,29 @@ server <- function(input, output, session) {
       plot_ly(data = d, x=~time, y= ~cc, color = ~band)
     })
   
-  output$timeSeries <- 
-    renderPlot({
-      par(mar=c(4,4,0,0))
-      plot(NA, 
-           xlim=c(input$dateRange[1], input$dateRange[2]), 
-           ylim = input$ccrange,
-           type = 'l', xlab='', ylab='')
-      mtext(side = 1, text = 'Day of year', font=2, line=2.5)
-      mtext(side = 2, text = 'GCC (-)', font=2, line=2.5)
-      if(input$extract==0) {
-        text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No time series was generated!', font=2, adj=.5)
-        return()
-      }
-      TS <- ccVals()
-      if(nrow(TS)==0){
-        text(mean(par()$usr[1:2]), mean(par()$usr[3:4]),  'No time series was generated!', font=2, adj=.5)
-        return()
-      }
-      if('Red'%in%input$ccselect) lines(ccTime(), TS$rcc,  col='red', lwd=2)
-      if('Green'%in%input$ccselect) lines(ccTime(), TS$gcc,  col='green', lwd=2)
-      if('Blue'%in%input$ccselect) lines(ccTime(), TS$bcc,  col='blue', lwd=2)
-    })
-  
+  # output$timeSeries <- 
+  #   renderPlot({
+  #     par(mar=c(4,4,0,0))
+  #     plot(NA, 
+  #          xlim=c(input$dateRange[1], input$dateRange[2]), 
+  #          ylim = input$ccrange,
+  #          type = 'l', xlab='', ylab='')
+  #     mtext(side = 1, text = 'Day of year', font=2, line=2.5)
+  #     mtext(side = 2, text = 'GCC (-)', font=2, line=2.5)
+  #     if(input$extract==0) {
+  #       text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No time series was generated!', font=2, adj=.5)
+  #       return()
+  #     }
+  #     TS <- ccVals()
+  #     if(nrow(TS)==0){
+  #       text(mean(par()$usr[1:2]), mean(par()$usr[3:4]),  'No time series was generated!', font=2, adj=.5)
+  #       return()
+  #     }
+  #     if('Red'%in%input$ccselect) lines(ccTime(), TS$rcc,  col='red', lwd=2)
+  #     if('Green'%in%input$ccselect) lines(ccTime(), TS$gcc,  col='green', lwd=2)
+  #     if('Blue'%in%input$ccselect) lines(ccTime(), TS$bcc,  col='blue', lwd=2)
+  #   })
+  # 
   
   output$maskplot <- 
     renderPlot({
