@@ -45,7 +45,6 @@ server <- function(input, output, session) {
           sep = '_')
   })
   
-  
   sampleImage <- reactive(
     imgDT[Site==input$site&Year==input$year&DOY==input$viewDay&Hour==12, path][1]
   )
@@ -78,59 +77,43 @@ server <- function(input, output, session) {
   observeEvent(input$contID, 
                values$contID <- input$contID)
   
-  # observeEvent(input$viewDay,{
-  observeEvent(values$contID,{
-  # observe({
-    if(values$slideShow==0) return()
-    values$contID <- as.numeric(values$contID) + as.numeric(values$slideShow)
-    # print(paste(input$contID,values$slideShow, values$contID))
-    # updateSliderInput(session, "contID", value = as.numeric(input$contID) + values$slideShow)
-  })
   
   observeEvent(input$pause, values$slideShow <- 0)
   observeEvent(input$play, values$slideShow <- 1)
   observeEvent(input$backplay, values$slideShow <- -1)
   
   observeEvent(input$back,
-               updateSliderInput(session, "contID", value = input$contID-1)
-               )
+               updateSliderInput(session, "contID", value = input$contID-1))
   
   observeEvent(input$forw,
                updateSliderInput(session, "contID", value = input$contID+1))
   
-  
-  observeEvent(input$site, 
-               {
-                 updateSliderInput(session,
-                                   inputId = 'contID',
-                                   value = 1,
-                                   min= min(dayYearIDTable()$ID),
-                                   max= max(dayYearIDTable()$ID)  )
-                 
-                 dmin <- imgDT[Site==input$site, min(Date)]
-                 dmax <- imgDT[Site==input$site, max(Date)]
-                 updateDateRangeInput(session ,
-                                      inputId = 'roiDateRange',
-                                      # min = dmin, 
-                                      # max = dmax,
-                                      start = dmin,
-                                      end = dmax)  
-                 
-                 x <- imgDT[Site==input$site, unique(Year)]
-                 if (is.null(x)) x <- character(0)
-                 
-                 updateSelectInput(session, "year", choices = x)
-                 
-               })
+  observeEvent(input$site, {
+    updateSliderInput(session,
+                      inputId = 'contID',
+                      value = 1,
+                      min= min(dayYearIDTable()$ID),
+                      max= max(dayYearIDTable()$ID)  )
+    
+    dmin <- imgDT[Site==input$site, min(Date)]
+    dmax <- imgDT[Site==input$site, max(Date)]
+    updateDateRangeInput(session ,
+                         inputId = 'roiDateRange',
+                         # min = dmin, 
+                         # max = dmax,
+                         start = dmin,
+                         end = dmax)  
+    
+    x <- imgDT[Site==input$site, unique(Year)]
+    if (is.null(x)) x <- character(0)
+    
+    updateSelectInput(session, "year", choices = x)
+    
+  })
   curMask <- reactive({
     if(length(values$MASKs)==0) return(NULL)
     values$MASKs[[input$masks]]$rasteredMask
   })
-  # curMask <- eventReactive(input$masks,
-  #                          {
-  #                            if(length(values$MASKs)==0) return(NULL)
-  #                            else values$MASKs[[input$masks]]$rasteredMask
-  #                          })
   
   output$plot <- renderPlot({
     if(is.na(sampleImage())){
@@ -235,11 +218,9 @@ server <- function(input, output, session) {
   
   tsDayRange <- reactive({
     if(input$sevenorall=="7 days")
-      # return(input$dateRange[1]:(input$dateRange[1]+7))
-    return(input$viewDay[1]:(input$viewDay[1]+7))
+      return(input$viewDay[1]:(input$viewDay[1]+7))
     else
       return(1:365)
-      # return(input$dateRange[1]:input$dateRange[2])
   })
   
   paths <- reactive(
@@ -250,33 +231,62 @@ server <- function(input, output, session) {
     if(is.null(curMask())|length(paths()$path)==0) return(data.frame(rcc=NA, gcc=NA, bcc=NA))
     extractCCCTimeSeries(isolate(curMask()), paths()$path)
   })
-
-  # ccVals <- reactive({
-  #   if(is.null(curMask())|length(paths()$path)==0) return(data.frame(rcc=NA, gcc=NA, bcc=NA))
-  #   extractCCCTimeSeries(isolate(curMask()), paths()$path)
-  # })
-  # 
-  ccTime <- reactive(paths()[DOY%in%tsDayRange(),DOY])
   
-  # ccTime <- eventReactive(input$extract,{
-  #   if(is.null(curMask())) return(NA)
-  #   if(input$sevenorall=="First 7 days")
-  #     return(paths()[DOY%in%tsDayRange(),DOY])
-  #   else 
-  #     return(paths()$DOY)
-  # })
+  ccTime <- eventReactive(input$extract,{
+    if(is.null(curMask())) return(NA)
+    paths()[DOY%in%tsDayRange(),DOY]
+  })
   # 
   
   output$timeSeriesPlotly <- 
     renderPlotly({
-      tvals <- ccTime()
+      fontList <- list(
+        family = "Courier New, monospace",
+        size = 16,
+        color = "#7f7f7f"
+      )
+      xAxis <- list(
+        title = "Day of year",
+        titlefont = fontList
+      )
+      yAxis <- list(
+        title = "CC",
+        titlefont = fontList
+      )
+      
+      
+      if(input$extract==0){
+        tvals <- tsDayRange()
+        cvals <- matrix(0, nrow=length(tvals), ncol = 3)
+        colnames(cvals) <- c('rcc','gcc','bcc')
+        cvals <- as.data.frame(cvals)
+        cc <- melt(data.frame(red= cvals$rcc, green = cvals$gcc, blue= cvals$bcc), 
+                   variable.name='band', value.name='cc', id.vars=NULL)
+        d <- data.table(time=tvals, cc)
+        d <- d[band%in%tolower(input$ccselect)]
+        
+        p <- plot_ly(data = d, x=~time, y= ~cc,
+                     color = ~band, 
+                     colors = c('#FF4615','#007D00','#2364B7'),
+                     type = 'scatter', mode = 'lines+markers') %>%
+          layout(xaxis = xAxis, yaxis = yAxis)
+        return(p)
+      }
+      
       cvals <- ccVals()
+      tvals <- ccTime()
+      
       cc <- melt(data.frame(red= cvals$rcc, green = cvals$gcc, blue= cvals$bcc), 
                  variable.name='band', value.name='cc', id.vars=NULL)
-      
       d <- data.table(time=tvals, cc)
       d <- d[band%in%tolower(input$ccselect)]
-      plot_ly(data = d, x=~time, y= ~cc, color = ~band)
+      
+      plot_ly(data = d, x=~time, y= ~cc,
+              color = ~band, 
+              colors = c('#FF4615','#007D00','#2364B7'),
+              type = 'scatter', mode = 'lines+markers') %>%
+        layout(xaxis = xAxis, yaxis = yAxis)
+      
     })
   
   # output$timeSeries <- 
@@ -312,12 +322,6 @@ server <- function(input, output, session) {
            xaxt='n',yaxt='n',
            xlab='',ylab='',
            bty='o')
-
-      
-      # if(length(values$MASKs)==0){
-      #   text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No mask was generated!', font=2, adj=.5)
-      #   return()
-      # }
       
       if(is.null(curMask())) {
         text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No mask was generated!', font=2, adj=.5)
