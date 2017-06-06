@@ -77,13 +77,13 @@ ui <- fluidPage(
       column(5,     checkboxGroupInput('ccselect', label = NULL, choices = c('Red','Green','Blue'), selected = c('Red','Green','Blue'), width = '100%', inline = T)
       )
     ),
-    sliderInput(inputId = "ccrange", label =  'CC range', ticks = F, 
-                min = 0, max = 1, 
-                value = c(.2,.7), round = F,  dragRange = T, width = "100%"),
+    # sliderInput(inputId = "ccrange", label =  'CC range', ticks = F, 
+    #             min = 0, max = 1, 
+    #             value = c(.2,.7), round = F,  dragRange = T, width = "100%"),
     sliderInput(inputId = "dateRange", label =  NULL, ticks = F, 
                 min = 1, max = 365, 
                 value = c(1,365), round = T, step = 1, dragRange = T, width = "100%"),
-    plotOutput(outputId = "timeSeries", height = "200px", width = "100%")
+    plotlyOutput(outputId = "timeSeriesPlotly", height = "200px", width = "100%")
     
   )
 )

@@ -229,7 +229,7 @@ server <- function(input, output, session) {
     updateSelectInput(session, inputId = 'masks', choices = names(values$MASKs), selected = names(values$MASKs)[length(values$MASKs)])
   })
   
-  ccRange <- reactive({
+  tsDayRange <- reactive({
     if(input$sevenorall=="7 days")
       return(input$dateRange[1]:(input$dateRange[1]+7))
     else
@@ -237,7 +237,7 @@ server <- function(input, output, session) {
   })
   
   paths <- reactive(
-    imgDT[Site==input$site&Year==input$year&DOY%in%ccRange()&Hour==12&Minute<30, .(paths=path[1]),DOY]
+    imgDT[Site==input$site&Year==input$year&DOY%in%tsDayRange()&Hour==12&Minute<30, .(paths=path[1]),DOY]
   )
   
   ccVals <- eventReactive(input$extract,{
@@ -248,15 +248,25 @@ server <- function(input, output, session) {
   ccTime <- eventReactive(input$extract,{
     if(is.null(curMask())) return(NA)
     if(input$sevenorall=="First 7 days")
-      return(paths()[DOY%in%ccRange(),DOY])
+      return(paths()[DOY%in%tsDayRange(),DOY])
     else 
       return(paths()$DOY)
   })
+  output$timeSeriesPlotly <- 
+    renderPlotly({
+      tvals <- ccTime()
+      cvals <- ccVals()
+      cc <- melt(data.frame(red= cvals$rcc, green = cvals$gcc, blue= cvals$bcc), 
+                 variable.name='band', value.name='cc', id.vars=NULL)
+      
+      d <- data.table(time=tvals, cc)
+      d <- d[band%in%tolower(input$ccselect)]
+      plot_ly(data = d, x=~time, y= ~cc, color = ~band)
+    })
   
   output$timeSeries <- 
     renderPlot({
       par(mar=c(4,4,0,0))
-      # layout(matrix(c(rep(1,4),2), nrow=1))
       plot(NA, 
            xlim=c(input$dateRange[1], input$dateRange[2]), 
            ylim = input$ccrange,
@@ -287,6 +297,8 @@ server <- function(input, output, session) {
            xaxt='n',yaxt='n',
            xlab='',ylab='',
            bty='o')
+
+      
       # if(length(values$MASKs)==0){
       #   text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No mask was generated!', font=2, adj=.5)
       #   return()
