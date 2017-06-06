@@ -25,8 +25,12 @@ server <- function(input, output, session) {
   
   values <- reactiveValues(centers = matrix(numeric(), 0, 2),
                            MASKs = list(),
-                           slideShow = 0
-                           )
+                           slideShow = 0,
+                           contID= 1
+  )
+  
+  dayYearIDTable <- reactive(imgDT[Site==input$site&Hour==12&Minute<30,.(ID=1:.N,Year, DOY)])
+  
   roipath <- reactive(paste0('phenocamdata/',input$site,'/ROI/'))
   nroi <- reactive({
     length(dir(roipath(), pattern = '*roi.csv'))+1
@@ -40,41 +44,68 @@ server <- function(input, output, session) {
           sep = '_')
   })
   
-  sampleImageName <- reactive({
-    tmp <- unlist(strsplit(sampleImage(), split = '/'))
-    tmp[length(tmp)]
-  })
-  output$sampleImagePath <- renderText(
-    sampleImageName()
-  )
   
   sampleImage <- reactive(
     imgDT[Site==input$site&Year==input$year&DOY==input$viewDay&Hour==12, path][1]
   )
   
-  # isolate({
-  #   dmin <- imgDT[Site==input$site, min(Date, na.rm = T)]
-  #   dmax <- imgDT[Site==input$site, max(Date, na.rm = T)]
-  #   updateDateRangeInput(session , inputId = 'roiDateRange', min = dmin, max = dmax)  
-  # })
+  sampleImageName <- reactive({
+    tmp <- unlist(strsplit(sampleImage(), split = '/'))
+    tmp[length(tmp)]
+  })
+  
+  output$sampleImagePath <- renderText(
+    sampleImageName()
+  )
+  
+  observeEvent(values$contID,{
+    tmpid <- dayYearIDTable()[ID==as.numeric(values$contID),ID]
+    tmpday <- dayYearIDTable()[ID==as.numeric(values$contID),DOY]
+    tmpyear <- dayYearIDTable()[ID==as.numeric(values$contID),Year]
+    
+    updateSliderInput(session, 'contID', value = tmpid)
+    updateSliderInput(session, 'viewDay', value = tmpday)
+    updateSelectInput(session, 'year', selected = tmpyear)
+  })
+  
+  observe({
+    tmpid <- dayYearIDTable()[Year==as.numeric(input$year)&DOY==as.numeric(input$viewDay), ID]
+    # updateSliderInput(session, "contID", value = tmpid)
+    values$contID <- tmpid
+  })
+  
+  observeEvent(input$contID, 
+               values$contID <- input$contID)
+  
+  # observeEvent(input$viewDay,{
+  observeEvent(values$contID,{
+  # observe({
+    if(values$slideShow==0) return()
+    values$contID <- as.numeric(values$contID) + as.numeric(values$slideShow)
+    # print(paste(input$contID,values$slideShow, values$contID))
+    # updateSliderInput(session, "contID", value = as.numeric(input$contID) + values$slideShow)
+  })
   
   observeEvent(input$pause, values$slideShow <- 0)
   observeEvent(input$play, values$slideShow <- 1)
   observeEvent(input$backplay, values$slideShow <- -1)
   
-  observe({
-    if(values$slideShow==0) return()
-    updateSliderInput(session, "viewDay", value = input$viewDay+values$slideShow)
-  })
+  observeEvent(input$back,
+               updateSliderInput(session, "contID", value = input$contID-1)
+               )
   
-  observe(
-    updateSliderInput(session,
-                      inputId = 'viewDay', 
-                      value = imgDT[Site==input$site&Year==input$year, min(DOY, na.rm = T)])
-  )
+  observeEvent(input$forw,
+               updateSliderInput(session, "contID", value = input$contID+1))
+  
   
   observeEvent(input$site, 
                {
+                 updateSliderInput(session,
+                                   inputId = 'contID',
+                                   value = 1,
+                                   min= min(dayYearIDTable()$ID),
+                                   max= max(dayYearIDTable()$ID)  )
+                 
                  dmin <- imgDT[Site==input$site, min(Date)]
                  dmax <- imgDT[Site==input$site, max(Date)]
                  updateDateRangeInput(session ,
@@ -83,13 +114,19 @@ server <- function(input, output, session) {
                                       # max = dmax,
                                       start = dmin,
                                       end = dmax)  
+                 
+                 x <- imgDT[Site==input$site, unique(Year)]
+                 if (is.null(x)) x <- character(0)
+                 
+                 updateSelectInput(session, "year", choices = x)
+                 
                })
   
   curMask <- eventReactive(input$masks,
-                                 {
-                                   if(length(values$MASKs)==0) return(NULL)
-                                   else values$MASKs[[input$masks]]$rasteredMask
-                                 })
+                           {
+                             if(length(values$MASKs)==0) return(NULL)
+                             else values$MASKs[[input$masks]]$rasteredMask
+                           })
   
   output$plot <- renderPlot({
     if(is.na(sampleImage())){
@@ -122,11 +159,10 @@ server <- function(input, output, session) {
     values$centers <- rbind(values$centers, newPoint)
   })
   
-  observeEvent(input$back,
-               updateSliderInput(session, "viewDay", value = input$viewDay-1))
   
-  observeEvent(input$forw,
-               updateSliderInput(session, "viewDay", value = input$viewDay+1))
+  observeEvent(input$save,{
+    
+  })
   
   observeEvent(input$accept,
                {
@@ -153,12 +189,6 @@ server <- function(input, output, session) {
                  # values$msk <- tmp$rasteredMask
                })
   
-  # msk <- eventReactive(input$accept,{
-  #   pnts <- values$centers
-  #   if(is.null(pnts))return(NULL)
-  #   if(nrow(pnts)<3) return(NULL)
-  #   createRasteredROI(pnts, sampleImage())
-  # })
   
   observeEvent(input$cancel, 
                values$centers <- matrix(numeric(), 0, 2))
@@ -171,6 +201,7 @@ server <- function(input, output, session) {
     else if (nrow(values$centers) == 1)
       values$centers <- matrix(numeric(), 0, 2)
   })
+  
   observeEvent(input$generate,{
     if(length(values$MASKs)==0) return()
     systime <- format(Sys.time(), '%Y-%m-%d %H:%M:%S')
@@ -184,17 +215,18 @@ server <- function(input, output, session) {
                     masks = values$MASKs)
     
     writeROIListFile(ROIList, path = roipath() )
+    
+    showModal(modalDialog(title = 'Complete',width='300px',
+                          "New file for ROI List was generated!",
+                          easyClose = T,
+                          size = 's',
+                          # footer = modalButton('OK')
+                          footer = NULL
+    ))
   })
   
   observe({
     updateSelectInput(session, inputId = 'masks', choices = names(values$MASKs), selected = names(values$MASKs)[length(values$MASKs)])
-  })
-  observe({
-    x <- imgDT[Site==input$site, unique(Year)]
-    if (is.null(x)) x <- character(0)
-    
-    updateSelectInput(session, "year", choices = x, selected = head(x, 1))
-    # updateSliderInput(session, 'year', min = min(x), max=max(x), step = 1)
   })
   
   ccRange <- reactive({
@@ -205,7 +237,7 @@ server <- function(input, output, session) {
   })
   
   paths <- reactive(
-    imgDT[Site==input$site&Year==input$year&DOY%in%ccRange()&Hour==12, .(paths=path[1]),DOY]
+    imgDT[Site==input$site&Year==input$year&DOY%in%ccRange()&Hour==12&Minute<30, .(paths=path[1]),DOY]
   )
   
   ccVals <- eventReactive(input$extract,{
@@ -226,7 +258,8 @@ server <- function(input, output, session) {
       par(mar=c(4,4,0,0))
       # layout(matrix(c(rep(1,4),2), nrow=1))
       plot(NA, 
-           xlim=c(input$dateRange[1], input$dateRange[2]), ylim = c(0.20,.45),
+           xlim=c(input$dateRange[1], input$dateRange[2]), 
+           ylim = input$ccrange,
            type = 'l', xlab='', ylab='')
       mtext(side = 1, text = 'Day of year', font=2, line=2.5)
       mtext(side = 2, text = 'GCC (-)', font=2, line=2.5)
@@ -235,13 +268,13 @@ server <- function(input, output, session) {
         return()
       }
       TS <- ccVals()
-      if(is.null(TS)){
+      if(nrow(TS)==0){
         text(mean(par()$usr[1:2]), mean(par()$usr[3:4]),  'No time series was generated!', font=2, adj=.5)
         return()
       }
-      lines(ccTime(), TS$rcc,  col='red', lwd=2)
-      lines(ccTime(), TS$gcc,  col='green', lwd=2)
-      lines(ccTime(), TS$bcc,  col='blue', lwd=2)
+      if('Red'%in%input$ccselect) lines(ccTime(), TS$rcc,  col='red', lwd=2)
+      if('Green'%in%input$ccselect) lines(ccTime(), TS$gcc,  col='green', lwd=2)
+      if('Blue'%in%input$ccselect) lines(ccTime(), TS$bcc,  col='blue', lwd=2)
     })
   
   
@@ -254,20 +287,16 @@ server <- function(input, output, session) {
            xaxt='n',yaxt='n',
            xlab='',ylab='',
            bty='o')
-      if(length(values$MASKs)==0){
-        text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No mask was generated!', font=2, adj=.5)
-        return()
-      }
-      # if(input$accept==0) {
-      #   text(mean(par()$usr[1:2]), mean(par()$usr[3:4]),  'No mask was generated!', font=2, adj=.5)
+      # if(length(values$MASKs)==0){
+      #   text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No mask was generated!', font=2, adj=.5)
       #   return()
       # }
-      # if(is.null(msk())){
-      # if(is.null(values$msk)|length(values$MASKs)==0){
-      #   text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No mask was generated!', font=2, adj=.5)
-      # }else{
-      # mask <- values$msk
-      if(is.null(curMask())) return()
+      
+      if(is.null(curMask())) {
+        text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No mask was generated!', font=2, adj=.5)
+        
+        return()
+      }
       mask <- curMask()
       res <- dim(mask)
       plot(NA,xlim=c(1,res[1]),ylim=c(1,res[2]), type='n',

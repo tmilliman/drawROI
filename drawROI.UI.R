@@ -15,7 +15,7 @@ ui <- fluidPage(
                strong('Sample Image:'),
                textOutput('sampleImagePath'),
                br(),
-               dateRangeInput(inputId = 'roiDateRange', label = 'ROI Start/End Dates:', start = '2001-01-01', end = '2016-01-01', separator = '-', startview='year'),
+               dateRangeInput(inputId = 'roiDateRange', label = 'ROI Start/End Dates:', start = '2001-01-01', end = '2016-01-01', separator = '-', startview='day'),
                
                fluidRow(
                  column(width = 6, timeInput("starttime", "Start Time:",  seconds = T)),
@@ -27,6 +27,17 @@ ui <- fluidPage(
   
   
   mainPanel(
+    
+    sliderInput(inputId = "contID", 
+                label =  NULL, 
+                min = 1, max = 1, 
+                ticks = F, 
+                animate=F,
+                value = 1, 
+                # round = -5,
+                step = 1,
+                width = '100%'),
+    
     fluidRow(
       column(2, selectInput("year", "Year", '', width = '80px')),
       br(),
@@ -52,17 +63,23 @@ ui <- fluidPage(
       column(3, colourInput(inputId = 'roicol', label = 'ROI Color',value = '#30aa20', showColour = 'background')),
       column(3, sliderInput(inputId = 'roitrans', label = 'Transparency', min = 0, max = 100, value = 50, ticks = F, width = '100%', pre = '%')),
       br(),
-      column(6, actionButton("cancel", "Start over", icon = icon('refresh'), width = "120px"),
-             actionButton("undo", "Undo", icon = icon('undo'), width = "120px"),
-             actionButton("accept", "Accept", icon = icon('thumbs-up'), width = "120px"))
+      column(6, actionButton("cancel", "New", icon = icon('refresh'), width = "85px"),
+             actionButton("undo", "Undo", icon = icon('undo'), width = "85px"),
+             actionButton("accept", "Accept", icon = icon('thumbs-up'), width = "85px"),
+             actionButton("save", "Save", icon = icon('save'), width = "85px"))
     ),
-
+    # downloadButton(outputId = 's', label = 'asa'), 
     hr(),
     fluidRow(
-      column(6, radioButtons('sevenorall', label = 'Time series range:', choices = c('7 days','Entire range'), width = "400px",inline = T)),
+      column(4, radioButtons('sevenorall', label = 'Time series range:', choices = c('7 days','Entire range'), width = "330px",inline = T)),
       br(),
-      column(6, actionButton("extract", "Extract", icon = icon('line-chart'), width = "200px"))
+      column(3, actionButton("extract", "Extract", icon = icon('line-chart'), width = "90px")),
+      column(5,     checkboxGroupInput('ccselect', label = NULL, choices = c('Red','Green','Blue'), selected = c('Red','Green','Blue'), width = '100%', inline = T)
+      )
     ),
+    sliderInput(inputId = "ccrange", label =  'CC range', ticks = F, 
+                min = 0, max = 1, 
+                value = c(.2,.7), round = F,  dragRange = T, width = "100%"),
     sliderInput(inputId = "dateRange", label =  NULL, ticks = F, 
                 min = 1, max = 365, 
                 value = c(1,365), round = T, step = 1, dragRange = T, width = "100%"),
