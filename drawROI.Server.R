@@ -148,6 +148,27 @@ server <- function(input, output, session) {
   
   
   observeEvent(input$save,{
+    if(is.null(curMask()))return()
+    newMASK <- createRasteredROI(values$centers, sampleImage())
+    tmpMask <- list(maskpoints = values$centers, 
+                    startdate = input$roiDateRange[1], 
+                    enddate = input$roiDateRange[2], 
+                    starttime = input$starttime, 
+                    endtime = input$endtime, 
+                    sampleyear = input$year, 
+                    sampleday = input$viewDay,
+                    sampleImage = sampleImageName(),
+                    rasteredMask = newMASK)
+    
+    values$MASKs[[input$masks]] <- tmpMask
+    
+    showModal(modalDialog(title = 'Complete',width='300px',
+                          "Mask info was saved!",
+                          easyClose = T,
+                          size = 's',
+                          footer = NULL
+    ))
+    
     
   })
   
@@ -168,10 +189,11 @@ server <- function(input, output, session) {
                  
                  tmp <- values$MASKs
                  tmp[[length(tmp)+1]] <-  newMask
-                 names(tmp)[length(tmp)] <- paste(input$site, input$vegtype, 
-                                                  sprintf('%04d',nroi()),
-                                                  sprintf('%02d',length(tmp)), sep = '_')
-                 updateSelectInput(session, inputId = 'masks', choices = names(tmp))
+                 tmpName <- paste(input$site, input$vegtype, 
+                               sprintf('%04d',nroi()),
+                               sprintf('%02d',length(tmp)), sep = '_')
+                 names(tmp)[length(tmp)] <- tmpName
+                 updateSelectInput(session, inputId = 'masks', choices = names(tmp), selected = tmpName)
                  values$MASKs <- tmp
                  # values$msk <- tmp$rasteredMask
                })
@@ -213,7 +235,9 @@ server <- function(input, output, session) {
   })
   
   observe({
-    updateSelectInput(session, inputId = 'masks', choices = names(values$MASKs), selected = names(values$MASKs)[length(values$MASKs)])
+    selMask <- names(values$MASKs)[length(values$MASKs)]
+    # selMask <- input$masks
+    updateSelectInput(session, inputId = 'masks', choices = names(values$MASKs), selected = selMask)
   })
   
   tsDayRange <- reactive({
