@@ -31,12 +31,12 @@ server <- function(input, output, session) {
   )
   
   autoInvalidate1 <- reactiveTimer(1000)
-  autoInvalidate2 <- reactiveTimer(500)
+  autoInvalidate2 <- reactiveTimer(400)
   
   dayYearIDTable <- reactive(imgDT[Site==input$site&Hour==12&Minute<30,.(ID=1:.N,Year, DOY)])
   
   roipath <- reactive(paste0('phenocamdata/',input$site,'/ROI/'))
-
+  
   nroi <- reactive({
     autoInvalidate1()
     length(dir(roipath(), pattern = '*roi.csv'))+1
@@ -152,6 +152,7 @@ server <- function(input, output, session) {
     if (is.null(x)) x <- character(0)
     
     updateSelectInput(session, "year", choices = x)
+    values$contID <- 1
     
   })
   curMask <- reactive({
@@ -191,8 +192,8 @@ server <- function(input, output, session) {
   })
   
   
-
-
+  
+  
   
   observeEvent(input$cancel, 
                values$centers <- matrix(numeric(), 0, 2))
@@ -274,11 +275,15 @@ server <- function(input, output, session) {
       )
       
       
-      if(input$extract==0){
+      if(input$extract==0|is.null(isolate(curMask()))){
         tvals <- tsDayRange()
-        cvals <- matrix(0, nrow=length(tvals), ncol = 3)
+        cvals <- matrix(NA, nrow=length(tvals), ncol = 3)
         colnames(cvals) <- c('rcc','gcc','bcc')
         cvals <- as.data.frame(cvals)
+        
+        yAxis$range <- c(0,1)
+        xAxis$range <- range(tvals)
+        
         cc <- melt(data.frame(red= cvals$rcc, green = cvals$gcc, blue= cvals$bcc), 
                    variable.name='band', value.name='cc', id.vars=NULL)
         d <- data.table(time=tvals, cc)
