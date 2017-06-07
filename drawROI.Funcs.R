@@ -149,10 +149,14 @@ writeROIListFile <- function(ROIList, path='ROI/'){
     rName <- paste0(ROIList$siteName, '_',
                     ROIList$vegType, '_',
                     sprintf('%04d', ROIList$ID), '_',
-                    sprintf('%02d', i), 
-                    '.tif')
+                    sprintf('%02d', i)
+                    )
     
-    writeTIFF(m , where = paste0(path, rName))
+    writeTIFF(m , where = paste0(path, rName,'.tif'))
+    
+    maskpoints <- ROIList$masks[[i]]$maskpoints
+    maskpoints <- rbind(dim(m), maskpoints)
+    write.table(maskpoints, file = paste0(path, rName,'_vector.csv'), col.names = F, row.names = F, sep = ',')
     
     bdyLine <- paste( ROIList$masks[[i]]$startdate,
                       format(ROIList$masks[[i]]$starttime, '%H:%M:%S'),
