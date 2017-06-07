@@ -30,11 +30,22 @@ server <- function(input, output, session) {
                            contID= 1
   )
   
+  autoInvalidate1 <- reactiveTimer(1000)
+  autoInvalidate2 <- reactiveTimer(500)
+  
   dayYearIDTable <- reactive(imgDT[Site==input$site&Hour==12&Minute<30,.(ID=1:.N,Year, DOY)])
   
   roipath <- reactive(paste0('phenocamdata/',input$site,'/ROI/'))
+
   nroi <- reactive({
+    autoInvalidate1()
     length(dir(roipath(), pattern = '*roi.csv'))+1
+  })
+  
+  observe({
+    if(values$slideShow==0) return()
+    autoInvalidate2()
+    values$contID <- isolate(values$contID) + values$slideShow
   })
   
   output$roilabel <- renderText({
@@ -59,6 +70,7 @@ server <- function(input, output, session) {
   )
   
   observeEvent(values$contID,{
+    if(length(values$contID)==0) values$contID <- 1
     tmpid <- dayYearIDTable()[ID==as.numeric(values$contID),ID]
     tmpday <- dayYearIDTable()[ID==as.numeric(values$contID),DOY]
     tmpyear <- dayYearIDTable()[ID==as.numeric(values$contID),Year]
@@ -68,15 +80,47 @@ server <- function(input, output, session) {
     updateSelectInput(session, 'year', selected = tmpyear)
   })
   
-  observe({
-    tmpid <- dayYearIDTable()[Year==as.numeric(input$year)&DOY==as.numeric(input$viewDay), ID]
-    # updateSliderInput(session, "contID", value = tmpid)
-    values$contID <- tmpid
-  })
-  
   observeEvent(input$contID, 
                values$contID <- input$contID)
   
+  validDOY <- reactive(dayYearIDTable()[Year==as.numeric(input$year), DOY])
+  
+  observeEvent(input$year, {
+    if(length(validDOY())==0) return()
+    if(!input$viewDay%in%validDOY()) {
+      # tmpx <- abs(validDOY())
+      newDOY <- validDOY()[which.min(abs(validDOY() - input$viewDay))+1]
+      updateSliderInput(session, 'viewDay', value = newDOY)
+      tmpid <- dayYearIDTable()[Year==as.numeric(input$year)&DOY==newDOY, ID]
+    }else{
+      tmpid <- dayYearIDTable()[Year==as.numeric(input$year)&DOY==as.numeric(input$viewDay), ID]
+    }
+    # if(length(tmpid)==0) tmpid =1
+    values$contID <- tmpid
+  })
+  
+  observeEvent(input$viewDay,{
+    if(length(validDOY())==0) return()
+    tmpx <- NULL
+    if(!input$viewDay%in%validDOY()) {
+      tmpx <- abs(validDOY())
+      newDOY <- validDOY()[which.min(abs(validDOY() - input$viewDay))+1]
+      updateSliderInput(session, 'viewDay', value = newDOY)
+      tmpid <- dayYearIDTable()[Year==as.numeric(input$year)&DOY==newDOY, ID]
+    }else{
+      tmpid <- dayYearIDTable()[Year==as.numeric(input$year)&DOY==as.numeric(input$viewDay), ID]
+    }
+    # if(length(tmpid)==0) tmpid =1
+    values$contID <- tmpid
+  })
+  
+  # observe({
+  #   minDay <- dayYearIDTable()[Year==as.numeric(input$year), min(DOY)]
+  #   if(input$viewDay<minDay){
+  #     updateSliderInput(session, 'viewDay', value = minDay)
+  #     
+  #   }
+  # })
   
   observeEvent(input$pause, values$slideShow <- 0)
   observeEvent(input$play, values$slideShow <- 1)
@@ -147,57 +191,8 @@ server <- function(input, output, session) {
   })
   
   
-  observeEvent(input$save,{
-    if(is.null(curMask()))return()
-    newMASK <- createRasteredROI(values$centers, sampleImage())
-    tmpMask <- list(maskpoints = values$centers, 
-                    startdate = input$roiDateRange[1], 
-                    enddate = input$roiDateRange[2], 
-                    starttime = input$starttime, 
-                    endtime = input$endtime, 
-                    sampleyear = input$year, 
-                    sampleday = input$viewDay,
-                    sampleImage = sampleImageName(),
-                    rasteredMask = newMASK)
-    
-    values$MASKs[[input$masks]] <- tmpMask
-    
-    showModal(modalDialog(title = 'Complete',width='300px',
-                          "Mask info was saved!",
-                          easyClose = T,
-                          size = 's',
-                          footer = NULL
-    ))
-    
-    
-  })
-  
-  observeEvent(input$accept,
-               {
-                 if(is.null(values$centers)) return()
-                 if (nrow(values$centers)<3) return()
-                 
-                 newMask <- list(maskpoints = values$centers, 
-                                 startdate = input$roiDateRange[1], 
-                                 enddate = input$roiDateRange[2], 
-                                 starttime = input$starttime, 
-                                 endtime = input$endtime, 
-                                 sampleyear = input$year, 
-                                 sampleday = input$viewDay,
-                                 sampleImage = sampleImageName(),
-                                 rasteredMask = createRasteredROI(values$centers, sampleImage()))
-                 
-                 tmp <- values$MASKs
-                 tmp[[length(tmp)+1]] <-  newMask
-                 tmpName <- paste(input$site, input$vegtype, 
-                               sprintf('%04d',nroi()),
-                               sprintf('%02d',length(tmp)), sep = '_')
-                 names(tmp)[length(tmp)] <- tmpName
-                 updateSelectInput(session, inputId = 'masks', choices = names(tmp), selected = tmpName)
-                 values$MASKs <- tmp
-                 # values$msk <- tmp$rasteredMask
-               })
-  
+
+
   
   observeEvent(input$cancel, 
                values$centers <- matrix(numeric(), 0, 2))
@@ -234,11 +229,11 @@ server <- function(input, output, session) {
     ))
   })
   
-  observe({
-    selMask <- names(values$MASKs)[length(values$MASKs)]
-    # selMask <- input$masks
-    updateSelectInput(session, inputId = 'masks', choices = names(values$MASKs), selected = selMask)
-  })
+  # observe({
+  #   if(input$masks=='') selMask <- names(values$MASKs)[length(values$MASKs)]
+  #   else selMask <- input$masks
+  #   updateSelectInput(session, inputId = 'masks', choices = names(values$MASKs), selected = selMask)
+  # })
   
   tsDayRange <- reactive({
     if(input$sevenorall=="7 days")
@@ -336,6 +331,62 @@ server <- function(input, output, session) {
   #     if('Blue'%in%input$ccselect) lines(ccTime(), TS$bcc,  col='blue', lwd=2)
   #   })
   # 
+  
+  observeEvent(input$accept,
+               {
+                 if(is.null(values$centers)) return()
+                 if (nrow(values$centers)<3) return()
+                 
+                 newMask <- list(maskpoints = values$centers, 
+                                 startdate = input$roiDateRange[1], 
+                                 enddate = input$roiDateRange[2], 
+                                 starttime = input$starttime, 
+                                 endtime = input$endtime, 
+                                 sampleyear = input$year, 
+                                 sampleday = input$viewDay,
+                                 sampleImage = sampleImageName(),
+                                 rasteredMask = createRasteredROI(values$centers, sampleImage()))
+                 
+                 tmp <- values$MASKs
+                 tmp[[length(tmp)+1]] <-  newMask
+                 tmpName <- paste(input$site, input$vegtype, 
+                                  sprintf('%04d',nroi()),
+                                  sprintf('%02d',length(tmp)), sep = '_')
+                 names(tmp)[length(tmp)] <- tmpName
+                 values$MASKs <- tmp
+                 updateSelectInput(session, inputId = 'masks', choices = names(tmp), selected = tmpName)
+                 
+                 # values$msk <- tmp$rasteredMask
+               })
+  
+  
+  observeEvent(input$save,{
+    if(is.null(curMask()))return()
+    if(is.null(values$centers)) return()
+    if (nrow(values$centers)<3) return()
+    
+    newMASK <- createRasteredROI(values$centers, sampleImage())
+    tmpMask <- list(maskpoints = values$centers, 
+                    startdate = input$roiDateRange[1], 
+                    enddate = input$roiDateRange[2], 
+                    starttime = input$starttime, 
+                    endtime = input$endtime, 
+                    sampleyear = input$year, 
+                    sampleday = input$viewDay,
+                    sampleImage = sampleImageName(),
+                    rasteredMask = newMASK)
+    
+    values$MASKs[[input$masks]] <- tmpMask
+    
+    showModal(modalDialog(title = 'Complete',width='300px',
+                          "Mask info was saved!",
+                          easyClose = T,
+                          size = 's',
+                          footer = NULL
+    ))
+    
+    
+  })
   
   output$maskplot <- 
     renderPlot({
