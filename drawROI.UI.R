@@ -5,6 +5,7 @@ ui <- fluidPage(
   headerPanel("PhenoCam ROI Tool"),
   
   sidebarPanel(width = 4,
+               
                selectInput("site", "Site", sites),
                selectInput("vegtype", "Vegetation Type", choices = vegTypes, selected = ''),
                textInput('descr','Description', placeholder = 'Enter a description for the ROI'),
@@ -20,8 +21,10 @@ ui <- fluidPage(
                dateRangeInput(inputId = 'roiDateRange', label = 'ROI Start/End Dates:', start = '2001-01-01', end = '2016-01-01', separator = '-', startview='day'),
                
                fluidRow(
-                 column(width = 6, timeInput("starttime", "Start Time:",  seconds = T)),
-                 column(width = 6, timeInput("endtime", "End Time:",  seconds = T))
+                 # column(width = 6, timeInput("starttime", "Start Time:",  seconds = T)),
+                 # column(width = 6, timeInput("endtime", "End Time:",  seconds = T))
+                 column(width = 6, textInput('starttime', label = 'Start Time:', width = '80px', value = '00:08:00')),
+                 column(width = 6, textInput('endtime', label = 'End Time:', width = '80px', value = '00:20:00'))
                ),
                actionButton("generate", "Generate ROI List", icon = icon('list-alt'), width = "100%")
   ),
@@ -62,8 +65,8 @@ ui <- fluidPage(
     ),
     
     fluidRow(
-      column(3, colourInput(inputId = 'roicol', label = 'ROI Color',value = '#30aa20', showColour = 'background')),
-      column(3, sliderInput(inputId = 'roitrans', label = 'Transparency', min = 0, max = 100, value = 50, ticks = F, width = '100%', pre = '%')),
+      column(2, colourInput(inputId = 'roicol', label = 'ROI Color',value = '#30aa20', showColour = 'background')),
+      column(4, sliderInput(inputId = 'roitrans', label = 'Transparency', min = 0, max = 100, value = 50, ticks = F, width = '100%', pre = '%')),
       br(),
       column(6, actionButton("cancel", "New", icon = icon('refresh'), width = "85px"),
              actionButton("undo", "Undo", icon = icon('undo'), width = "85px"),

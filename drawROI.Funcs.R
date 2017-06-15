@@ -177,3 +177,41 @@ readROIFolder <- function(){
 
 
 
+
+
+filePathParse <- function(filenames)
+{
+  imgDT <- data.table(filenames = filenames)
+  imgDT$tmp <- unlist(lapply(filenames, function(x){strsplit(x,split = '/', fixed = T)[[1]][3]}))
+  imgDT[,c('Site', 'Year', 'Month','Day','HHMMSS'):=as.data.table(matrix(unlist(strsplit(gsub(tmp,pattern = '.jpg', replacement = ''), split = '_')), ncol=5, byrow = T))]
+  imgDT[,Year:=as.numeric(Year)]
+  imgDT[,Month:=as.numeric(Month)]
+  imgDT[,Day:=as.numeric(Day)]
+  imgDT[,HHMMSS:=as.numeric(HHMMSS)]
+  imgDT[,Hour:=floor(HHMMSS/10000)]
+  imgDT[,Minute:=floor((HHMMSS%%10000)/100)]
+  imgDT[,Second:=HHMMSS%%100]
+  imgDT[,DOY:=yday(ISOdate(Year, Month, Day))]
+  
+  imgDT[,DOY:=yday(ISOdate(Year, Month, Day))]
+  imgDT[,Date:=date(ISOdate(Year, Month, Day))]
+  imgDT[,DateTime:=ISOdatetime(Year, Month, Day, Hour, Minute, Second)]
+  imgDT
+}
+
+
+fixFormatTime <- function(asText){
+  asNum <- as.numeric(unlist(strsplit(asText, ':')))
+  if(length(asNum)>3) asNum <- asNum[1:3]
+  if(length(asNum)==0) asNum <- c(0, 0, 0)
+  if(length(asNum)==1) asNum <- c(asNum[1], 0,0)
+  if(length(asNum)==2) asNum <- c(asNum[1:2], 0)
+  
+  asNum[1] <- min(23, max(asNum[1], 0))
+  asNum[2] <- min(59, max(asNum[2], 0))
+  asNum[3] <- min(59, max(asNum[3], 0))
+  
+  asTextNew <- sapply(asNum, sprintf, fmt='%02d')
+  asTextNew <- paste(asTextNew, collapse = ':')
+  asTextNew
+}

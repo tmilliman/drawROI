@@ -13,7 +13,7 @@ library(plotly)
 library(data.table)
 library(colourpicker)
 
-source('Resources/SwitchButton.R')
+# source('Resources/SwitchButton.R')
 
 source('drawROI.Funcs.R')
 source('drawROI.Init.R')
@@ -29,6 +29,28 @@ server <- function(input, output, session) {
                            slideShow = 0,
                            contID= 1
   )
+  
+  observeEvent(input$starttime, 
+               {
+                 asText <- input$endtime
+                 if(any(!unlist(strsplit(asText, ''))%in%c(as.character(0:9),':'))){
+                   updateTextInput(session, 'starttime', value = '00:00:00')
+                   return()
+                 }
+                 asTextNew <- fixFormatTime(asText)
+                 if(asTextNew!=asText) updateTextInput(session, 'starttime', value = asTextNew)
+               })
+  
+  observeEvent(input$endtime, 
+               {
+                 asText <- input$endtime
+                 if(any(!unlist(strsplit(asText, ''))%in%c(as.character(0:9),':'))){
+                   updateTextInput(session, 'endtime', value = '00:00:00')
+                   return()
+                 }
+                 asTextNew <- fixFormatTime(asText)
+                 if(asTextNew!=asText) updateTextInput(session, 'endtime', value = asTextNew)
+               })
   
   autoInvalidate1 <- reactiveTimer(1000)
   autoInvalidate2 <- reactiveTimer(400)
@@ -180,8 +202,10 @@ server <- function(input, output, session) {
     values$centers <- tmpmask$maskpoints
     updateDateRangeInput(session, inputId = 'roiDateRange', start=tmpmask$startdate)
     updateDateRangeInput(session, inputId = 'roiDateRange', end=tmpmask$enddate)
-    updateTimeInput(session, inputId = 'starttime', value = tmpmask$starttime)
-    updateTimeInput(session, inputId = 'endtime', value = tmpmask$endtime)
+    # updateTimeInput(session, inputId = 'starttime', value = tmpmask$starttime)
+    # updateTimeInput(session, inputId = 'endtime', value = tmpmask$endtime)
+    updateTextInput(session, inputId = 'starttime', value = tmpmask$starttime)
+    updateTextInput(session, inputId = 'endtime', value = tmpmask$endtime)
     updateSelectInput(session, inputId = 'year', selected = tmpmask$sampleyear)
     updateSelectInput(session, inputId = 'viewDay', selected = tmpmask$sampleday)
   })
