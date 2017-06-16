@@ -19,7 +19,7 @@ source('init.R')
 
 # Define server logic required to draw a histogram
 shinyServer(function(input, output, session) {
-  
+  options(warn = -1)
   values <- reactiveValues(centers = matrix(numeric(), 0, 2),
                            MASKs = list(),
                            slideShow = 0,
