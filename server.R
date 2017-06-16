@@ -44,7 +44,7 @@ shinyServer(function(input, output, session) {
   autoInvalidate1 <- reactiveTimer(1000)
   autoInvalidate2 <- reactiveTimer(1000)
   
-  dayYearIDTable <- reactive(imgDT[Site==input$site&Hour==12&Minute<30,.(ID=1:.N,Year, DOY)])
+  dayYearIDTable <- reactive(imgDT[Site==input$site,.(ID=1:.N,Year, DOY)])
   
   roipath <- reactive(paste0(dataPath,input$site,'/ROI/'))
   observe({
@@ -78,7 +78,7 @@ shinyServer(function(input, output, session) {
   })
   
   sampleImage <- reactive(
-    imgDT[Site==input$site&Year==input$year&DOY==input$viewDay&Hour==12, path][1]
+    imgDT[Site==input$site&Year==input$year&DOY==input$viewDay, path][1]
   )
   
   sampleImageName <- reactive({
@@ -259,15 +259,19 @@ shinyServer(function(input, output, session) {
   #   updateSelectInput(session, inputId = 'masks', choices = names(values$MASKs), selected = selMask)
   # })
   
-  tsDayRange <- reactive({
-    if(input$sevenorall=="7 days")
-      return(input$viewDay[1]:(input$viewDay[1]+7))
-    else
-      return(1:365)
+  tsYearDayRange <- reactive({
+    if(input$sevenorall=="week")
+      # return(input$viewDay[1]:(input$viewDay[1]+7))
+      return(imgDT[Site==input$site&Year==input$year&DOY%in%(input$viewDay[1]:(input$viewDay[1]+7)),YearDOY])
+    else if(input$sevenorall=="year")
+      # return(1:365)
+      return(imgDT[Site==input$site&Year==input$year,YearDOY])
+    else if(input$sevenorall=="all")
+      return(imgDT[Site==input$site,YearDOY])
   })
   
   paths <- reactive(
-    imgDT[Site==input$site&Year==input$year&DOY%in%tsDayRange()&Hour==12&Minute<30, .(paths=path[1]),DOY]
+    imgDT[Site==input$site&YearDOY%in%tsYearDayRange(), .(paths=path[1]),.(conT, Year, DOY)]
   )
   
   ccVals <- eventReactive(input$extract,{
@@ -277,7 +281,7 @@ shinyServer(function(input, output, session) {
   
   ccTime <- eventReactive(input$extract,{
     if(is.null(curMask())) return(NA)
-    paths()[DOY%in%tsDayRange(),DOY]
+    paths()[,conT]
   })
   # 
   
@@ -299,7 +303,7 @@ shinyServer(function(input, output, session) {
       
       
       if(input$extract==0|is.null(isolate(curMask()))){
-        tvals <- tsDayRange()
+        tvals <- 1:7
         cvals <- matrix(NA, nrow=length(tvals), ncol = 3)
         colnames(cvals) <- c('rcc','gcc','bcc')
         cvals <- as.data.frame(cvals)
@@ -324,7 +328,7 @@ shinyServer(function(input, output, session) {
       tvals <- ccTime()
       
       shinyjs::enable("downloadTSData")
-
+      
       cc <- melt(data.frame(red= cvals$rcc, green = cvals$gcc, blue= cvals$bcc), 
                  variable.name='band', value.name='cc', id.vars=NULL)
       d <- data.table(time=tvals, cc)
@@ -337,30 +341,6 @@ shinyServer(function(input, output, session) {
         layout(xaxis = xAxis, yaxis = yAxis)
       
     })
-  
-  # output$timeSeries <- 
-  #   renderPlot({
-  #     par(mar=c(4,4,0,0))
-  #     plot(NA, 
-  #          xlim=c(input$dateRange[1], input$dateRange[2]), 
-  #          ylim = input$ccrange,
-  #          type = 'l', xlab='', ylab='')
-  #     mtext(side = 1, text = 'Day of year', font=2, line=2.5)
-  #     mtext(side = 2, text = 'GCC (-)', font=2, line=2.5)
-  #     if(input$extract==0) {
-  #       text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No time series was generated!', font=2, adj=.5)
-  #       return()
-  #     }
-  #     TS <- ccVals()
-  #     if(nrow(TS)==0){
-  #       text(mean(par()$usr[1:2]), mean(par()$usr[3:4]),  'No time series was generated!', font=2, adj=.5)
-  #       return()
-  #     }
-  #     if('Red'%in%input$ccselect) lines(ccTime(), TS$rcc,  col='red', lwd=2)
-  #     if('Green'%in%input$ccselect) lines(ccTime(), TS$gcc,  col='green', lwd=2)
-  #     if('Blue'%in%input$ccselect) lines(ccTime(), TS$bcc,  col='blue', lwd=2)
-  #   })
-  # 
   
   observeEvent(input$accept,
                {
@@ -448,19 +428,19 @@ shinyServer(function(input, output, session) {
     },
     content = function(file) {
       cvals <- ccVals()
-      tvals <- ccTime()
+      tvals <- paths()[,.(Year, DOY)]
       cc <- data.frame(red= cvals$rcc, green = cvals$gcc, blue= cvals$bcc)
-      d <- data.table(year=as.numeric(input$year), day=tvals, cc)
+      d <- data.table(tvals, cc)
       write.table(d, file, sep = ',', row.names = F)
     }
   )
   
   observeEvent(input$password,{
-   if(input$password=='gen4Pheno'){
-     shinyjs::enable("generate")
-   }else{
-     shinyjs::disable("generate")
-     }
+    if(input$password=='gen4Pheno'){
+      shinyjs::enable("generate")
+    }else{
+      shinyjs::disable("generate")
+    }
   })
   shinyjs::disable("downloadTSData")
   shinyjs::disable("generate")

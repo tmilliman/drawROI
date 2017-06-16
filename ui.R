@@ -6,8 +6,9 @@ library(shinyTime)
 library(lubridate)
 library(plotly)
 library(data.table)
-library(colourpicker)
 library(shinyjs)
+library(colourpicker)
+
 
 source('init.R')
 
@@ -75,7 +76,7 @@ fluidPage(
     ),
     
     fluidRow(
-      column(2, colourInput(inputId = 'roicol', label = 'ROI Color',value = '#30aa20', showColour = 'background')),
+      column(2, colourpicker::colourInput(inputId = 'roicol', label = 'ROI Color',value = '#30aa20', showColour = 'background')),
       column(4, sliderInput(inputId = 'roitrans', label = 'Transparency', min = 0, max = 100, value = 50, ticks = F, width = '100%', pre = '%')),
       br(),
       column(6, actionButton("cancel", "New", icon = icon('refresh'), width = "85px"),
@@ -86,7 +87,7 @@ fluidPage(
     # downloadButton(outputId = 's', label = 'asa'),
     hr(),
     fluidRow(
-      column(4, radioButtons('sevenorall', label = 'Time series range:', choices = c('7 days','Entire year'), width = "330px",inline = T)),
+      column(4, radioButtons('sevenorall', label = 'Time series range:', choices = c('week', 'year', 'all'), width = "330px",inline = T)),
       br(),
       column(2, actionButton("extract", "Extract", icon = icon('line-chart'), width = "100%")),
       column(4, checkboxGroupInput('ccselect', label = NULL, choices = c('Red','Green','Blue'), selected = c('Red','Green','Blue'), width = '100%', inline = T)),

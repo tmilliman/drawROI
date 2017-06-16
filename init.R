@@ -37,7 +37,9 @@ imgDT[,DOY:=yday(ISOdate(Year, Month, Day))]
 imgDT[,DOY:=yday(ISOdate(Year, Month, Day))]
 imgDT[,Date:=date(ISOdate(Year, Month, Day))]
 imgDT[,DateTime:=ISOdatetime(Year, Month, Day, Hour, Minute, Second)]
-
+imgDT[,conT:=Year+DOY/(365+(2001%%4==0))]
+imgDT[,YearDOY:=Year+DOY/1000]
+imgDT <- imgDT[Hour==12&Minute<30,]
 
 sites <- unique(imgDT$Site)
 rois <- ''
