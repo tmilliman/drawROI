@@ -8,7 +8,8 @@ library(plotly)
 library(data.table)
 library(colourpicker)
 
-source('/srv/shiny-server/drawROI/funcs.R')
+source('funcs.R')
+dataPath <- 'phenocamdata/'
 
 # library(rjson)
 # phenoSites <- fromJSON(file = 'https://phenocam.sr.unh.edu/webcam/network/siteinfo/')
@@ -19,7 +20,6 @@ source('/srv/shiny-server/drawROI/funcs.R')
 # sapply(phenoSites, function(x){x$site})
 # phenoSiteGeos <- fromJSON(file = 'https://phenocam.sr.unh.edu/webcam/network/siteinfo/?format=geojson')
 
-dataPath <- '/srv/shiny-server/drawROI/phenocamdata'
 
 imgDT <- data.table(path = dir(dataPath, recursive = T, full.names = T, pattern = '*.jpg'),
                     tmp =  dir(dataPath, recursive = T, full.names = F, pattern = '*.jpg'))
@@ -37,9 +37,10 @@ imgDT[,DOY:=yday(ISOdate(Year, Month, Day))]
 imgDT[,DOY:=yday(ISOdate(Year, Month, Day))]
 imgDT[,Date:=date(ISOdate(Year, Month, Day))]
 imgDT[,DateTime:=ISOdatetime(Year, Month, Day, Hour, Minute, Second)]
+
+
 sites <- unique(imgDT$Site)
-
-
+rois <- ''
 vegTypes.Names <-   c('Agriculture (AG)',
                       'Deciduous Broadleaf (DB)',
                       'Evergreen Broadleaf (EB)',

@@ -13,8 +13,8 @@ library(plotly)
 library(data.table)
 library(colourpicker)
 
-source('/srv/shiny-server/drawROI/funcs.R')
-source('/srv/shiny-server/drawROI/init.R')
+source('funcs.R')
+source('init.R')
 
 # Define server logic required to draw a histogram
 shinyServer(function(input, output, session) {
@@ -22,19 +22,44 @@ shinyServer(function(input, output, session) {
   values <- reactiveValues(centers = matrix(numeric(), 0, 2),
                            MASKs = list(),
                            slideShow = 0,
-                           contID= 1
+                           contID= 1, 
+                           ROIs = vector()
   )
   
+  observeEvent(input$starttime, 
+               {
+                 asText <- input$starttime
+                 asTextNew <- fixFormatTime(asText)
+                 if(asTextNew!=asText) updateTextInput(session, 'starttime', value = asTextNew)
+               })
+  
+  observeEvent(input$endtime, 
+               {
+                 asText <- input$endtime
+                 asTextNew <- fixFormatTime(asText)
+                 if(asTextNew!=asText) updateTextInput(session, 'endtime', value = asTextNew)
+               })
+  
   autoInvalidate1 <- reactiveTimer(1000)
-  autoInvalidate2 <- reactiveTimer(400)
+  autoInvalidate2 <- reactiveTimer(1000)
   
   dayYearIDTable <- reactive(imgDT[Site==input$site&Hour==12&Minute<30,.(ID=1:.N,Year, DOY)])
   
-  roipath <- reactive(paste0('/srv/shiny-server/drawROI/phenocamdata/',input$site,'/ROI/'))
+  roipath <- reactive(paste0(dataPath,input$site,'/ROI/'))
+  observe({
+    values$ROIs <- c(dir(roipath(), pattern = 'roi.csv'), "New ROI")
+  }
+  )
+  observeEvent(values$ROIs,
+               {
+                 updateSelectInput(session, 'rois', choices = values$ROIs)
+               })
   
   nroi <- reactive({
     autoInvalidate1()
-    length(dir(roipath(), pattern = '*roi.csv'))+1
+    # roils <- dir(roipath(), pattern = '*roi.csv')
+    tmpl <- paste0(input$site, '_', input$vegtype)
+    sum(grepl(tmpl, values$ROIs))+1
   })
   
   observe({
@@ -175,8 +200,10 @@ shinyServer(function(input, output, session) {
     values$centers <- tmpmask$maskpoints
     updateDateRangeInput(session, inputId = 'roiDateRange', start=tmpmask$startdate)
     updateDateRangeInput(session, inputId = 'roiDateRange', end=tmpmask$enddate)
-    updateTimeInput(session, inputId = 'starttime', value = tmpmask$starttime)
-    updateTimeInput(session, inputId = 'endtime', value = tmpmask$endtime)
+    # updateTimeInput(session, inputId = 'starttime', value = tmpmask$starttime)
+    # updateTimeInput(session, inputId = 'endtime', value = tmpmask$endtime)
+    updateTextInput(session, inputId = 'starttime', value = tmpmask$starttime)
+    updateTextInput(session, inputId = 'endtime', value = tmpmask$endtime)
     updateSelectInput(session, inputId = 'year', selected = tmpmask$sampleyear)
     updateSelectInput(session, inputId = 'viewDay', selected = tmpmask$sampleday)
   })
@@ -411,3 +438,4 @@ shinyServer(function(input, output, session) {
       # }
     })
 })
+

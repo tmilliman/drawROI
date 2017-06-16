@@ -152,18 +152,23 @@ writeROIListFile <- function(ROIList, path='ROI/'){
                     sprintf('%02d', i)
     )
     
+    
+    
     writeTIFF(m , where = paste0(path, rName,'.tif'))
+    
     
     maskpoints <- ROIList$masks[[i]]$maskpoints
     maskpoints <- rbind(dim(m), maskpoints)
     write.table(maskpoints, file = paste0(path, rName,'_vector.csv'), col.names = F, row.names = F, sep = ',')
     
     bdyLine <- paste( ROIList$masks[[i]]$startdate,
-                      format(ROIList$masks[[i]]$starttime, '%H:%M:%S'),
+                      ROIList$masks[[i]]$starttime,
                       ROIList$masks[[i]]$enddate, 
-                      format(ROIList$masks[[i]]$endtime, '%H:%M:%S'),
+                      ROIList$masks[[i]]$endtime,
                       rName,
                       ROIList$masks[[i]]$sampleImage, sep = ',')
+    
+    
     bdyText <- paste0(bdyText, bdyLine, '\n')
   }
   fcon <- file(paste0(path,filename))
@@ -198,4 +203,40 @@ filePathParse <- function(filenames)
   imgDT[,DateTime:=ISOdatetime(Year, Month, Day, Hour, Minute, Second)]
   imgDT
 }
+
+
+fixFormatTime <- function(asText){
+  asSplit <- unlist(strsplit(asText, ':'))
+  for(i in 1:length(asSplit))
+    if(any(!unlist(strsplit(asSplit[i], ''))%in%as.character(0:9))) asSplit[i] <- 0
+    
+    asNum <- as.numeric(asSplit)
+    if(length(asNum)>3) asNum <- asNum[1:3]
+    if(length(asNum)==0) asNum <- c(0, 0, 0)
+    if(length(asNum)==1) asNum <- c(asNum[1], 0,0)
+    if(length(asNum)==2) asNum <- c(asNum[1:2], 0)
+    
+    asNum[1] <- min(23, max(asNum[1], 0))
+    asNum[2] <- min(59, max(asNum[2], 0))
+    asNum[3] <- min(59, max(asNum[3], 0))
+    
+    asTextNew <- sapply(asNum, sprintf, fmt='%02d')
+    asTextNew <- paste(asTextNew, collapse = ':')
+    asTextNew
+}
+
+parseROI <- function(roifilename, roipath){
+  fls <- dir(roipath, gsub(pattern = 'roi.csv', '', roifilename))
+  
+  
+  roilines <- readLines(paste0(roipath, roifilename))
+  roilinesParsed <- sapply(roilines[4:12], strsplit, ': ')
+  roilinesParsed <- as.vector(unlist(sapply(roilinesParsed, '[',2)))
+  
+  masks <- read.csv(paste0(roipath, roifilename), skip = 13)
+  
+  tifls <- fls[grepl('.tif', fls)]
+  vecls <- fls[grepl('vector.csv', fls)]
+}
+
 
