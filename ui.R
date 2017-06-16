@@ -7,21 +7,21 @@ library(lubridate)
 library(plotly)
 library(data.table)
 library(colourpicker)
-
+library(shinyjs)
 
 source('init.R')
 
-
 fluidPage(
+  shinyjs::useShinyjs(),  
   
   headerPanel("PhenoCam ROI Tool"),
-  
   sidebarPanel(width = 4,
                selectInput("site", "Site", sites),
                selectInput("rois", "ROIs", ''),
                selectInput("vegtype", "Vegetation Type", choices = vegTypes, selected = ''),
                textInput('descr','Description', placeholder = 'Enter a description for the ROI'),
                textInput('owner','Owner', placeholder = 'Enter your name'),
+               passwordInput("password", "Password:", placeholder = 'Password to generate ROI files'),
                strong('ROI List filename:'),
                textOutput('roilabel'),
                hr(),
@@ -40,9 +40,7 @@ fluidPage(
                ),
                actionButton("generate", "Generate ROI List", icon = icon('list-alt'), width = "100%")
   ),
-  
-  
-  
+
   mainPanel(
     
     sliderInput(inputId = "contID",
@@ -53,8 +51,7 @@ fluidPage(
                 value = 1,
                 # round = -5,
                 step = 1,
-                width = '100%')
-    ,
+                width = '100%'),
     
     fluidRow(
       column(2, selectInput("year", "Year", '', width = '80px')),
@@ -91,9 +88,9 @@ fluidPage(
     fluidRow(
       column(4, radioButtons('sevenorall', label = 'Time series range:', choices = c('7 days','Entire year'), width = "330px",inline = T)),
       br(),
-      column(3, actionButton("extract", "Extract", icon = icon('line-chart'), width = "90px")),
-      column(5,     checkboxGroupInput('ccselect', label = NULL, choices = c('Red','Green','Blue'), selected = c('Red','Green','Blue'), width = '100%', inline = T)
-      )
+      column(2, actionButton("extract", "Extract", icon = icon('line-chart'), width = "100%")),
+      column(4, checkboxGroupInput('ccselect', label = NULL, choices = c('Red','Green','Blue'), selected = c('Red','Green','Blue'), width = '100%', inline = T)),
+      column(2, downloadButton("downloadTSData", "Download"))
     ),
     plotlyOutput(outputId = "timeSeriesPlotly", height = "200px", width = "100%")
   )

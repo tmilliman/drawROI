@@ -3,6 +3,7 @@
 #
 # http://shiny.rstudio.com
 
+library(shinyjs)
 library(sp)
 library(raster)
 library(jpeg)
@@ -322,6 +323,8 @@ shinyServer(function(input, output, session) {
       cvals <- ccVals()
       tvals <- ccTime()
       
+      shinyjs::enable("downloadTSData")
+
       cc <- melt(data.frame(red= cvals$rcc, green = cvals$gcc, blue= cvals$bcc), 
                  variable.name='band', value.name='cc', id.vars=NULL)
       d <- data.table(time=tvals, cc)
@@ -437,5 +440,29 @@ shinyServer(function(input, output, session) {
       plot(mask,legend=F, add=T, col='black')
       # }
     })
+  
+  
+  output$downloadTSData <- downloadHandler(
+    filename = function() {
+      paste('timeseries-', input$masks, '-', format(Sys.time(), format = '%Y-%m-%d-%H%M%S'), ".csv", sep="")
+    },
+    content = function(file) {
+      cvals <- ccVals()
+      tvals <- ccTime()
+      cc <- data.frame(red= cvals$rcc, green = cvals$gcc, blue= cvals$bcc)
+      d <- data.table(year=as.numeric(input$year), day=tvals, cc)
+      write.table(d, file, sep = ',', row.names = F)
+    }
+  )
+  
+  observeEvent(input$password,{
+   if(input$password=='gen4Pheno'){
+     shinyjs::enable("generate")
+   }else{
+     shinyjs::disable("generate")
+     }
+  })
+  shinyjs::disable("downloadTSData")
+  shinyjs::disable("generate")
 })
 
