@@ -53,8 +53,40 @@ shinyServer(function(input, output, session) {
   )
   observeEvent(values$ROIs,
                {
-                 updateSelectInput(session, 'rois', choices = values$ROIs)
+                 updateSelectInput(session, 'rois', choices = values$ROIs, selected = 'New ROI')
                })
+  
+  parsedROIList <- reactive({
+    dummy=0
+    parseROI(roifilename=input$rois, roipath())
+    })
+  
+  observeEvent(input$rois,{
+    if(input$rois=='New ROI') {
+      shinyjs::enable('vegtype')
+      return()
+    }
+    shinyjs::disable('vegtype')
+    dummy=0
+    
+    updateSelectInput(session, inputId = 'vegtype', selected =  parsedROIList()$vegType)
+    updateTextInput(session, inputId = 'descr', value = parsedROIList()$Description)
+    updateTextInput(session, inputId = 'owner', value = parsedROIList()$Owner)
+    dummy=0
+    updateSelectInput(session, inputId = 'masks', choices = names(parsedROIList()$masks))
+    values$MASKs <- parsedROIList()$masks
+    
+    updateSelectInput(session, inputId = 'year', selected = parsedROIList()$masks[[1]]$sampleyear)
+    updateSelectInput(session, inputId = 'viewDay', selected = parsedROIList()$masks[[1]]$sampleday)
+    dummy =0
+    # selectedMaskID <- length(parsedROIList$masks)
+    # updateDateRangeInput(session, inputId = 'roiDateRange', 
+    #                      start = parsedROIList$masks[[selectedMaskID]]$startdate, 
+    #                      end = parsedROIList$masks[[selectedMaskID]]$endtime)
+    # updateTextInput(session, inputId = 'starttime', value = parsedROIList$masks[[selectedMaskID]]$starttime)
+    # updateTextInput(session, inputId = 'endtime', value = parsedROIList$masks[[selectedMaskID]]$endtime)
+    # values$
+  })
   
   nroi <- reactive({
     autoInvalidate1()
@@ -62,25 +94,31 @@ shinyServer(function(input, output, session) {
     tmpl <- paste0(input$site, '_', input$vegtype)
     sum(grepl(tmpl, values$ROIs))+1
   })
-  
+  roiID <- reactive({
+    if(input$rois=='New ROI') {return(nroi())}
+    else {parsedROIList()$ID}
+  })
   observe({
     if(values$slideShow==0) return()
     autoInvalidate2()
     values$contID <- isolate(values$contID) + values$slideShow
   })
   
-  output$roilabel <- renderText({
+  roilabel <- reactive(
     paste(input$site, 
           input$vegtype, 
-          sprintf('%04d',nroi()), 
-          'roi.csv',
-          sep = '_')
+          sprintf('%04d',roiID()), sep = '_')
+  )
+  output$roilabel <- renderText({
+    paste0(roilabel(),'_roi.csv')
   })
   
   sampleImage <- reactive(
     imgDT[Site==input$site&Year==input$year&DOY==input$viewDay, path][1]
   )
-  
+  sampleImageSize <- reactive(
+    dim(readJPEG(sampleImage()))[1:2]
+  )
   sampleImageName <- reactive({
     tmp <- unlist(strsplit(sampleImage(), split = '/'))
     tmp[length(tmp)]
@@ -181,7 +219,7 @@ shinyServer(function(input, output, session) {
     values$MASKs[[input$masks]]$rasteredMask
   })
   
-  output$plot <- renderPlot({
+  output$plot <- renderPlot(width = 350, {
     if(is.na(sampleImage())){
       par(mar=c(0,0,0,0))
       plot(NA, xlim=c(0,1), ylim=c(0,1), xaxs='i',yaxs='i', xaxt='n', yaxt='n', bty='o', xlab='',ylab='')
@@ -238,11 +276,15 @@ shinyServer(function(input, output, session) {
                     ID = nroi(),
                     Owner= input$owner, 
                     Description = input$descr, 
-                    createTime = systime, 
-                    updateTime = systime, 
+                    createDate = strftime(systime, format = '%Y-%m-%d'),
+                    createTime = strftime(systime, format = '%H:%M:%S'),
+                    updateDate = strftime(systime, format = '%Y-%m-%d'),
+                    updateTime = strftime(systime, format = '%H:%M:%S'),
                     masks = values$MASKs)
     
-    writeROIListFile(ROIList, path = roipath() )
+    roifilename <- input$rois
+    if(input$rois=='New ROI')roifilename <- paste(ROIList$siteName, ROIList$vegType, sprintf('%04d', ROIList$ID), 'roi.csv', sep = '_')
+    writeROIListFile(ROIList, path = roipath(),  roifilename)
     
     showModal(modalDialog(title = 'Complete',width='300px',
                           "New file for ROI List was generated!",
@@ -355,12 +397,12 @@ shinyServer(function(input, output, session) {
                                  sampleyear = input$year, 
                                  sampleday = input$viewDay,
                                  sampleImage = sampleImageName(),
-                                 rasteredMask = createRasteredROI(values$centers, sampleImage()))
+                                 rasteredMask = createRasteredROI(values$centers, sampleImageSize()))
                  
                  tmp <- values$MASKs
                  tmp[[length(tmp)+1]] <-  newMask
                  tmpName <- paste(input$site, input$vegtype, 
-                                  sprintf('%04d',nroi()),
+                                  sprintf('%04d',roiID()),
                                   sprintf('%02d',length(tmp)), sep = '_')
                  names(tmp)[length(tmp)] <- tmpName
                  values$MASKs <- tmp
@@ -375,7 +417,7 @@ shinyServer(function(input, output, session) {
     if(is.null(values$centers)) return()
     if (nrow(values$centers)<3) return()
     
-    newMASK <- createRasteredROI(values$centers, sampleImage())
+    newMASK <- createRasteredROI(values$centers, sampleImageSize())
     tmpMask <- list(maskpoints = values$centers, 
                     startdate = input$roiDateRange[1], 
                     enddate = input$roiDateRange[2], 
@@ -399,7 +441,7 @@ shinyServer(function(input, output, session) {
   })
   
   output$maskplot <- 
-    renderPlot({
+    renderPlot(width = 350, {
       par(mar=c(0,0,0,0))
       plot(1,
            type='n',
@@ -415,9 +457,16 @@ shinyServer(function(input, output, session) {
       }
       mask <- curMask()
       res <- dim(mask)
-      plot(NA,xlim=c(1,res[1]),ylim=c(1,res[2]), type='n',
+      plot(NA,xlim=c(1,res[2]),ylim=c(1,res[1]), type='n',
            xaxs='i',yaxs='i',xaxt='n',yaxt='n',xlab='',ylab='',bty='o')
-      plot(mask,legend=F, add=T, col='black')
+      dummy=0
+      writeTIFF(mask, '.tmpraster.tif')
+      rmask <- raster('.tmpraster.tif')
+      rmask[rmask==0] <- NA
+      
+      plot(rmask,legend=F, add=T, col='black')
+      file.remove('.tmpraster.tif')
+      # plot(mask,legend=F, add=T)
       # }
     })
   
@@ -444,5 +493,6 @@ shinyServer(function(input, output, session) {
   })
   shinyjs::disable("downloadTSData")
   shinyjs::disable("generate")
+  shinyjs::disable("vegtype")
 })
 

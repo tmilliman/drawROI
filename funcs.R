@@ -81,18 +81,15 @@ extractCCC <- function(path, mmsk){
        bcc = DT[,mean(m*bcc, na.rm=T)])
 }
 
-createRasteredROI <- function(pnts, path){
-  jp <- readJPEG(path)
-  res <- dim(jp)[1:2]
-  ext <- extent(1,res[1], 1, res[2])
+createRasteredROI <- function(pnts, imgSize){
+  ext <- extent(1, imgSize[1], 1, imgSize[2])
   poly <- as(ext  ,"SpatialPolygons")
   poly@polygons[[1]]@Polygons[[1]]@coords <- as.matrix(pnts)
-  r <- rasterize(poly, raster(ext, nrow = res[1], ncol = res[2]))
-  r
+  r <- rasterize(poly, raster(ext, nrow = imgSize[1], ncol = imgSize[2]))
+  as.matrix(r)
 }
 
 extractCCCTimeSeries <- function(rmsk, paths, PLUS=F){
-  # rmsk <- createRasteredROI(pnts, paths[1])
   mmsk <- as.matrix(rmsk)
   
   n <- length(paths)
@@ -122,9 +119,8 @@ extractCCCTimeSeries <- function(rmsk, paths, PLUS=F){
 
 
 
-writeROIListFile <- function(ROIList, path='ROI/'){
+writeROIListFile <- function(ROIList, path='ROI/', roifilename){
   
-  filename <- paste(ROIList$siteName, ROIList$vegType, sprintf('%04d', ROIList$ID), 'roi.csv', sep = '_')
   
   updateTime <- Sys.time()
   hdrText <- paste0('#\n# ROI List for ', ROIList$siteName,
@@ -133,8 +129,8 @@ writeROIListFile <- function(ROIList, path='ROI/'){
                     '\n# Veg Type: ', ROIList$vegType, 
                     '\n# ROI ID Number: ', sprintf('%04d', ROIList$ID),
                     '\n# Owner: ', ROIList$Owner,
-                    '\n# Creation Date: ', strftime(ROIList$createTime, format = '%Y-%m-%d'),
-                    '\n# Creation Time: ', strftime(ROIList$createTime, format = '%H:%M:%S'),
+                    '\n# Creation Date: ', ROIList$createDate,
+                    '\n# Creation Time: ', ROIList$createTime,
                     '\n# Update Date: ', strftime(updateTime, format = '%Y-%m-%d'),
                     '\n# Update Time: ', strftime(updateTime, format = '%H:%M:%S'),
                     '\n# Description: ', ROIList$Description,
@@ -143,9 +139,10 @@ writeROIListFile <- function(ROIList, path='ROI/'){
   bdyText <- 'start_date,start_time,end_date,end_time,maskfile,sample_image\n'
   
   for(i in 1:length(ROIList$masks)){
-    m <- as.matrix(ROIList$masks[[i]]$rasteredMask)
-    m[m==1] <- 0
-    m[is.na(m)] <- 1
+    # m <- as.matrix(ROIList$masks[[i]]$rasteredMask)
+    m <- ROIList$masks[[i]]$rasteredMask
+    # m[m==1] <- 0
+    # m[is.na(m)] <- 1
     rName <- paste0(ROIList$siteName, '_',
                     ROIList$vegType, '_',
                     sprintf('%04d', ROIList$ID), '_',
@@ -159,19 +156,19 @@ writeROIListFile <- function(ROIList, path='ROI/'){
     
     maskpoints <- ROIList$masks[[i]]$maskpoints
     maskpoints <- rbind(dim(m), maskpoints)
-    write.table(maskpoints, file = paste0(path, rName,'_vector.csv'), col.names = F, row.names = F, sep = ',')
+    if(nrow(maskpoints)>3)write.table(maskpoints, file = paste0(path, rName,'_vector.csv'), col.names = F, row.names = F, sep = ',')
     
     bdyLine <- paste( ROIList$masks[[i]]$startdate,
                       ROIList$masks[[i]]$starttime,
                       ROIList$masks[[i]]$enddate, 
                       ROIList$masks[[i]]$endtime,
-                      rName,
+                      paste0(rName,'.tif'),
                       ROIList$masks[[i]]$sampleImage, sep = ',')
     
     
     bdyText <- paste0(bdyText, bdyLine, '\n')
   }
-  fcon <- file(paste0(path,filename))
+  fcon <- file(paste0(path, roifilename))
   writeLines(paste0(hdrText, bdyText), con = fcon)
   close(fcon)
 }
@@ -201,6 +198,9 @@ filePathParse <- function(filenames)
   imgDT[,DOY:=yday(ISOdate(Year, Month, Day))]
   imgDT[,Date:=date(ISOdate(Year, Month, Day))]
   imgDT[,DateTime:=ISOdatetime(Year, Month, Day, Hour, Minute, Second)]
+  imgDT[,conT:=Year+DOY/(365+(2001%%4==0))]
+  imgDT[,YearDOY:=Year+DOY/1000]
+  # imgDT <- imgDT[Hour==12&Minute<30,]
   imgDT
 }
 
@@ -233,10 +233,67 @@ parseROI <- function(roifilename, roipath){
   roilinesParsed <- sapply(roilines[4:12], strsplit, ': ')
   roilinesParsed <- as.vector(unlist(sapply(roilinesParsed, '[',2)))
   
-  masks <- read.csv(paste0(roipath, roifilename), skip = 13)
+  ROIList <- list(siteName = roilinesParsed[1], 
+                  vegType = roilinesParsed[2], 
+                  ID = as.numeric(roilinesParsed[3]),
+                  Owner= roilinesParsed[4], 
+                  createDate = roilinesParsed[5], 
+                  createTime = roilinesParsed[6], 
+                  updateDate = roilinesParsed[7], 
+                  updateTime = roilinesParsed[8], 
+                  Description = roilinesParsed[9], 
+                  masks = NULL)
   
-  tifls <- fls[grepl('.tif', fls)]
-  vecls <- fls[grepl('vector.csv', fls)]
+  
+  parsedMasks <- read.csv(paste0(roipath, roifilename), skip = 13)
+  
+  # tifls <- fls[grepl('.tif', fls)]
+  # vecls <- fls[grepl('vector.csv', fls)]
+  masksList <- list()
+  for(i in 1:nrow(parsedMasks)){
+    maskpath <- paste0(roipath, parsedMasks$maskfile[i])
+    maskpointspath <- gsub(maskpath, pattern = '.tif', replacement = '_vector.csv')
+    if(file.exists(maskpointspath)) {
+      dummy=0
+      maskpoints <- as.matrix(read.csv(maskpointspath, header = F, skip = 1))
+    }else{
+      maskpoints <- NULL
+      # r <- raster(maskpath)
+      # maskpoints <- maskRaster2Vector(r)
+      # maskpointsTmp <- rbind(dim(r), maskpoints)
+      # write.table(maskpointsTmp, file =maskpointspath, col.names = F, row.names = F, sep = ',')
+    }
+    dummy=0
+    tmpMask <- list(maskpoints = maskpoints, 
+                    startdate = as.character(parsedMasks$start_date), 
+                    enddate = as.character(parsedMasks$end_date), 
+                    starttime = as.character(parsedMasks$start_time), 
+                    endtime = as.character(parsedMasks$end_time), 
+                    sampleyear = NULL, 
+                    sampleday = NULL,
+                    sampleImage = as.character(parsedMasks$sample_image),
+                    rasteredMask = readTIFF(maskpath))
+    
+    sampleYMD <- strsplit(tmpMask$sampleImage, split = '_')[[1]][2:4]
+    tmpMask$sampleyear <- as.numeric(sampleYMD)[1]
+    tmpMask$sampleday <- yday(paste(sampleYMD, collapse = '-'))
+    
+    masksList[[length(masksList)+1]] <- tmpMask
+    
+  }
+  names(masksList) <- gsub(parsedMasks$maskfile, pattern = '.tif', replacement = '')
+  ROIList$masks <- masksList
+  
+  ROIList
 }
 
+
+maskRaster2Vector <- function(r){
+  r[r==0] <- 1
+  r[r==255] <- NA
+  
+  p <- rasterToPolygons(r, dissolve = T)
+  c <- p@polygons[[1]]@Polygons[[1]]@coords
+  c
+}
 
