@@ -76,7 +76,7 @@ fluidPage(
     ),
     
     fluidRow(
-      column(2, colourpicker::colourInput(inputId = 'roicol', label = 'ROI Color',value = '#30aa20', showColour = 'background')),
+      column(2, colourpicker::colourInput(inputId = 'roicol', label = 'ROI Color',value = '#ab5222', showColour = 'background')),
       column(4, sliderInput(inputId = 'roitrans', label = 'Transparency', min = 0, max = 100, value = 50, ticks = F, width = '100%', pre = '%')),
       br(),
       column(6, actionButton("cancel", "New", icon = icon('refresh'), width = "85px"),
@@ -95,7 +95,7 @@ fluidPage(
       column(3, checkboxGroupInput('ccselect', label = NULL, choices = c('R','G','B'), selected = c('R','G','B'), width = '100%', inline = T)),
       column(2, downloadButton("downloadTSData", "Download"))
     ),
-    plotlyOutput(outputId = "timeSeriesPlotly", height = "200px", width = "100%")
+    plotlyOutput(outputId = "timeSeriesPlotly", height = "300px", width = "100%")
   )
 )
 

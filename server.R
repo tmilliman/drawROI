@@ -335,7 +335,8 @@ shinyServer(function(input, output, session) {
         color = "#7f7f7f"
       )
       xAxis <- list(
-        title = "Day of year",
+        # title = "Day of year",
+        title = "Time (Year)",
         titlefont = fontList
       )
       yAxis <- list(
@@ -346,18 +347,21 @@ shinyServer(function(input, output, session) {
       
       if(input$extract==0|is.null(isolate(curMask()))){
         tvals <- 1:7
+        dummy=0
+        
         cvals <- matrix(NA, nrow=length(tvals), ncol = 3)
         colnames(cvals) <- c('rcc','gcc','bcc')
         cvals <- as.data.frame(cvals)
         
         yAxis$range <- c(0,1)
         xAxis$range <- range(tvals)
-        
+        dummy=0
         cc <- melt(data.frame(red= cvals$rcc, green = cvals$gcc, blue= cvals$bcc), 
                    variable.name='band', value.name='cc', id.vars=NULL)
         d <- data.table(time=tvals, cc)
         dummy=0
-        ccSel <- as.vector(sapply(input$ccselect[1:2], switch, R='red', B='blue', G="green"))
+        dummy=0
+        ccSel <- as.vector(sapply(input$ccselect, switch, R='red', G='green',  B='blue'))
         d <- d[band%in%ccSel]
         
         p <- plot_ly(data = d, x=~time, y= ~cc,
@@ -372,11 +376,12 @@ shinyServer(function(input, output, session) {
       tvals <- ccTime()
       
       shinyjs::enable("downloadTSData")
+      dummy=0
       
       cc <- melt(data.frame(red= cvals$rcc, green = cvals$gcc, blue= cvals$bcc), 
                  variable.name='band', value.name='cc', id.vars=NULL)
       d <- data.table(time=tvals, cc)
-      ccSel <- as.vector(sapply(input$ccselect[1:2], switch, R='red', B='blue', G="green"))
+      ccSel <- as.vector(sapply(input$ccselect, switch, R='red', B='blue', G="green"))
       d <- d[band%in%ccSel]
       
       plot_ly(data = d, x=~time, y= ~cc,
