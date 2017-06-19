@@ -89,7 +89,10 @@ createRasteredROI <- function(pnts, imgSize){
   as.matrix(r)
 }
 
-extractCCCTimeSeries <- function(rmsk, paths, PLUS=F){
+extractCCCTimeSeries <- function(rmsk, paths, PLUS=F, session=shiny::getDefaultReactiveDomain()){
+  
+  continue = TRUE
+  
   mmsk <- as.matrix(rmsk)
   
   n <- length(paths)
@@ -102,9 +105,12 @@ extractCCCTimeSeries <- function(rmsk, paths, PLUS=F){
   # if(exists('session'))
   withProgress(value = 0, message = 'Extracting CCs',
                for(i in 1:n){
+                 if(isTRUE(session$input$stopThis))break
                  ccc <- extractCCCFunc(paths[i], mmsk)
                  CCCT[i,] <- as.data.table(ccc[c("rcc", "gcc", "bcc")])
                  incProgress(1/n)
+                 Sys.sleep(1)
+                 httpuv:::service()
                }
   )
   # else
@@ -226,26 +232,35 @@ fixFormatTime <- function(asText){
 }
 
 parseROI <- function(roifilename, roipath){
-  fls <- dir(roipath, gsub(pattern = 'roi.csv', '', roifilename))
+  # fls <- dir(roipath, gsub(pattern = 'roi.csv', '', roifilename))
   
   
   roilines <- readLines(paste0(roipath, roifilename))
-  roilinesParsed <- sapply(roilines[4:12], strsplit, ': ')
-  roilinesParsed <- as.vector(unlist(sapply(roilinesParsed, '[',2)))
   
-  ROIList <- list(siteName = roilinesParsed[1], 
-                  vegType = roilinesParsed[2], 
-                  ID = as.numeric(roilinesParsed[3]),
-                  Owner= roilinesParsed[4], 
-                  createDate = roilinesParsed[5], 
-                  createTime = roilinesParsed[6], 
-                  updateDate = roilinesParsed[7], 
-                  updateTime = roilinesParsed[8], 
-                  Description = roilinesParsed[9], 
+  wEmptyLine <- roilines%in%c('', ' ',  '  ')
+  wCommented <- as.vector(sapply(roilines, grepl,  pattern = '^#'))
+  wNotSkip <- !(wEmptyLine|wCommented)
+  
+  
+  parseroiline <- function(roilines, property){
+    wProp <- grepl(roilines, pattern = property)
+    gsub(roilines[wProp], pattern = paste0('# ', property, ': '), replacement = '')
+  }
+  
+  ROIList <- list(siteName = parseroiline(roilines[wCommented], 'Site'), 
+                  vegType = parseroiline(roilines[wCommented], 'Veg Type'), 
+                  ID = as.numeric(parseroiline(roilines[wCommented], 'ROI ID Number')), 
+                  Owner = parseroiline(roilines[wCommented], 'Owner'), 
+                  createDate = parseroiline(roilines[wCommented], 'Creation Date'), 
+                  createTime = parseroiline(roilines[wCommented], 'Creation Time'), 
+                  updateDate = parseroiline(roilines[wCommented], 'Update Date'), 
+                  updateTime = parseroiline(roilines[wCommented], 'Update Time'), 
+                  Description = parseroiline(roilines[wCommented], 'Description'), 
                   masks = NULL)
   
   
-  parsedMasks <- read.csv(paste0(roipath, roifilename), skip = 13)
+  parsedMasks <- read.table(textConnection(roilines[which(wNotSkip)]), sep = ',', header = T)
+  # parsedMasks <- read.csv(paste0(roipath, roifilename), skip = nskips)
   
   # tifls <- fls[grepl('.tif', fls)]
   # vecls <- fls[grepl('vector.csv', fls)]
@@ -272,7 +287,7 @@ parseROI <- function(roifilename, roipath){
                     sampleyear = NULL, 
                     sampleday = NULL,
                     sampleImage = as.character(parsedMasks$sample_image),
-                    rasteredMask = readTIFF(maskpath))
+                    rasteredMask = as.matrix(raster(maskpath)))
     
     sampleYMD <- strsplit(tmpMask$sampleImage, split = '_')[[1]][2:4]
     tmpMask$sampleyear <- as.numeric(sampleYMD)[1]

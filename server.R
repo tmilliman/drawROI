@@ -58,7 +58,7 @@ shinyServer(function(input, output, session) {
   
   parsedROIList <- reactive({
     dummy=0
-    parseROI(roifilename=input$rois, roipath())
+    parseROI(roifilename=input$rois, roipath = roipath())
     })
   
   observeEvent(input$rois,{
@@ -356,7 +356,9 @@ shinyServer(function(input, output, session) {
         cc <- melt(data.frame(red= cvals$rcc, green = cvals$gcc, blue= cvals$bcc), 
                    variable.name='band', value.name='cc', id.vars=NULL)
         d <- data.table(time=tvals, cc)
-        d <- d[band%in%tolower(input$ccselect)]
+        dummy=0
+        ccSel <- as.vector(sapply(input$ccselect[1:2], switch, R='red', B='blue', G="green"))
+        d <- d[band%in%ccSel]
         
         p <- plot_ly(data = d, x=~time, y= ~cc,
                      color = ~band, 
@@ -374,7 +376,8 @@ shinyServer(function(input, output, session) {
       cc <- melt(data.frame(red= cvals$rcc, green = cvals$gcc, blue= cvals$bcc), 
                  variable.name='band', value.name='cc', id.vars=NULL)
       d <- data.table(time=tvals, cc)
-      d <- d[band%in%tolower(input$ccselect)]
+      ccSel <- as.vector(sapply(input$ccselect[1:2], switch, R='red', B='blue', G="green"))
+      d <- d[band%in%ccSel]
       
       plot_ly(data = d, x=~time, y= ~cc,
               color = ~band, 
@@ -460,7 +463,7 @@ shinyServer(function(input, output, session) {
       plot(NA,xlim=c(1,res[2]),ylim=c(1,res[1]), type='n',
            xaxs='i',yaxs='i',xaxt='n',yaxt='n',xlab='',ylab='',bty='o')
       dummy=0
-      writeTIFF(mask, '.tmpraster.tif')
+      writeTIFF(mask*1, '.tmpraster.tif')
       rmask <- raster('.tmpraster.tif')
       rmask[rmask==0] <- NA
       
@@ -485,7 +488,7 @@ shinyServer(function(input, output, session) {
   )
   
   observeEvent(input$password,{
-    if(input$password=='gen4Pheno'){
+    if(input$password==readLines('.key.psw')){
       shinyjs::enable("generate")
     }else{
       shinyjs::disable("generate")

@@ -87,10 +87,12 @@ fluidPage(
     # downloadButton(outputId = 's', label = 'asa'),
     hr(),
     fluidRow(
-      column(4, radioButtons('sevenorall', label = 'Time series range:', choices = c('week', 'year', 'all'), width = "330px",inline = T)),
+      column(3, radioButtons('sevenorall', label = 'Time series range:', choices = c('week', 'year', 'all'), width = "330px",inline = T)),
       br(),
-      column(2, actionButton("extract", "Extract", icon = icon('line-chart'), width = "100%")),
-      column(4, checkboxGroupInput('ccselect', label = NULL, choices = c('Red','Green','Blue'), selected = c('Red','Green','Blue'), width = '100%', inline = T)),
+      column(2, actionButton("extract", "Extract", 
+                             class="btn-primary", icon = icon('line-chart'), onclick="Shiny.onInputChange('stopThis',false)", width = "100%")),
+      column(2, actionButton("stopExtract", "Stop", class="btn-danger", icon = icon('stop'), onclick="Shiny.onInputChange('stopThis',true)", width = "100%")),
+      column(3, checkboxGroupInput('ccselect', label = NULL, choices = c('R','G','B'), selected = c('R','G','B'), width = '100%', inline = T)),
       column(2, downloadButton("downloadTSData", "Download"))
     ),
     plotlyOutput(outputId = "timeSeriesPlotly", height = "200px", width = "100%")
