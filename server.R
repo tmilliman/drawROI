@@ -107,8 +107,8 @@ shinyServer(function(input, output, session) {
     if(input$rois=='New ROI') {
       shinyjs::enable('vegtype')
       dummy =0 
-      # updateSelectInput(session, inputId = 'masks', choices = NULL)
       values$MASKs <- NULL
+      updateSelectInput(session, inputId = 'masks', choices = NULL)
       
       return()
     }
@@ -122,6 +122,8 @@ shinyServer(function(input, output, session) {
     dummy=0
     # updateSelectInput(session, inputId = 'masks', choices = names(values$parsedROIList$masks))
     values$MASKs <- values$parsedROIList$masks
+    
+    updateSelectInput(session, inputId = 'masks', choices = names(values$MASKs))
     
     updateSelectInput(session, inputId = 'year', selected = values$parsedROIList$masks[[1]]$sampleyear)
     updateSelectInput(session, inputId = 'viewDay', selected = values$parsedROIList$masks[[1]]$sampleday)
@@ -154,20 +156,20 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   # MASKs
   # ----------------------------------------------------------------------
-  observe({
-    dummy =0
-    maskchoice <- names(values$MASKs)
-    if(is.null(maskchoice)) 
-      updateSelectInput(session, 'masks', choices = '')
-    else if(length(maskchoice)==1)
-      updateSelectInput(session, 'masks', choices = maskchoice)
-    else
-      updateSelectInput(session, 'masks', choices = maskchoice, selected = isolate(input$masks))
-    dummy =0
-    
-  }
-  )
-  
+  # observe({
+  #   dummy =0
+  #   maskchoice <- names(values$MASKs)
+  #   if(is.null(maskchoice)) 
+  #     updateSelectInput(session, 'masks', choices = '')
+  #   else if(length(maskchoice)==1)
+  #     updateSelectInput(session, 'masks', choices = maskchoice)
+  #   else
+  #     updateSelectInput(session, 'masks', choices = maskchoice, selected = isolate(input$masks))
+  #   dummy =0
+  #   
+  # }
+  # )
+  # 
   
   # ----------------------------------------------------------------------
   # VegType
@@ -184,6 +186,7 @@ shinyServer(function(input, output, session) {
                  
                  newmaskNames <- as.vector(sapply(maskNames, f, y = input$vegtype))
                  names(values$MASKs) <- newmaskNames
+                 updateSelectInput(session, inputId = 'masks', choices = names(values$MASKs))
                })
   
   
