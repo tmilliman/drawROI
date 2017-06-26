@@ -40,6 +40,7 @@ shinyServer(function(input, output, session) {
     # values$ROIs <- c(dir(roipath(), pattern = 'roi.csv'), "New ROI")
     # values$MASKs <- NULL
     values$contID <- 1
+    values$slideShow <- 0
     
     updateSliderInput(session,
                       inputId = 'contID',
@@ -69,10 +70,10 @@ shinyServer(function(input, output, session) {
   )
   
   observe(
-      values$ROIs <- c(dir(roipath(), pattern = 'roi.csv'), "New ROI")
+    values$ROIs <- c(dir(roipath(), pattern = 'roi.csv'), "New ROI")
   )
-
-    observe(
+  
+  observe(
     updateSelectInput(session, 'rois', choices = values$ROIs, selected = 'New ROI')
   )
   
@@ -81,12 +82,12 @@ shinyServer(function(input, output, session) {
   # ROI label
   # ----------------------------------------------------------------------
   roilabel <- reactive({
-   dummy = 0 
-   
-   tmp <- paste(input$site, 
-          input$vegtype, 
-          sprintf('%04d',roiID()), sep = '_')
-   tmp
+    dummy = 0 
+    
+    tmp <- paste(input$site, 
+                 input$vegtype, 
+                 sprintf('%04d',roiID()), sep = '_')
+    tmp
   }
   )
   output$roilabel <- renderText({
@@ -98,24 +99,12 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   # Parsed ROI List
   # ----------------------------------------------------------------------
-  # parsedROIList <- reactive({
-  #   dummy=0
-  #   
-  #   if(!grepl(pattern = input$site, input$rois)){
-  #     # values$ROIs <- c(dir(roipath(), pattern = 'roi.csv'), "New ROI")
-  #     updateSelectInput(session, 'rois', choices = values$ROIs, selected = 'New ROI')
-  #   }
-  #   dummy=0
-  #   parseROI(roifilename=input$rois, roipath = roipath())
-  # })
   
-  
-  rois.tmp <- reactive(input$rois)
   
   observeEvent(input$rois,{
     dummy = 0
     
-    if(rois.tmp()=='New ROI') {
+    if(input$rois=='New ROI') {
       shinyjs::enable('vegtype')
       dummy =0 
       # updateSelectInput(session, inputId = 'masks', choices = NULL)
@@ -126,7 +115,7 @@ shinyServer(function(input, output, session) {
     shinyjs::disable('vegtype')
     dummy=0
     values$parsedROIList <- parseROI(roifilename=input$rois, roipath = roipath())
-      
+    
     updateSelectInput(session, inputId = 'vegtype', selected =  values$parsedROIList$vegType)
     updateTextInput(session, inputId = 'descr', value = values$parsedROIList$Description)
     updateTextInput(session, inputId = 'owner', value = values$parsedROIList$Owner)
@@ -168,19 +157,40 @@ shinyServer(function(input, output, session) {
   observe({
     dummy =0
     maskchoice <- names(values$MASKs)
-    if(is.null(maskchoice)) maskchoice <- ''
-    updateSelectInput(session, 'masks', choices = maskchoice)
+    if(is.null(maskchoice)) 
+      updateSelectInput(session, 'masks', choices = '')
+    else if(length(maskchoice)==1)
+      updateSelectInput(session, 'masks', choices = maskchoice)
+    else
+      updateSelectInput(session, 'masks', choices = maskchoice, selected = isolate(input$masks))
     dummy =0
     
   }
   )
   
   
+  # ----------------------------------------------------------------------
+  # VegType
+  # ----------------------------------------------------------------------
+  observeEvent(input$vegtype,
+               {
+                 if(length(values$MASKs)==0) return()
+                 
+                 maskNames <- names(values$MASKs)
+                 f <- function(x, y){
+                   z <- unlist(strsplit(x, '_'))
+                   paste(c(z[1], y, z[3:4]), collapse = '_')
+                 }
+                 
+                 newmaskNames <- as.vector(sapply(maskNames, f, y = input$vegtype))
+                 names(values$MASKs) <- newmaskNames
+               })
   
   
   
-  
-  
+  # ----------------------------------------------------------------------
+  # Mask start and end time
+  # ----------------------------------------------------------------------
   observeEvent(input$starttime, 
                {
                  asText <- input$starttime
@@ -583,5 +593,8 @@ shinyServer(function(input, output, session) {
   shinyjs::disable("downloadTSData")
   shinyjs::disable("generate")
   shinyjs::disable("vegtype")
+  shinyjs::disable("shiftsList")
+  shinyjs::disable("gotoShiftFOV")
+  
 })
 

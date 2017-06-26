@@ -23,16 +23,19 @@ fluidPage(
                textInput('descr','Description', placeholder = 'Enter a description for the ROI'),
                textInput('owner','Owner', placeholder = 'Enter your name'),
                passwordInput("password", "Password:", placeholder = 'Password to generate ROI files'),
+               hr(),
+               fluidRow(
+                 column( width = 4, actionButton( 'gotoShiftFOV', label = 'Go to FOV shift', width = '120px', class="btn-primary")),
+                 column( width = 7, offset = 1, selectInput('shiftsList', label = NULL, choices = '', width = '100%'))
+               ),
+               hr(),
                strong('ROI List filename:'),
                textOutput('roilabel'),
-               hr(),
-               
                selectInput("masks", "Mask", choices = NULL),
                strong('Sample Image:'),
                textOutput('sampleImagePath'),
                br(),
                dateRangeInput(inputId = 'roiDateRange', label = 'ROI Start/End Dates:', start = '2001-01-01', end = '2016-01-01', separator = '-', startview='day'),
-               
                fluidRow(
                  # column(width = 6, timeInput("starttime", "Start Time:",  seconds = T)),
                  # column(width = 6, timeInput("endtime", "End Time:",  seconds = T))
@@ -89,8 +92,7 @@ fluidPage(
     fluidRow(
       column(3, radioButtons('sevenorall', label = 'Time series range:', choices = c('week', 'year', 'all'), width = "330px",inline = T)),
       br(),
-      column(2, actionButton("extract", "Extract", 
-                             class="btn-primary", icon = icon('line-chart'), onclick="Shiny.onInputChange('stopThis',false)", width = "100%")),
+      column(2, actionButton("extract", "Extract", class="btn-primary", icon = icon('line-chart'), onclick="Shiny.onInputChange('stopThis',false)", width = "100%")),
       column(2, actionButton("stopExtract", "Stop", class="btn-danger", icon = icon('stop'), onclick="Shiny.onInputChange('stopThis',true)", width = "100%")),
       column(3, checkboxGroupInput('ccselect', label = NULL, choices = c('R','G','B'), selected = c('R','G','B'), width = '100%', inline = T)),
       column(2, downloadButton("downloadTSData", "Download"))
