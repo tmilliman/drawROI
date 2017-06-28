@@ -1,14 +1,16 @@
 library(shiny)
-library(sp)
-library(raster)
-library(jpeg)
 library(shinyTime)
-library(lubridate)
-library(plotly)
-library(data.table)
 library(shinyjs)
 library(colourpicker)
 
+library(sp)
+library(raster)
+library(jpeg)
+library(tiff)
+
+library(data.table)
+library(lubridate)
+library(plotly)
 
 source('init.R')
 
@@ -22,38 +24,33 @@ fluidPage(
                selectInput("vegtype", "Vegetation Type", choices = vegTypes, selected = ''),
                textInput('descr','Description', placeholder = 'Enter a description for the ROI'),
                textInput('owner','Owner', placeholder = 'Enter your name'),
-               passwordInput("password", "Password:", placeholder = 'Password to generate ROI files'),
                hr(),
-               fluidRow(
-                 column( width = 4, actionButton( 'gotoShiftFOV', label = 'Go to FOV shift', width = '120px', class="btn-primary")),
-                 column( width = 7, offset = 1, selectInput('shiftsList', label = NULL, choices = '', width = '100%'))
-               ),
-               hr(),
+               
                strong('ROI List filename:'),
                textOutput('roilabel'),
                selectInput("masks", "Mask", choices = NULL),
                strong('Sample Image:'),
                textOutput('sampleImagePath'),
                br(),
+               
                dateRangeInput(inputId = 'roiDateRange', label = 'ROI Start/End Dates:', start = '2001-01-01', end = '2016-01-01', separator = '-', startview='day'),
                fluidRow(
-                 # column(width = 6, timeInput("starttime", "Start Time:",  seconds = T)),
-                 # column(width = 6, timeInput("endtime", "End Time:",  seconds = T))
                  column(width = 6, textInput('starttime', label = 'Start Time:', width = '80px', value = '00:08:00')),
                  column(width = 6, textInput('endtime', label = 'End Time:', width = '80px', value = '00:20:00'))
                ),
+               
+               br(),
+               passwordInput("password", label = NULL, placeholder = 'Password to generate ROI files'),
                actionButton("generate", "Generate ROI List", icon = icon('list-alt'), width = "100%")
   ),
-
+  
   mainPanel(
-    
     sliderInput(inputId = "contID",
                 label =  NULL,
                 min = 1, max = 1,
                 ticks = F,
                 animate=F,
                 value = 1,
-                # round = -5,
                 step = 1,
                 width = '100%'),
     
@@ -79,24 +76,33 @@ fluidPage(
     ),
     
     fluidRow(
-      column(2, colourpicker::colourInput(inputId = 'roicol', label = 'ROI Color',value = '#ab5222', showColour = 'background')),
-      column(4, sliderInput(inputId = 'roitrans', label = 'Transparency', min = 0, max = 100, value = 50, ticks = F, width = '100%', pre = '%')),
       br(),
-      column(6, actionButton("cancel", "New", icon = icon('refresh'), width = "85px"),
-             actionButton("undo", "Undo", icon = icon('undo'), width = "85px"),
-             actionButton("accept", "Accept", icon = icon('thumbs-up'), width = "85px"),
-             actionButton("save", "Save", icon = icon('save'), width = "85px"))
+      
+      column(6,
+             column( 4, colourpicker::colourInput(inputId = 'roicol', allowTransparent=T, transparentText = 'none', label = NULL,value = '#ab5222', showColour = 'background')),
+             
+             column( 5, selectInput('shiftsList', label = NULL, choices = '', width = '100%')),
+             column( 3, actionButton( 'gotoShiftFOV', label = 'Go', width = '100%', class="btn-success"))
+      ),
+      
+      column(6, actionButton("cancel", "Clear", icon = icon('refresh'), class="btn-primary", width = "85px"),
+             actionButton("undo", "Undo", icon = icon('undo'), class="btn-primary", width = "85px"),
+             actionButton("save", "Edit", icon = icon('edit'), class="btn-danger", width = "85px"),
+             actionButton("accept", "Add", icon = icon('save'), class="btn-danger", width = "85px"))
     ),
-    # downloadButton(outputId = 's', label = 'asa'),
+    
     hr(),
+    
     fluidRow(
       column(3, radioButtons('sevenorall', label = 'Time series range:', choices = c('week', 'year', 'all'), width = "330px",inline = T)),
       br(),
+      
       column(2, actionButton("extract", "Extract", class="btn-primary", icon = icon('line-chart'), onclick="Shiny.onInputChange('stopThis',false)", width = "100%")),
       column(2, actionButton("stopExtract", "Stop", class="btn-danger", icon = icon('stop'), onclick="Shiny.onInputChange('stopThis',true)", width = "100%")),
       column(3, checkboxGroupInput('ccselect', label = NULL, choices = c('R','G','B'), selected = c('R','G','B'), width = '100%', inline = T)),
       column(2, downloadButton("downloadTSData", "Download"))
     ),
+    
     plotlyOutput(outputId = "timeSeriesPlotly", height = "300px", width = "100%")
   )
 )

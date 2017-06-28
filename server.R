@@ -1,23 +1,20 @@
-# This is the server logic for a Shiny web application.
-# You can find out more about building applications with Shiny here:
-#
-# http://shiny.rstudio.com
-
+library(shiny)
+library(shinyTime)
 library(shinyjs)
+library(colourpicker)
+
 library(sp)
 library(raster)
 library(jpeg)
-library(shiny)
-library(shinyTime)
+library(tiff)
+
+library(data.table)
 library(lubridate)
 library(plotly)
-library(data.table)
-library(colourpicker)
 
 source('funcs.R')
 source('init.R')
 
-# Define server logic required to draw a histogram
 shinyServer(function(input, output, session) {
   options(warn = -1)
   values <- reactiveValues(centers = matrix(numeric(), 0, 2),
@@ -304,9 +301,8 @@ shinyServer(function(input, output, session) {
     }else{
       par(mar=c(0,0,0,0))
       plotJPEG(sampleImage())
-      trans <- as.hexmode(floor((1-input$roitrans/100)*255))
-      if(nchar(trans)==1) trans <- paste0('0',trans)
-      polygon(values$centers, col = paste0(input$roicol, trans), pch = 9)
+      roicol <- if (input$roicol=='transparent') '#ffffff00' else paste0(input$roicol, '80')
+      polygon(values$centers, col = roicol, pch = 9, lwd=2)
     }
   })
   

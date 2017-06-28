@@ -1,13 +1,21 @@
-library(lubridate)
-library(data.table)
-library(raster)
 library(shiny)
-library(tiff)
+library(shinyTime)
+library(shinyjs)
+library(colourpicker)
+
+library(sp)
+library(raster)
 library(jpeg)
+library(tiff)
+
+library(data.table)
+library(lubridate)
+library(plotly)
+
+
 
 plotJPEG <- function(path, add=FALSE)
 {
-  
   # jpgNonNative <-  readJPEG(path, native=F) # read the file
   jpgNonNative <- NULL
   jpgNative <-  readJPEG(path, native=T) # read the file
@@ -19,6 +27,8 @@ plotJPEG <- function(path, add=FALSE)
   invisible(list(res=res, jpgNonNative=jpgNonNative, jpgNative=jpgNative))
   # invisible(res)
 }
+
+
 
 draw.polygon <-
   function (col = "#80303080", lty = 1, ...) 
@@ -40,6 +50,8 @@ draw.polygon <-
   }
 
 
+
+
 extractCCC.Plus <- function(path, mmsk){
   jp <- readJPEG(path)
   
@@ -57,6 +69,8 @@ extractCCC.Plus <- function(path, mmsk){
        gcc = DT[,mean(gcc, na.rm=T)],
        bcc = DT[,mean(bcc, na.rm=T)])
 }
+
+
 
 
 extractCCC <- function(path, mmsk){
@@ -81,6 +95,8 @@ extractCCC <- function(path, mmsk){
        bcc = DT[,mean(m*bcc, na.rm=T)])
 }
 
+
+
 createRasteredROI <- function(pnts, imgSize){
   ext <- extent(1, imgSize[1], 1, imgSize[2])
   poly <- as(ext  ,"SpatialPolygons")
@@ -88,6 +104,8 @@ createRasteredROI <- function(pnts, imgSize){
   r <- rasterize(poly, raster(ext, nrow = imgSize[1], ncol = imgSize[2]))
   as.matrix(r)
 }
+
+
 
 extractCCCTimeSeries <- function(rmsk, paths, PLUS=F, session=shiny::getDefaultReactiveDomain()){
   
@@ -113,20 +131,13 @@ extractCCCTimeSeries <- function(rmsk, paths, PLUS=F, session=shiny::getDefaultR
                  httpuv:::service()
                }
   )
-  # else
-  #   for(i in 1:n){
-  #     ccc <- extractCCCFunc(paths[i], mmsk)
-  #     CCCT[i,] <- as.data.table(ccc[c("rcc", "gcc", "bcc")])
-  #   }
-  
-  # list(TS = CCCT, mask= rmsk)
   CCCT
 }
 
 
 
+
 writeROIListFile <- function(ROIList, path='ROI/', roifilename){
-  
   
   updateTime <- Sys.time()
   hdrText <- paste0('#\n# ROI List for ', ROIList$siteName,
@@ -179,11 +190,6 @@ writeROIListFile <- function(ROIList, path='ROI/', roifilename){
   close(fcon)
 }
 
-readROIFolder <- function(){
-  
-}
-
-
 
 
 
@@ -231,9 +237,12 @@ fixFormatTime <- function(asText){
     asTextNew
 }
 
+
+
+
+
 parseROI <- function(roifilename, roipath){
   # fls <- dir(roipath, gsub(pattern = 'roi.csv', '', roifilename))
-  
   
   roilines <- readLines(paste0(roipath, roifilename))
   
@@ -301,6 +310,9 @@ parseROI <- function(roifilename, roipath){
   
   ROIList
 }
+
+
+
 
 
 maskRaster2Vector <- function(r){
