@@ -109,6 +109,7 @@ shinyServer(function(input, output, session) {
   
   observeEvent(input$rois,{
     dummy = 0
+    values$slideShow <- 0 
     
     if(input$rois=='New ROI') {
       shinyjs::enable('vegtype')
@@ -180,20 +181,20 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   # VegType
   # ----------------------------------------------------------------------
-  observeEvent(input$vegtype,
-               {
-                 if(length(values$MASKs)==0) return()
-                 
-                 maskNames <- names(values$MASKs)
-                 f <- function(x, y){
-                   z <- unlist(strsplit(x, '_'))
-                   paste(c(z[1], y, z[3:4]), collapse = '_')
-                 }
-                 
-                 newmaskNames <- as.vector(sapply(maskNames, f, y = input$vegtype))
-                 names(values$MASKs) <- newmaskNames
-                 updateSelectInput(session, inputId = 'masks', choices = names(values$MASKs))
-               })
+  observeEvent(input$vegtype,{
+    values$slideShow <- 0 
+    if(length(values$MASKs)==0) return()
+    
+    maskNames <- names(values$MASKs)
+    f <- function(x, y){
+      z <- unlist(strsplit(x, '_'))
+      paste(c(z[1], y, z[3:4]), collapse = '_')
+    }
+    
+    newmaskNames <- as.vector(sapply(maskNames, f, y = input$vegtype))
+    names(values$MASKs) <- newmaskNames
+    updateSelectInput(session, inputId = 'masks', choices = names(values$MASKs))
+  })
   
   
   
@@ -226,11 +227,28 @@ shinyServer(function(input, output, session) {
     autoInvalidate2()
     values$contID <- isolate(values$contID) + values$slideShow
   })
-  observeEvent(input$pause, values$slideShow <- 0)
-  observeEvent(input$play, values$slideShow <- 1)
-  observeEvent(input$backplay, values$slideShow <- -1)
-  observeEvent(input$back, updateSliderInput(session, "contID", value = input$contID-1))
-  observeEvent(input$forw, updateSliderInput(session, "contID", value = input$contID+1))
+  
+  observeEvent(input$pause, {
+    values$slideShow <- 0
+  })
+  
+  observeEvent(input$play, {
+    values$slideShow <- 1
+  })
+  
+  observeEvent(input$backplay, {
+    values$slideShow <- -1
+  })
+  
+  observeEvent(input$back, {
+    values$slideShow <- 0 
+    updateSliderInput(session, "contID", value = input$contID-1)
+  })
+  
+  observeEvent(input$forw, {
+    values$slideShow <- 0 
+    updateSliderInput(session, "contID", value = input$contID+1)
+  })
   
   
   # ----------------------------------------------------------------------
@@ -239,9 +257,11 @@ shinyServer(function(input, output, session) {
   sampleImage <- reactive(
     imgDT[Site==input$site&Year==input$year&DOY==input$viewDay, path][1]
   )
+  
   sampleImageSize <- reactive(
     dim(readJPEG(sampleImage()))[1:2]
   )
+  
   sampleImageName <- reactive({
     tmp <- unlist(strsplit(sampleImage(), split = '/'))
     tmp[length(tmp)]
@@ -264,12 +284,14 @@ shinyServer(function(input, output, session) {
     updateSelectInput(session, 'year', selected = tmpyear)
   })
   
-  observeEvent(input$contID, 
-               values$contID <- input$contID)
+  observeEvent(input$contID, {
+    values$contID <- input$contID
+  })
   
   validDOY <- reactive(dayYearIDTable()[Year==as.numeric(input$year), DOY])
   
   observeEvent(input$year, {
+    # values$slideShow <- 0 
     if(length(validDOY())==0) return()
     if(!input$viewDay%in%validDOY()) {
       # tmpx <- abs(validDOY())
@@ -281,9 +303,11 @@ shinyServer(function(input, output, session) {
     }
     # if(length(tmpid)==0) tmpid =1
     values$contID <- tmpid
+    updateSliderInput(session, 'contID', value = tmpid)
   })
   
   observeEvent(input$viewDay,{
+    # values$slideShow <- 0 
     if(length(validDOY())==0) return()
     tmpx <- NULL
     if(!input$viewDay%in%validDOY()) {
@@ -296,6 +320,7 @@ shinyServer(function(input, output, session) {
     }
     # if(length(tmpid)==0) tmpid =1
     values$contID <- tmpid
+    updateSliderInput(session, 'contID', value = tmpid)
   })
   
   
@@ -316,6 +341,7 @@ shinyServer(function(input, output, session) {
   })
   
   observeEvent(input$masks, {
+    values$slideShow <- 0 
     tmpmask <- values$MASKs[[input$masks]]
     
     values$centers <- tmpmask$maskpoints
@@ -330,6 +356,7 @@ shinyServer(function(input, output, session) {
   })
   
   observeEvent(input$newPoint, {
+    values$slideShow <- 0 
     newPoint <- matrix(c(input$newPoint[['x']], input$newPoint[['y']]),1, 2)
     values$centers <- rbind(values$centers, newPoint)
   })
@@ -338,10 +365,13 @@ shinyServer(function(input, output, session) {
   
   
   
-  observeEvent(input$cancel, 
-               values$centers <- matrix(numeric(), 0, 2))
+  observeEvent(input$cancel, {
+    values$slideShow <- 0 
+    values$centers <- matrix(numeric(), 0, 2)
+  })
   
   observeEvent(input$undo, {
+    values$slideShow <- 0 
     if (nrow(values$centers) > 2)
       values$centers <- values$centers[-nrow(values$centers),]
     else if (nrow(values$centers) == 2)
@@ -355,6 +385,7 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   
   observeEvent(input$generate,{
+    values$slideShow <- 0 
     if(length(values$MASKs)==0) return()
     systime <- format(Sys.time(), '%Y-%m-%d %H:%M:%S')
     ROIList <- list(siteName = input$site, 
@@ -481,38 +512,39 @@ shinyServer(function(input, output, session) {
   # Accept mask
   # ----------------------------------------------------------------------
   
-  observeEvent(input$accept,
-               {
-                 if(is.null(values$centers)) return()
-                 if (nrow(values$centers)<3) return()
-                 
-                 newMask <- list(maskpoints = values$centers, 
-                                 startdate = input$roiDateRange[1], 
-                                 enddate = input$roiDateRange[2], 
-                                 starttime = input$starttime, 
-                                 endtime = input$endtime, 
-                                 sampleyear = input$year, 
-                                 sampleday = input$viewDay,
-                                 sampleImage = sampleImageName(),
-                                 rasteredMask = createRasteredROI(values$centers, sampleImageSize()))
-                 
-                 tmp <- values$MASKs
-                 tmp[[length(tmp)+1]] <-  newMask
-                 tmpName <- paste(input$site, input$vegtype, 
-                                  sprintf('%04d',roiID()),
-                                  sprintf('%02d',length(tmp)), sep = '_')
-                 names(tmp)[length(tmp)] <- tmpName
-                 values$MASKs <- tmp
-                 updateSelectInput(session, inputId = 'masks', choices = names(tmp), selected = tmpName)
-                 
-                 # values$msk <- tmp$rasteredMask
-               })
+  observeEvent(input$accept,{
+    values$slideShow <- 0 
+    if(is.null(values$centers)) return()
+    if (nrow(values$centers)<3) return()
+    
+    newMask <- list(maskpoints = values$centers, 
+                    startdate = input$roiDateRange[1], 
+                    enddate = input$roiDateRange[2], 
+                    starttime = input$starttime, 
+                    endtime = input$endtime, 
+                    sampleyear = input$year, 
+                    sampleday = input$viewDay,
+                    sampleImage = sampleImageName(),
+                    rasteredMask = createRasteredROI(values$centers, sampleImageSize()))
+    
+    tmp <- values$MASKs
+    tmp[[length(tmp)+1]] <-  newMask
+    tmpName <- paste(input$site, input$vegtype, 
+                     sprintf('%04d',roiID()),
+                     sprintf('%02d',length(tmp)), sep = '_')
+    names(tmp)[length(tmp)] <- tmpName
+    values$MASKs <- tmp
+    updateSelectInput(session, inputId = 'masks', choices = names(tmp), selected = tmpName)
+    
+    # values$msk <- tmp$rasteredMask
+  })
   
   # ----------------------------------------------------------------------
   # Save mask
   # ----------------------------------------------------------------------
   
   observeEvent(input$save,{
+    values$slideShow <- 0 
     if(is.null(curMask()))return()
     if(is.null(values$centers)) return()
     if (nrow(values$centers)<3) return()
