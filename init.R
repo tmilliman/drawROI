@@ -9,6 +9,7 @@ library(data.table)
 library(colourpicker)
 
 source('funcs.R')
+
 dataPath <- 'phenocamdata/'
 
 # library(rjson)
@@ -41,23 +42,22 @@ imgDT[,conT:=Year+DOY/(365+(2001%%4==0))]
 imgDT[,YearDOY:=Year+DOY/1000]
 imgDT <- imgDT[Hour==12&Minute<30,]
 
-sites <- unique(imgDT$Site)
-rois <- ''
-vegTypes.Names <-   c('Agriculture (AG)',
-                      'Deciduous Broadleaf (DB)',
-                      'Evergreen Broadleaf (EB)',
-                      'Evergreen Needleleaf (EN)',
-                      'Deciduous Needleleaf (DN)',
-                      'Grassland (GR)',
-                      'Mixed Forest (MX)',
-                      'Non-vegetated (NV)',
-                      'Reference Panel (RF)',
-                      'Shrub (SH)',
-                      'Tundra (TN)',
-                      'Understory (UN)',
-                      'Wetland (WL)',
-                      'Other/Canopy (XX)')
+# sites <- unique(imgDT$Site)
 
 vegTypes <-   list('AG','DB','EB','EN','DN','GR','MX',
                    'NV','RF','SH','TN','UN','WL','XX')
-names(vegTypes) <- vegTypes.Names
+
+names(vegTypes) <- c('Agriculture (AG)',
+                     'Deciduous Broadleaf (DB)',
+                     'Evergreen Broadleaf (EB)',
+                     'Evergreen Needleleaf (EN)',
+                     'Deciduous Needleleaf (DN)',
+                     'Grassland (GR)',
+                     'Mixed Forest (MX)',
+                     'Non-vegetated (NV)',
+                     'Reference Panel (RF)',
+                     'Shrub (SH)',
+                     'Tundra (TN)',
+                     'Understory (UN)',
+                     'Wetland (WL)',
+                     'Other/Canopy (XX)')

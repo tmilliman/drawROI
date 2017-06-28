@@ -22,6 +22,7 @@ shinyServer(function(input, output, session) {
                            slideShow = 0,
                            contID= 1, 
                            ROIs = vector(),
+                           sitesList = vector(),
                            parsedROIList = NULL
   )
   
@@ -32,6 +33,14 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   # Site
   # ----------------------------------------------------------------------
+  observe({
+    values$sitesList <- imgDT[,unique(Site)]
+  })
+  
+  observe({
+    updateSelectInput(session, inputId = 'site', choices = values$sitesList)
+  })
+  
   observeEvent(input$site, {
     dummy = 0
     # values$ROIs <- c(dir(roipath(), pattern = 'roi.csv'), "New ROI")

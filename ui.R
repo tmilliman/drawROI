@@ -19,7 +19,7 @@ fluidPage(
   
   headerPanel("PhenoCam ROI Tool"),
   sidebarPanel(width = 4,
-               selectInput("site", "Site", sites),
+               selectInput("site", "Site", choices = ''),
                selectInput("rois", "ROIs", 'New ROI'),
                selectInput("vegtype", "Vegetation Type", choices = vegTypes, selected = ''),
                textInput('descr','Description', placeholder = 'Enter a description for the ROI'),
@@ -28,6 +28,7 @@ fluidPage(
                
                strong('ROI List filename:'),
                textOutput('roilabel'),
+               br(),
                selectInput("masks", "Mask", choices = NULL),
                strong('Sample Image:'),
                textOutput('sampleImagePath'),
