@@ -2,6 +2,8 @@ library(shiny)
 library(shinyTime)
 library(shinyjs)
 library(colourpicker)
+library(rjson)
+library(stringr)
 
 library(sp)
 library(raster)
@@ -13,7 +15,14 @@ library(lubridate)
 library(plotly)
 
 source('funcs.R')
-source('init.R')
+
+# library(rjson)
+# phenoSites <- fromJSON(file = 'https://phenocam.sr.unh.edu/webcam/network/siteinfo/')
+# # phenoSites
+# phenoROIs <- fromJSON(file = 'https://phenocam.sr.unh.edu/webcam/roi/roilistinfo/')
+
+
+midddayListPath <- '/home/bijan/middayList/'
 
 shinyServer(function(input, output, session) {
   options(warn = -1)
@@ -29,12 +38,43 @@ shinyServer(function(input, output, session) {
   autoInvalidate1 <- reactiveTimer(1000)
   autoInvalidate2 <- reactiveTimer(1000)
   
+  observe({
+    vegTypes <-   list('AG','DB','EB','EN','DN','GR','MX',
+                       'NV','RF','SH','TN','UN','WL','XX')
+    names(vegTypes) <- c('Agriculture (AG)',
+                         'Deciduous Broadleaf (DB)',
+                         'Evergreen Broadleaf (EB)',
+                         'Evergreen Needleleaf (EN)',
+                         'Deciduous Needleleaf (DN)',
+                         'Grassland (GR)',
+                         'Mixed Forest (MX)',
+                         'Non-vegetated (NV)',
+                         'Reference Panel (RF)',
+                         'Shrub (SH)',
+                         'Tundra (TN)',
+                         'Understory (UN)',
+                         'Wetland (WL)',
+                         'Other/Canopy (XX)')
+    updateSelectInput(session, 'vegtype', choices = vegTypes)    
+  })
+  
+  
+  # ----------------------------------------------------------------------
+  # imgDT
+  # ----------------------------------------------------------------------
+  imgDT <- reactive({
+    getIMG.DT(input$site, midddayListPath)
+  })
   
   # ----------------------------------------------------------------------
   # Site
   # ----------------------------------------------------------------------
   observe({
-    values$sitesList <- imgDT[,unique(Site)]
+    # values$sitesList <- imgDT[,unique(Site)]
+    phenoSites <- fromJSON(file = 'https://phenocam.sr.unh.edu/webcam/network/siteinfo/')
+    phenoSites <- sapply(phenoSites, function(x){x$site})
+    
+    values$sitesList <- phenoSites
   })
   
   observe({
@@ -54,14 +94,14 @@ shinyServer(function(input, output, session) {
                       min= min(dayYearIDTable()$ID),
                       max= max(dayYearIDTable()$ID)  )
     
-    dmin <- imgDT[Site==input$site, min(Date)]
-    dmax <- imgDT[Site==input$site, max(Date)]
+    dmin <- imgDT()[Site==input$site, min(Date)]
+    dmax <- imgDT()[Site==input$site, max(Date)]
     updateDateRangeInput(session ,
                          inputId = 'roiDateRange',
                          start = dmin,
                          end = dmax)  
     
-    x <- imgDT[Site==input$site, unique(Year)]
+    x <- imgDT()[Site==input$site, unique(Year)]
     if (is.null(x)) x <- character(0)
     
     updateSelectInput(session, "year", choices = x)
@@ -71,9 +111,12 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   # ROIs
   # ----------------------------------------------------------------------
-  roipath <- reactive(
-    paste0(dataPath, input$site,'/ROI/')    
-  )
+  roipath <- reactive({
+    # if(grepl(input$site, 'NEON'))
+      return(paste0('/data/archive/', input$site,'/ROI/'))
+    # else
+    #   return(paste0('/data/archive/', input$site,'/originals/ROI/'))
+  }  )
   
   observe(
     values$ROIs <- c(dir(roipath(), pattern = 'roi.csv'), "New ROI")
@@ -216,7 +259,7 @@ shinyServer(function(input, output, session) {
                })
   
   
-  dayYearIDTable <- reactive(imgDT[Site==input$site,.(ID=1:.N,Year, DOY)])
+  dayYearIDTable <- reactive(imgDT()[Site==input$site,.(ID=1:.N,Year, DOY)])
   
   
   # ----------------------------------------------------------------------
@@ -254,9 +297,10 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   # Sample Image
   # ----------------------------------------------------------------------
-  sampleImage <- reactive(
-    imgDT[Site==input$site&Year==input$year&DOY==input$viewDay, path][1]
-  )
+  sampleImage <- reactive({
+    # if(input$site=='') return(NA)
+    imgDT()[Site==input$site&Year==input$year&DOY==input$viewDay, path][1]
+  }  )
   
   sampleImageSize <- reactive(
     dim(readJPEG(sampleImage()))[1:2]
@@ -268,7 +312,7 @@ shinyServer(function(input, output, session) {
   })
   
   output$sampleImagePath <- renderText(
-    sampleImageName()
+    sampleImage()
   )
   
   
@@ -416,16 +460,16 @@ shinyServer(function(input, output, session) {
   tsYearDayRange <- reactive({
     if(input$sevenorall=="week")
       # return(input$viewDay[1]:(input$viewDay[1]+7))
-      return(imgDT[Site==input$site&Year==input$year&DOY%in%(input$viewDay[1]:(input$viewDay[1]+7)),YearDOY])
+      return(imgDT()[Site==input$site&Year==input$year&DOY%in%(input$viewDay[1]:(input$viewDay[1]+7)),YearDOY])
     else if(input$sevenorall=="year")
       # return(1:365)
-      return(imgDT[Site==input$site&Year==input$year,YearDOY])
+      return(imgDT()[Site==input$site&Year==input$year,YearDOY])
     else if(input$sevenorall=="all")
-      return(imgDT[Site==input$site,YearDOY])
+      return(imgDT()[Site==input$site,YearDOY])
   })
   
   paths <- reactive(
-    imgDT[Site==input$site&YearDOY%in%tsYearDayRange(), .(paths=path[1]),.(conT, Year, DOY)]
+    imgDT()[Site==input$site&YearDOY%in%tsYearDayRange(), .(paths=path[1]),.(conT, Year, DOY)]
   )
   
   ccVals <- eventReactive(input$extract,{

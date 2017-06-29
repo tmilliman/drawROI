@@ -324,3 +324,52 @@ maskRaster2Vector <- function(r){
   c
 }
 
+
+parseIMG.DT <- function(imgDT){
+  
+  imgDT[,c('Site', 'Year', 'Month','Day','HHMMSS'):=as.data.table(matrix(unlist(strsplit(gsub(filenames, pattern = '.jpg', replacement = ''), split = '_')), ncol=5, byrow = T))]
+  imgDT[,Year:=as.numeric(Year)]
+  imgDT[,Month:=as.numeric(Month)]
+  imgDT[,Day:=as.numeric(Day)]
+  imgDT[,HHMMSS:=as.numeric(HHMMSS)]
+  imgDT[,Hour:=floor(HHMMSS/10000)]
+  imgDT[,Minute:=floor((HHMMSS%%10000)/100)]
+  imgDT[,Second:=HHMMSS%%100]
+  imgDT[,DOY:=yday(ISOdate(Year, Month, Day))]
+  
+  imgDT[,DOY:=yday(ISOdate(Year, Month, Day))]
+  imgDT[,Date:=date(ISOdate(Year, Month, Day))]
+  imgDT[,DateTime:=ISOdatetime(Year, Month, Day, Hour, Minute, Second)]
+  imgDT[,conT:=Year+DOY/(365+(2001%%4==0))]
+  imgDT[,YearDOY:=Year+DOY/1000]
+  # imgDT <- imgDT[Hour==12&Minute<30,]
+  imgDT
+}
+
+
+
+getIMG.DT <- function(sites, midddayListPath){
+  imgDT <- data.table()
+  
+  for(site in sites){
+    tbl <- read.table(paste0(midddayListPath, site), header = F, colClasses = 'character', col.names = 'path')
+    imgDT.tmp <- as.data.table(tbl)
+    imgDT <- rbind(imgDT, imgDT.tmp)
+  }
+  
+  
+  splt <- imgDT[, tstrsplit(path, split = '/')]
+  
+  colnames(splt) <- c('empty','data','archive','site','year','month','filenames') 
+  splt[, newpath:=paste(empty, data, archive, site, 'originals', year, month, filenames, sep='/')]
+  
+  imgDT$filenames <- splt$filenames
+  imgDT$newpath <- splt$newpath
+  
+  #imgDT[grepl(pattern = 'NEON', filenames), path:=newpath]
+  imgDT$newpath <- NULL
+  
+  imgDT <- imgDT[str_count(filenames, pattern = '_')==4, ]
+  imgDT <- parseIMG.DT(imgDT)
+  imgDT
+}

@@ -12,16 +12,15 @@ library(data.table)
 library(lubridate)
 library(plotly)
 
-source('init.R')
 
 fluidPage(
   shinyjs::useShinyjs(),  
   
   headerPanel("PhenoCam ROI Tool"),
   sidebarPanel(width = 4,
-               selectInput("site", "Site", choices = ''),
+               selectInput("site", "Site", choices = 'acadia'),
                selectInput("rois", "ROIs", 'New ROI'),
-               selectInput("vegtype", "Vegetation Type", choices = vegTypes, selected = ''),
+               selectInput("vegtype", "Vegetation Type", choices = ''),
                textInput('descr','Description', placeholder = 'Enter a description for the ROI'),
                textInput('owner','Owner', placeholder = 'Enter your name'),
                hr(),
@@ -60,7 +59,7 @@ fluidPage(
       br(),
       column(10, sliderInput(inputId = "viewDay", label =  NULL,
                              min = 1, max = 365, ticks = F, animate=F,
-                             value = 50, round = T, step = 1, width = '700px'))
+                             value = 1, round = T, step = 1, width = '700px'))
     ),
     
     fluidRow(
