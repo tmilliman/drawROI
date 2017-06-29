@@ -312,7 +312,7 @@ shinyServer(function(input, output, session) {
   })
   
   output$sampleImagePath <- renderText(
-    sampleImage()
+    sampleImageName()
   )
   
   
