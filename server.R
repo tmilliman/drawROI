@@ -4,6 +4,8 @@ library(shinyjs)
 library(colourpicker)
 library(rjson)
 library(stringr)
+library(sendmailR)
+library(shinyAce)
 
 library(sp)
 library(raster)
@@ -23,6 +25,8 @@ source('funcs.R')
 
 
 midddayListPath <- '/home/bijan/middayList/'
+### XXX
+# midddayListPath <- 'midddayListPath/'
 
 shinyServer(function(input, output, session) {
   options(warn = -1)
@@ -63,6 +67,7 @@ shinyServer(function(input, output, session) {
   # imgDT
   # ----------------------------------------------------------------------
   imgDT <- reactive({
+    dummy <- 0
     getIMG.DT(input$site, midddayListPath)
   })
   
@@ -74,6 +79,8 @@ shinyServer(function(input, output, session) {
     phenoSites <- fromJSON(file = 'https://phenocam.sr.unh.edu/webcam/network/siteinfo/')
     phenoSites <- sapply(phenoSites, function(x){x$site})
     
+    ### XXX
+    # phenoSites <- c('dukehw','harvard')
     values$sitesList <- phenoSites
   })
   
@@ -105,6 +112,8 @@ shinyServer(function(input, output, session) {
     if (is.null(x)) x <- character(0)
     
     updateSelectInput(session, "year", choices = x)
+    updateSelectInput(session, 'rois', choices = values$ROIs, selected = 'New ROI')
+    dummy <- 0
     
   })
   
@@ -112,10 +121,10 @@ shinyServer(function(input, output, session) {
   # ROIs
   # ----------------------------------------------------------------------
   roipath <- reactive({
-    # if(grepl(input$site, 'NEON'))
-      return(paste0('/data/archive/', input$site,'/ROI/'))
-    # else
-    #   return(paste0('/data/archive/', input$site,'/originals/ROI/'))
+    return(paste0('/data/archive/', input$site,'/ROI/'))
+    ### XXX
+    # return(paste0('phenocamdata/data/archive/', input$site,'/ROI/'))
+    
   }  )
   
   observe(
@@ -158,7 +167,7 @@ shinyServer(function(input, output, session) {
       shinyjs::enable('vegtype')
       dummy =0 
       values$MASKs <- NULL
-      updateSelectInput(session, inputId = 'masks', choices = NULL)
+      updateSelectInput(session, inputId = 'masks', choices = '')
       
       return()
     }
@@ -259,7 +268,10 @@ shinyServer(function(input, output, session) {
                })
   
   
-  dayYearIDTable <- reactive(imgDT()[Site==input$site,.(ID=1:.N,Year, DOY)])
+  dayYearIDTable <- reactive({
+    dummy <- 0
+    imgDT()[Site==input$site,.(ID=1:.N,Year, DOY)]
+}    )
   
   
   # ----------------------------------------------------------------------
@@ -318,6 +330,7 @@ shinyServer(function(input, output, session) {
   
   
   observeEvent(values$contID,{
+    dummy <- 0
     if(length(values$contID)==0) values$contID <- 1
     tmpid <- dayYearIDTable()[ID==as.numeric(values$contID),ID]
     tmpday <- dayYearIDTable()[ID==as.numeric(values$contID),DOY]
@@ -674,6 +687,51 @@ shinyServer(function(input, output, session) {
       shinyjs::disable("generate")
     }
   })
+  
+  
+  # ----------------------------------------------------------------------
+  # Email
+  # ----------------------------------------------------------------------
+  
+  observeEvent(input$errorSend,{
+    msg <- paste0(
+      '---------\n',
+      'Submit time: \t', as.character(Sys.time()), '\n',
+      # 'IP address: \t', as.character(system('ipconfig getifaddr en0', intern=TRUE)),'\n',
+      'User: \t', input$errorUser, '\n',
+      'Email: \t', input$errorEmail, '\n',
+      'OS: \t', input$errorOS, '\n',
+      'Browser: \t', input$errorBrowser, '\n',
+      'Date: \t', as.character(input$errorDate), '\n',
+      'Time: \t', input$errorTime, '\n',
+      'Type: \t', input$errorType, '\n',
+      '---------\n',
+      'Message: \t', input$errorMessage, '\n',
+      '---------\n'
+    )
+    sendmail(from = 'phenocam.network@gmail.com', 
+             to = 'phenocam.network@gmail.com', 
+             # subject = paste0('drawROI error submitted at ', as.character(Sys.time())), 
+             subject = 'a drawROI user just submitted an error report', 
+             msg = msg)
+
+    showModal(modalDialog(title = 'Message was submitted!',width='250px',
+                          "Thank you for helping us to improve the app.",
+                          easyClose = T,
+                          size = 'm',
+                          footer = NULL
+    ))
+
+        
+  })
+  
+  observeEvent(input$errorTime, 
+               {
+                 asText <- input$errorTime
+                 asTextNew <- fixFormatTime(asText)
+                 if(asTextNew!=asText) updateTextInput(session, 'errorTime', value = asTextNew)
+               })
+  
   shinyjs::disable("downloadTSData")
   shinyjs::disable("generate")
   shinyjs::disable("vegtype")
