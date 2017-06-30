@@ -168,7 +168,7 @@ writeROIListFile <- function(ROIList, path='ROI/', roifilename){
     
     
     
-    writeTIFF(m , where = paste0(path, rName,'.tif'))
+    writeTIFF(m*1 , where = paste0(path, rName,'.tif'))
     
     
     maskpoints <- ROIList$masks[[i]]$maskpoints

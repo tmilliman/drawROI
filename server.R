@@ -524,25 +524,34 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   # Download ROI List
   # ----------------------------------------------------------------------
-  observeEvent(input$downloadROI,{
-    values$slideShow <- 0 
-    if(length(values$MASKs)==0) return()
-    systime <- format(Sys.time(), '%Y-%m-%d %H:%M:%S')
-    ROIList <- list(siteName = input$site, 
-                    vegType = input$vegtype, 
-                    ID = roiID(),
-                    Owner= input$owner, 
-                    Description = input$descr, 
-                    createDate = strftime(systime, format = '%Y-%m-%d'),
-                    createTime = strftime(systime, format = '%H:%M:%S'),
-                    updateDate = strftime(systime, format = '%Y-%m-%d'),
-                    updateTime = strftime(systime, format = '%H:%M:%S'),
-                    masks = values$MASKs)
-    
-    roifilename <- paste0(roilabel(),'_roi.csv')
-    writeROIListFile(ROIList, path = roipath(),  roifilename)
-    
-  })
+  output$downloadROI <- downloadHandler(
+    filename = function(){
+      paste0(input$owner, '_',roilabel(),'_roi.zip')
+    },
+    content = function(fname){
+      tmpdir <- tempdir()
+      setwd(tempdir())
+      print(tempdir())
+      
+      systime <- format(Sys.time(), '%Y-%m-%d %H:%M:%S')
+      ROIList <- list(siteName = input$site, 
+                      vegType = input$vegtype, 
+                      ID = roiID(),
+                      Owner= input$owner, 
+                      Description = input$descr, 
+                      createDate = strftime(systime, format = '%Y-%m-%d'),
+                      createTime = strftime(systime, format = '%H:%M:%S'),
+                      updateDate = strftime(systime, format = '%Y-%m-%d'),
+                      updateTime = strftime(systime, format = '%H:%M:%S'),
+                      masks = values$MASKs)
+      roifilename <- paste0(roilabel(),'_roi.csv')
+      writeROIListFile(ROIList, path = '',  roifilename)
+      fs <- c(roifilename, paste0(names(ROIList$masks), '.tif'))
+      zip(zipfile=fname, files=fs)
+    },
+    contentType = "application/zip"
+  )
+
   
   
   
@@ -795,7 +804,7 @@ shinyServer(function(input, output, session) {
   
   
   # ----------------------------------------------------------------------
-  # Email
+  # Email error
   # ----------------------------------------------------------------------
   
   observeEvent(input$errorSend,{
