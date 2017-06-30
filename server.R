@@ -1,6 +1,9 @@
 library(shiny)
 library(shinyTime)
 library(shinyjs)
+library(shinyBS)
+library(shinydashboard)
+
 library(colourpicker)
 library(rjson)
 library(stringr)
@@ -26,7 +29,8 @@ source('funcs.R')
 
 midddayListPath <- '/home/bijan/middayList/'
 ### XXX
-# midddayListPath <- 'midddayListPath/'
+if(getwd()=="/Users/bijan/Projects/drawROI") midddayListPath <- 'midddayListPath/'
+
 
 shinyServer(function(input, output, session) {
   options(warn = -1)
@@ -36,7 +40,8 @@ shinyServer(function(input, output, session) {
                            contID= 1, 
                            ROIs = vector(),
                            sitesList = vector(),
-                           parsedROIList = NULL
+                           parsedROIList = NULL,
+                           phenoSites = fromJSON(file = 'https://phenocam.sr.unh.edu/webcam/network/siteinfo/')
   )
   
   autoInvalidate1 <- reactiveTimer(1000)
@@ -76,20 +81,23 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   observe({
     # values$sitesList <- imgDT[,unique(Site)]
-    phenoSites <- fromJSON(file = 'https://phenocam.sr.unh.edu/webcam/network/siteinfo/')
-    phenoSites <- sapply(phenoSites, function(x){x$site})
     
+    phenoSitesList <- sapply(values$phenoSites, function(x){x$site})
+    names(values$phenoSites) <- phenoSitesList
     ### XXX
-    # phenoSites <- c('dukehw','harvard')
-    values$sitesList <- phenoSites
+    if(getwd()=="/Users/bijan/Projects/drawROI") phenoSitesList <- c('dukehw','harvard')
+    values$sitesList <- phenoSitesList
+    
   })
   
   observe({
     updateSelectInput(session, inputId = 'site', choices = values$sitesList)
+    updateSelectInput(session, inputId = 'errorSite', choices = values$sitesList)
   })
   
   observeEvent(input$site, {
     dummy = 0
+    updateSelectInput(session, inputId = 'errorSite', selected = input$site)
     # values$ROIs <- c(dir(roipath(), pattern = 'roi.csv'), "New ROI")
     # values$MASKs <- NULL
     values$contID <- 1
@@ -117,18 +125,52 @@ shinyServer(function(input, output, session) {
     
   })
   
+  siteInfo <- reactive({
+    values$phenoSites[[input$site]]
+  })
+  
+  # ----------------------------------------------------------------------
+  # Site info
+  # ----------------------------------------------------------------------
+  # observeEvent(input$siteInfo,{
+  #   
+  # })
+  # 
+  output$tblSiteInfo = renderTable( rownames = T, 
+                                    colnames = F, 
+                                    striped = T, 
+                                    hover = T, 
+                                    bordered = F,
+                                    spacing = 's',
+                                    options = list( lengthChange = FALSE),{
+                                      dummy <- 1
+                                      inf <- siteInfo()
+                                      x <- t(data.frame(Site = inf$site, 
+                                                   Site.Type = inf$site_type,
+                                                   MAT = paste0(inf$MAT_worldclim, ' °C'),
+                                                   MAP = paste0(inf$MAP_worldclim, ' mm/year'),
+                                                   Koeppen.Class = inf$koeppen_geiger,
+                                                   Latitude = paste0(inf$lat, ' °'),
+                                                   Longitude = paste0(inf$lon, ' °'),
+                                                   Elevation = paste0(inf$elev, ' m'),
+                                                   Descriotion = inf$site_description,
+                                                   Primary.Vegetation = inf$primary_veg_type
+                                      ))
+                                      x
+                                    })
+  
   # ----------------------------------------------------------------------
   # ROIs
   # ----------------------------------------------------------------------
   roipath <- reactive({
-    return(paste0('/data/archive/', input$site,'/ROI/'))
+    tmp <- (paste0('/data/archive/', input$site,'/ROI/'))
     ### XXX
-    # return(paste0('phenocamdata/data/archive/', input$site,'/ROI/'))
-    
+    if(getwd()=="/Users/bijan/Projects/drawROI") tmp <- (paste0('phenocamdata/data/archive/', input$site,'/ROI/'))
+    return(tmp)
   }  )
   
   observe(
-    values$ROIs <- c(dir(roipath(), pattern = 'roi.csv'), "New ROI")
+    values$ROIs <- c(dir(roipath(), pattern = 'roi.csv$'), "New ROI")
   )
   
   observe(
@@ -148,6 +190,7 @@ shinyServer(function(input, output, session) {
     tmp
   }
   )
+  
   output$roilabel <- renderText({
     paste0(roilabel(),'_roi.csv')
   })
@@ -215,6 +258,12 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   # MASKs
   # ----------------------------------------------------------------------
+  observeEvent(values$MASKs,{
+    if(length(values$MASKs)==0) return()
+    shinyjs::enable("downloadROI")
+    shinyjs::enable("emailROI")
+    
+  })
   # observe({
   #   dummy =0
   #   maskchoice <- names(values$MASKs)
@@ -271,7 +320,7 @@ shinyServer(function(input, output, session) {
   dayYearIDTable <- reactive({
     dummy <- 0
     imgDT()[Site==input$site,.(ID=1:.N,Year, DOY)]
-}    )
+  }    )
   
   
   # ----------------------------------------------------------------------
@@ -349,6 +398,7 @@ shinyServer(function(input, output, session) {
   
   observeEvent(input$year, {
     # values$slideShow <- 0 
+    dummy <- 0
     if(length(validDOY())==0) return()
     if(!input$viewDay%in%validDOY()) {
       # tmpx <- abs(validDOY())
@@ -438,10 +488,9 @@ shinyServer(function(input, output, session) {
   })
   
   # ----------------------------------------------------------------------
-  # Generate ROI List
+  # Save ROI List
   # ----------------------------------------------------------------------
-  
-  observeEvent(input$generate,{
+  observeEvent(input$saveROI,{
     values$slideShow <- 0 
     if(length(values$MASKs)==0) return()
     systime <- format(Sys.time(), '%Y-%m-%d %H:%M:%S')
@@ -456,18 +505,74 @@ shinyServer(function(input, output, session) {
                     updateTime = strftime(systime, format = '%H:%M:%S'),
                     masks = values$MASKs)
     
-    roifilename <- input$rois
-    if(input$rois=='New ROI')roifilename <- paste(ROIList$siteName, ROIList$vegType, sprintf('%04d', ROIList$ID), 'roi.csv', sep = '_')
+    # roifilename <- input$rois
+    # if(input$rois=='New ROI')roifilename <- paste(ROIList$siteName, ROIList$vegType, sprintf('%04d', ROIList$ID), 'roi.csv', sep = '_')
+    roifilename <- paste0(roilabel(),'_roi.csv')
     writeROIListFile(ROIList, path = roipath(),  roifilename)
     
     showModal(modalDialog(title = 'Complete',width='300px',
-                          "New file for ROI List was generated!",
+                          "New file for ROI List was saved in the database!",
                           easyClose = T,
                           size = 's',
                           # footer = modalButton('OK')
                           footer = NULL
     ))
   })
+  
+  
+  
+  # ----------------------------------------------------------------------
+  # Download ROI List
+  # ----------------------------------------------------------------------
+  observeEvent(input$downloadROI,{
+    values$slideShow <- 0 
+    if(length(values$MASKs)==0) return()
+    systime <- format(Sys.time(), '%Y-%m-%d %H:%M:%S')
+    ROIList <- list(siteName = input$site, 
+                    vegType = input$vegtype, 
+                    ID = roiID(),
+                    Owner= input$owner, 
+                    Description = input$descr, 
+                    createDate = strftime(systime, format = '%Y-%m-%d'),
+                    createTime = strftime(systime, format = '%H:%M:%S'),
+                    updateDate = strftime(systime, format = '%Y-%m-%d'),
+                    updateTime = strftime(systime, format = '%H:%M:%S'),
+                    masks = values$MASKs)
+    
+    roifilename <- paste0(roilabel(),'_roi.csv')
+    writeROIListFile(ROIList, path = roipath(),  roifilename)
+    
+  })
+  
+  
+  
+  # ----------------------------------------------------------------------
+  # Email ROI List
+  # ----------------------------------------------------------------------
+  observeEvent(input$emailROI,{
+    values$slideShow <- 0 
+    if(length(values$MASKs)==0) return()
+    systime <- format(Sys.time(), '%Y-%m-%d %H:%M:%S')
+    ROIList <- list(siteName = input$site, 
+                    vegType = input$vegtype, 
+                    ID = roiID(),
+                    Owner= input$owner, 
+                    Description = input$descr, 
+                    createDate = strftime(systime, format = '%Y-%m-%d'),
+                    createTime = strftime(systime, format = '%H:%M:%S'),
+                    updateDate = strftime(systime, format = '%Y-%m-%d'),
+                    updateTime = strftime(systime, format = '%H:%M:%S'),
+                    masks = values$MASKs)
+    
+    roifilename <- paste0(roilabel(),'_roi.csv')
+    writeROIListFile(ROIList, path = roipath(),  roifilename)
+    
+  })
+  
+  
+  # ----------------------------------------------------------------------
+  # tsYearDayRange
+  # ----------------------------------------------------------------------
   
   
   tsYearDayRange <- reactive({
@@ -682,9 +787,9 @@ shinyServer(function(input, output, session) {
   
   observeEvent(input$password,{
     if(input$password==readLines('.key.psw')){
-      shinyjs::enable("generate")
+      shinyjs::enable("saveROI")
     }else{
-      shinyjs::disable("generate")
+      shinyjs::disable("saveROI")
     }
   })
   
@@ -714,15 +819,15 @@ shinyServer(function(input, output, session) {
              # subject = paste0('drawROI error submitted at ', as.character(Sys.time())), 
              subject = 'a drawROI user just submitted an error report', 
              msg = msg)
-
+    
     showModal(modalDialog(title = 'Message was submitted!',width='250px',
                           "Thank you for helping us to improve the app.",
                           easyClose = T,
                           size = 'm',
                           footer = NULL
     ))
-
-        
+    
+    
   })
   
   observeEvent(input$errorTime, 
@@ -733,7 +838,9 @@ shinyServer(function(input, output, session) {
                })
   
   shinyjs::disable("downloadTSData")
-  shinyjs::disable("generate")
+  shinyjs::disable("saveROI")
+  shinyjs::disable("downloadROI")
+  shinyjs::disable("emailROI")
   shinyjs::disable("vegtype")
   shinyjs::disable("shiftsList")
   shinyjs::disable("gotoShiftFOV")

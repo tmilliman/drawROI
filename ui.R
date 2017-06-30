@@ -1,6 +1,8 @@
 library(shiny)
 library(shinyTime)
 library(shinyjs)
+library(shinyBS)
+library(shinydashboard)
 library(colourpicker)
 library(rjson)
 library(stringr)
@@ -25,7 +27,7 @@ fluidPage(
              sidebarPanel(width = 4,
                           # XXX
                           # selectInput("site", "Site", choices = 'dukehw'),
-                          selectInput("site", "Site", choices = 'acadia'),
+                          selectInput("site", "Site", choices = if(getwd()=="/Users/bijan/Projects/drawROI")('dukehw')else('acadia')),
                           selectInput("rois", "ROIs", 'New ROI'),
                           selectInput("vegtype", "Vegetation Type", choices = ''),
                           textInput('descr','Description', placeholder = 'Enter a description for the ROI'),
@@ -47,9 +49,21 @@ fluidPage(
                           ),
                           
                           br(),
-                          passwordInput("password", label = NULL, placeholder = 'Password to generate ROI files'),
-                          actionButton("generate", "Generate ROI List", icon = icon('list-alt'), width = "100%")
+                          fluidRow(
+                            column(6, downloadButton("downloadROI", "Download ROI")),
+                            column(6, actionButton("emailROI", "Submit to admin", icon = icon('send'), width = "100%"))
+                          ),
+                          br(),
+                          br(),
+                          passwordInput("password", label = NULL, placeholder = 'Password to save ROI in the database'),
+                          actionButton("saveROI", "Save ROI in the database", icon = icon('list-alt'), width = "100%")
+                          
              ),
+             
+             
+             
+             
+             
              
              mainPanel(
                sliderInput(inputId = "contID",
@@ -70,6 +84,10 @@ fluidPage(
                ),
                
                fluidRow(
+                 column(1, actionButton('siteInfo', label = NULL, icon = icon('info'), width = '100%', style="border-color: #fff; align:center"),
+                        bsModal("modalSiteInfo", "Site Info", "siteInfo", size = "large",footer = NULL, 
+                                tableOutput("tblSiteInfo"))
+                 ),
                  column(1, actionButton("backplay", "", icon = icon('step-backward'), width = '100%', style="border-color: #fff; align:center")),
                  column(1, actionButton("back", "", icon = icon('backward'), width = '100%', style="border-color: #fff")),
                  column(1, actionButton("pause", "", icon = icon('pause'), width = '100%',  style="border-color: #fff")),
@@ -119,11 +137,12 @@ fluidPage(
                headerPanel('Report an error'),
                br(),
                sidebarPanel(    
-                 textInput('errorUser', label = 'Your info:', placeholder = 'Please enter your name (optional).', width = '100%'),
-                 textInput('errorEmail', label = NULL, placeholder = 'Please enter your email address (optional).', width = '100%'),
+                 textInput('errorUser', label = 'Your contact info', placeholder = 'Name', width = '100%'),
+                 textInput('errorEmail', label = NULL, placeholder = 'Email', width = '100%'),
+                 selectInput('errorSite', label = 'Site', choices = ''),
                  selectizeInput('errorOS', label = 'System info', choices = c('Windows','Linux','MacOS', 'Android', 'iOS')),
                  selectizeInput('errorBrowser', label = NULL, choices = c('Firefox', 'Google Chrome', 'Internet Explorer', 'Opera','Safari','Others')),
-                 dateInput("errorDate", label = "Error date/time:", value = Sys.Date()),
+                 dateInput("errorDate", label = "Error date/time", value = Sys.Date()),
                  textInput("errorTime", label = NULL, value = strftime(Sys.time(), format = '%H:%M:%S'), placeholder = 'What time did the error occure?'),
                  selectInput('errorType', label = 'It crashed?', choices = c('Yes, it crashed.', 
                                                                              'No, it just returned an error message.',
