@@ -86,7 +86,7 @@ shinyServer(function(input, output, session) {
     names(values$phenoSites) <- phenoSitesList
     ### XXX
     if(getwd()=="/Users/bijan/Projects/drawROI") phenoSitesList <- c('acadia','dukehw','harvard')
-    values$sitesList <- phenoSitesList
+    values$sitesList <- phenoSitesList[-which(phenoSitesList=='HF_Vivotek')]
     
   })
   
