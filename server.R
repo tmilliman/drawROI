@@ -570,7 +570,9 @@ shinyServer(function(input, output, session) {
       make.names(paste0(input$owner, '_',roilabel(),'_roi.zip'))
     },
     content = function(fname){
-      tmpdir <- tempdir()
+      
+      wd <- getwd()
+      
       setwd(tempdir())
       print(tempdir())
       
@@ -592,6 +594,7 @@ shinyServer(function(input, output, session) {
               paste0(names(ROIList$masks), '.tif'),
               paste0(names(ROIList$masks), '_vector.csv'))
       zip(zipfile=fname, files=fs)
+      setwd(wd)
     },
     contentType = "application/zip"
   )
@@ -846,6 +849,8 @@ shinyServer(function(input, output, session) {
       }
       mask <- curMask()
       res <- dim(mask)
+      
+      wd <- getwd()
       setwd(tmpDir())
       
       plot(NA,xlim=c(1,res[2]),ylim=c(1,res[1]), type='n',
@@ -859,6 +864,7 @@ shinyServer(function(input, output, session) {
       file.remove('.tmpraster.tif')
       # plot(mask,legend=F, add=T)
       # }
+      setwd(wd)
     })
   
   # ----------------------------------------------------------------------
