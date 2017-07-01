@@ -52,13 +52,13 @@ fluidPage(
                           
                           br(),
                           fluidRow(
-                            column(6, downloadButton("downloadROI", "Download ROI")),
+                            column(6, downloadButton("downloadROI", "Download ROI files")),
                             column(6, actionButton("emailROI", "Submit for review", icon = icon('send'), width = "100%"))
                           ),
                           br(),
                           br(),
-                          passwordInput("password", label = NULL, placeholder = 'Password to save ROI in the database'),
-                          actionButton("saveROI", "Save ROI in the database", icon = icon('list-alt'), width = "100%")
+                          passwordInput("password", label = NULL, placeholder = 'Password to save in the database'),
+                          actionButton("saveROI", "Save ROI files in the database", icon = icon('list-alt'), width = "100%")
                           
              ),
              
@@ -103,15 +103,15 @@ fluidPage(
                  column(6, plotOutput("plot", click = "newPoint", width = "350px", height = '260px')),
                  column(6, plotOutput("maskplot", width = "350px", height = '260px'))
                ),
+               br(),
                
                fluidRow(
-                 br(),
                  
                  column(6,
-                        column( 4, colourpicker::colourInput(inputId = 'roicol', allowTransparent=T, transparentText = 'none', label = NULL,value = '#ab5222', showColour = 'background')),
+                        column( 4, colourpicker::colourInput(inputId = 'roicol', allowTransparent=T, transparentText = 'clear', label = NULL,value = '#ab5222', showColour = 'background')),
                         
-                        column( 5, selectInput('shiftsList', label = NULL, choices = '', width = '100%')),
-                        column( 3, actionButton( 'gotoShiftFOV', label = 'Go', width = '100%', class="btn-success"))
+                        column( 8, selectInput('shiftsList', label = NULL, choices = 'Possible shifts in FOV', width = '100%'))
+                        # column( 2, actionButton( 'gotoShiftFOV', label = 'Go', width = '100%', class="btn-success"))
                  ),
                  
                  column(6, actionButton("cancel", "Clear", icon = icon('refresh'), class="btn-primary", width = "85px"),
