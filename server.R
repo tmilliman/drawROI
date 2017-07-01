@@ -85,7 +85,7 @@ shinyServer(function(input, output, session) {
     phenoSitesList <- sapply(values$phenoSites, function(x){x$site})
     names(values$phenoSites) <- phenoSitesList
     ### XXX
-    if(getwd()=="/Users/bijan/Projects/drawROI") phenoSitesList <- c('dukehw','harvard')
+    if(getwd()=="/Users/bijan/Projects/drawROI") phenoSitesList <- c('acadia','dukehw','harvard')
     values$sitesList <- phenoSitesList
     
   })
@@ -183,16 +183,21 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   roilabel <- reactive({
     dummy = 0 
-    
-    tmp <- paste(input$site, 
-                 input$vegtype, 
-                 sprintf('%04d',roiID()), sep = '_')
-    tmp
+    # if(input$rois=='New ROI')
+      label <- paste(input$site, 
+                     input$vegtype, 
+                     sprintf('%04d',roiID()), sep = '_')
+    # else
+    #   label <- input$rois
+    label
   }
   )
   
   output$roilabel <- renderText({
-    paste0(roilabel(),'_roi.csv')
+    if(input$rois=='New ROI')
+      paste0(roilabel(),'_roi.csv')
+    else
+      input$rois
   })
   
   
@@ -216,7 +221,8 @@ shinyServer(function(input, output, session) {
     }
     shinyjs::disable('vegtype')
     dummy=0
-    values$parsedROIList <- parseROI(roifilename=input$rois, roipath = roipath())
+    values$parsedROIList <- parseROI(roifilename=input$rois,
+                                     roipath = roipath())
     
     updateSelectInput(session, inputId = 'vegtype', selected =  values$parsedROIList$vegType)
     updateTextInput(session, inputId = 'descr', value = values$parsedROIList$Description)
@@ -259,10 +265,13 @@ shinyServer(function(input, output, session) {
   # MASKs
   # ----------------------------------------------------------------------
   observeEvent(values$MASKs,{
-    if(length(values$MASKs)==0) return()
-    shinyjs::enable("downloadROI")
-    shinyjs::enable("emailROI")
-    
+    if(length(values$MASKs)==0) {
+      shinyjs::disable("downloadROI")
+      shinyjs::disable("emailROI")
+    }else{
+      shinyjs::enable("downloadROI")
+      shinyjs::enable("emailROI")
+    }
   })
   # observe({
   #   dummy =0

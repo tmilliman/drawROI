@@ -27,7 +27,7 @@ fluidPage(
              sidebarPanel(width = 4,
                           # XXX
                           # selectInput("site", "Site", choices = 'dukehw'),
-                          selectInput("site", "Site", choices = if(getwd()=="/Users/bijan/Projects/drawROI")('dukehw')else('acadia')),
+                          selectInput("site", "Site", choices = if(getwd()=="/Users/bijan/Projects/drawROI")('acadia')else('acadia')),
                           selectInput("rois", "ROIs", 'New ROI'),
                           selectInput("vegtype", "Vegetation Type", choices = ''),
                           textInput('descr','Description', placeholder = 'Enter a description for the ROI'),

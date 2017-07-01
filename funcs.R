@@ -161,13 +161,13 @@ writeROIListFile <- function(ROIList, path='ROI/', roifilename){
     m <- ROIList$masks[[i]]$rasteredMask
     # m[m==1] <- 0
     # m[is.na(m)] <- 1
-    rName <- paste0(ROIList$siteName, '_',
-                    ROIList$vegType, '_',
-                    sprintf('%04d', ROIList$ID), '_',
-                    sprintf('%02d', i)
-    )
+    # rName <- paste0(ROIList$siteName, '_',
+    #                 ROIList$vegType, '_',
+    #                 sprintf('%04d', ROIList$ID), '_',
+    #                 sprintf('%02d', i)
+    # )
     
-    
+    rName <- names(ROIList$masks)[i]
     
     writeTIFF(m*1 , where = paste0(path, rName,'.tif'))
     
@@ -188,10 +188,11 @@ writeROIListFile <- function(ROIList, path='ROI/', roifilename){
     
     bdyText <- paste0(bdyText, bdyLine, '\n')
   }
-  
-  fcon <- file(paste0(path, roifilename))
-  writeLines(paste0(hdrText, bdyText), con = fcon)
-  close(fcon)
+  allText <- paste0(hdrText, bdyText)
+  writeLines(allText, paste0(path, roifilename))
+  # fcon <- file(paste0(path, roifilename))
+  # writeLines(paste0(hdrText, bdyText), con = fcon)
+  # close(fcon)
 }
 
 
@@ -293,13 +294,13 @@ parseROI <- function(roifilename, roipath){
     }
     dummy=0
     tmpMask <- list(maskpoints = maskpoints, 
-                    startdate = as.character(parsedMasks$start_date), 
-                    enddate = as.character(parsedMasks$end_date), 
-                    starttime = as.character(parsedMasks$start_time), 
-                    endtime = as.character(parsedMasks$end_time), 
+                    startdate = as.character(parsedMasks$start_date[i]), 
+                    enddate = as.character(parsedMasks$end_date[i]), 
+                    starttime = as.character(parsedMasks$start_time[i]), 
+                    endtime = as.character(parsedMasks$end_time[i]), 
                     sampleyear = NULL, 
                     sampleday = NULL,
-                    sampleImage = as.character(parsedMasks$sample_image),
+                    sampleImage = as.character(parsedMasks$sample_image[i]),
                     rasteredMask = as.matrix(raster(maskpath)))
     
     sampleYMD <- strsplit(tmpMask$sampleImage, split = '_')[[1]][2:4]
