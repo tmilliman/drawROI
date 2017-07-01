@@ -129,6 +129,14 @@ shinyServer(function(input, output, session) {
     values$phenoSites[[input$site]]
   })
   
+  observeEvent(input$nextsite, {
+    dummy <- 0
+    w <- which(values$sitesList==input$site)
+    wNext <- w + 1
+    if (w==length(values$sitesList)) wNext= 1
+    nextSite <- values$sitesList[wNext]
+    updateSelectInput(session, 'site', selected = nextSite)
+  })
   # ----------------------------------------------------------------------
   # Site info
   # ----------------------------------------------------------------------
@@ -720,11 +728,12 @@ shinyServer(function(input, output, session) {
       ccSel <- as.vector(sapply(input$ccselect, switch, R='red', B='blue', G="green"))
       d <- d[band%in%ccSel]
       
-      plot_ly(data = d, x=~time, y= ~cc,
+      p <- plot_ly(data = d, x=~time, y= ~cc,
               color = ~band, 
               colors = c('#FF4615','#007D00','#2364B7'),
               type = 'scatter', mode = 'lines+markers') %>%
         layout(xaxis = xAxis, yaxis = yAxis)
+      hide_legend(p)
       
     })
   

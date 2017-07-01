@@ -64,14 +64,16 @@ fluidPage(
              
              
              mainPanel(
-               sliderInput(inputId = "contID",
+               fluidRow( 
+                 column(2, actionButton('nextsite', label = 'Next Site', width = '80px',class="btn-primary")),
+                 column(10, sliderInput(inputId = "contID",
                            label =  NULL,
                            min = 1, max = 1,
                            ticks = F,
                            animate=F,
                            value = 1,
                            step = 1,
-                           width = '100%'),
+                           width = '100%'))),
                
                fluidRow(
                  column(2, selectInput("year", "Year", '', width = '80px')),

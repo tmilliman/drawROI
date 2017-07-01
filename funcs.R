@@ -52,24 +52,24 @@ draw.polygon <-
 
 
 
-extractCCC.Plus <- function(path, mmsk){
-  jp <- readJPEG(path)
-  
-  jp.m <- apply(jp, 3, '*', mmsk)
-  
-  DT <- data.table(r = jp.m[,1],
-                   g = jp.m[,2],
-                   b = jp.m[,3])
-  
-  DT[,c('rcc', 'gcc', 'bcc'):= .(r/(r+g+b), 
-                                 g/(r+g+b), 
-                                 b/(r+g+b))]
-  
-  list(rcc = DT[,mean(rcc, na.rm=T)],
-       gcc = DT[,mean(gcc, na.rm=T)],
-       bcc = DT[,mean(bcc, na.rm=T)])
-}
-
+# extractCCC.Plus <- function(path, mmsk){
+#   jp <- readJPEG(path)
+#   
+#   jp.m <- apply(jp, 3, '*', mmsk)
+#   
+#   DT <- data.table(r = jp.m[,1],
+#                    g = jp.m[,2],
+#                    b = jp.m[,3])
+#   
+#   DT[,c('rcc', 'gcc', 'bcc'):= .(r/(r+g+b), 
+#                                  g/(r+g+b), 
+#                                  b/(r+g+b))]
+#   
+#   list(rcc = DT[,mean(rcc, na.rm=T)],
+#        gcc = DT[,mean(gcc, na.rm=T)],
+#        bcc = DT[,mean(bcc, na.rm=T)])
+# }
+# 
 
 
 
@@ -115,7 +115,7 @@ extractCCCTimeSeries <- function(rmsk, paths, PLUS=F, session=shiny::getDefaultR
   
   continue = TRUE
   
-  mmsk <- as.matrix(rmsk)
+  mmsk <- 1-as.matrix(rmsk)
   
   n <- length(paths)
   CCCT <- as.data.table(matrix(0, nrow=n, ncol=3))
