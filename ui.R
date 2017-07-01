@@ -39,7 +39,11 @@ fluidPage(
                           strong('Sample Image:'),
                           textOutput('sampleImagePath'),
                           br(),
-                          
+                          fluidRow(
+                            column(6, actionButton( 'matchStart', 'Match start', width = '100%', style='background-color:#666; color:#fff')),
+                            column(6, actionButton( 'matchEnd', 'Match end', width = '100%', style='background-color:#666; color:#fff'))
+                          ),
+                          br(),
                           dateRangeInput(inputId = 'roiDateRange', label = 'ROI Start/End Dates:', start = '2001-01-01', end = '2016-01-01', separator = '-', startview='day'),
                           fluidRow(
                             column(width = 6, textInput('starttime', label = 'Start Time:', width = '80px', value = '00:08:00')),

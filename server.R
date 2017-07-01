@@ -73,6 +73,7 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   imgDT <- reactive({
     dummy <- 0
+    dummy <- 0
     getIMG.DT(input$site, midddayListPath)
   })
   
@@ -85,8 +86,11 @@ shinyServer(function(input, output, session) {
     phenoSitesList <- sapply(values$phenoSites, function(x){x$site})
     names(values$phenoSites) <- phenoSitesList
     ### XXX
-    if(getwd()=="/Users/bijan/Projects/drawROI") phenoSitesList <- c('acadia','dukehw','harvard')
-    values$sitesList <- phenoSitesList[-which(phenoSitesList=='HF_Vivotek')]
+    if(getwd()=="/Users/bijan/Projects/drawROI") 
+      phenoSitesList <- c('acadia','dukehw','harvard')
+    else 
+      phenoSitesList <- phenoSitesList[-which(phenoSitesList=='HF_Vivotek')]
+    values$sitesList <- phenoSitesList
     
   })
   
@@ -394,6 +398,25 @@ shinyServer(function(input, output, session) {
     sampleImageName()
   )
   
+  observeEvent(input$matchStart, {
+    tmp <- unlist(strsplit(sampleImageName(), '_'))
+    startDate <- as.Date(paste(tmp[2:4], collapse = '-'))
+    HHMMSS <- gsub(tmp[5], pattern = '.jpg',replacement = '')
+    startTime <- paste(substring(HHMMSS, c(1,3,5), c(2,4,6)), collapse = ':')
+    
+    updateDateRangeInput(session, inputId = 'roiDateRange', start = startDate)
+    updateTextInput(session, inputId = 'starttime', value = startTime)
+  })
+  
+  observeEvent(input$matchEnd, {
+    tmp <- unlist(strsplit(sampleImageName(), '_'))
+    endDate <- as.Date(paste(tmp[2:4], collapse = '-'))
+    HHMMSS <- gsub(tmp[5], pattern = '.jpg',replacement = '')
+    endTime <- paste(substring(HHMMSS, c(1,3,5), c(2,4,6)), collapse = ':')
+    
+    updateDateRangeInput(session, inputId = 'roiDateRange', end = endDate)
+    updateTextInput(session, inputId = 'endtime', value = endTime)
+  })
   
   
   observeEvent(values$contID,{
