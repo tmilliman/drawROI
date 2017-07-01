@@ -221,6 +221,7 @@ shinyServer(function(input, output, session) {
     }
     shinyjs::disable('vegtype')
     dummy=0
+    dummy=0
     values$parsedROIList <- parseROI(roifilename=input$rois,
                                      roipath = roipath())
     
@@ -818,7 +819,7 @@ shinyServer(function(input, output, session) {
       dummy=0
       writeTIFF(mask*1, '.tmpraster.tif')
       rmask <- raster('.tmpraster.tif')
-      rmask[rmask==0] <- NA
+      rmask[rmask!=0] <- NA
       
       plot(rmask,legend=F, add=T, col='black')
       file.remove('.tmpraster.tif')

@@ -25,9 +25,7 @@ fluidPage(
     tabPanel('ROI Tool',
              headerPanel("PhenoCam ROI Tool"),
              sidebarPanel(width = 4,
-                          # XXX
-                          # selectInput("site", "Site", choices = 'dukehw'),
-                          selectInput("site", "Site", choices = if(getwd()=="/Users/bijan/Projects/drawROI")('acadia')else('acadia')),
+                          selectInput("site", "Site", choices = 'acadia'),
                           selectInput("rois", "ROIs", 'New ROI'),
                           selectInput("vegtype", "Vegetation Type", choices = ''),
                           textInput('descr','Description', placeholder = 'Enter a description for the ROI'),
@@ -146,7 +144,8 @@ fluidPage(
                  textInput("errorTime", label = NULL, value = strftime(Sys.time(), format = '%H:%M:%S'), placeholder = 'What time did the error occure?'),
                  selectInput('errorType', label = 'It crashed?', choices = c('Yes, it crashed.', 
                                                                              'No, it just returned an error message.',
-                                                                             'No, but the outpu does not make sense.'), selected = ''),
+                                                                             'No, but the output does not make sense.',
+                                                                             'No, I have some suggestions.'), selected = ''),
                  actionButton("errorSend", "Submit", width = '100%', icon = icon('send'), class="btn-primary")
                ),
                

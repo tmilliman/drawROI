@@ -102,7 +102,11 @@ createRasteredROI <- function(pnts, imgSize){
   poly <- as(ext  ,"SpatialPolygons")
   poly@polygons[[1]]@Polygons[[1]]@coords <- as.matrix(pnts)
   r <- rasterize(poly, raster(ext, nrow = imgSize[1], ncol = imgSize[2]))
-  as.matrix(r)
+  m1 <- as.matrix(r)
+  m <- m1
+  m[m1==0|is.na(m1)] <- 1
+  m[m1!=0] <- 0
+  m
 }
 
 
@@ -302,7 +306,9 @@ parseROI <- function(roifilename, roipath){
                     sampleday = NULL,
                     sampleImage = as.character(parsedMasks$sample_image[i]),
                     rasteredMask = as.matrix(raster(maskpath)))
+    tmpMask$rasteredMask[(!is.na(tmpMask$rasteredMask))&tmpMask$rasteredMask!=0] <- 1
     
+      
     sampleYMD <- strsplit(tmpMask$sampleImage, split = '_')[[1]][2:4]
     tmpMask$sampleyear <- as.numeric(sampleYMD)[1]
     tmpMask$sampleday <- yday(paste(sampleYMD, collapse = '-'))
