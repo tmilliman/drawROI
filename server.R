@@ -196,9 +196,9 @@ shinyServer(function(input, output, session) {
   roilabel <- reactive({
     dummy = 0 
     # if(input$rois=='New ROI')
-      label <- paste(input$site, 
-                     input$vegtype, 
-                     sprintf('%04d',roiID()), sep = '_')
+    label <- paste(input$site, 
+                   input$vegtype, 
+                   sprintf('%04d',roiID()), sep = '_')
     # else
     #   label <- input$rois
     label
@@ -755,9 +755,9 @@ shinyServer(function(input, output, session) {
       d <- d[band%in%ccSel]
       
       p <- plot_ly(data = d, x=~time, y= ~cc,
-              color = ~band, 
-              colors = c('#FF4615','#007D00','#2364B7'),
-              type = 'scatter', mode = 'lines+markers') %>%
+                   color = ~band, 
+                   colors = c('#FF4615','#007D00','#2364B7'),
+                   type = 'scatter', mode = 'lines+markers') %>%
         layout(xaxis = xAxis, yaxis = yAxis)
       hide_legend(p)
       
@@ -772,6 +772,13 @@ shinyServer(function(input, output, session) {
     values$slideShow <- 0 
     if(is.null(values$centers)) return()
     if (nrow(values$centers)<3) return()
+    
+    showModal(modalDialog(title = 'Processing',width='300px',
+                          "Mask raster is being produced ...",
+                          easyClose = F,
+                          size = 's',
+                          footer = NULL
+    ))
     
     newMask <- list(maskpoints = values$centers, 
                     startdate = input$roiDateRange[1], 
@@ -792,6 +799,7 @@ shinyServer(function(input, output, session) {
     values$MASKs <- tmp
     updateSelectInput(session, inputId = 'masks', choices = names(tmp), selected = tmpName)
     
+    removeModal()
     # values$msk <- tmp$rasteredMask
   })
   
@@ -804,6 +812,13 @@ shinyServer(function(input, output, session) {
     if(is.null(curMask()))return()
     if(is.null(values$centers)) return()
     if (nrow(values$centers)<3) return()
+    
+    showModal(modalDialog(title = 'Processing',width='300px',
+                          "Mask raster is being updated ...",
+                          easyClose = F,
+                          size = 's',
+                          footer = NULL
+    ))
     
     newMASK <- createRasteredROI(values$centers, sampleImageSize())
     tmpMask <- list(maskpoints = values$centers, 
@@ -818,12 +833,14 @@ shinyServer(function(input, output, session) {
     
     values$MASKs[[input$masks]] <- tmpMask
     
-    showModal(modalDialog(title = 'Complete',width='300px',
-                          "Mask info was saved!",
-                          easyClose = T,
-                          size = 's',
-                          footer = NULL
-    ))
+    removeModal()
+    
+    # showModal(modalDialog(title = 'Complete',width='300px',
+    #                       "Mask info was saved!",
+    #                       easyClose = T,
+    #                       size = 's',
+    #                       footer = NULL
+    # ))
     
     
   })
