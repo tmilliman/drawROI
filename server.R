@@ -655,7 +655,7 @@ shinyServer(function(input, output, session) {
     showModal(modalDialog(title = 'ROI was submitted!',width='250px',
                           "The new ROI will be reviewed shortly.",
                           easyClose = T,
-                          size = 'm',
+                          size = 's',
                           footer = NULL
     ))
     
