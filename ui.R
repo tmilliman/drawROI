@@ -51,7 +51,7 @@ fluidPage(
                           br(),
                           fluidRow(
                             column(6, downloadButton("downloadROI", "Download ROI")),
-                            column(6, actionButton("emailROI", "Submit to admin", icon = icon('send'), width = "100%"))
+                            column(6, actionButton("emailROI", "Submit for review", icon = icon('send'), width = "100%"))
                           ),
                           br(),
                           br(),

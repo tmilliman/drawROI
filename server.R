@@ -146,15 +146,15 @@ shinyServer(function(input, output, session) {
                                       dummy <- 1
                                       inf <- siteInfo()
                                       x <- t(data.frame(Site = inf$site, 
-                                                   Site.Type = inf$site_type,
-                                                   MAT = paste0(inf$MAT_worldclim, ' °C'),
-                                                   MAP = paste0(inf$MAP_worldclim, ' mm/year'),
-                                                   Koeppen.Class = inf$koeppen_geiger,
-                                                   Latitude = paste0(inf$lat, ' °'),
-                                                   Longitude = paste0(inf$lon, ' °'),
-                                                   Elevation = paste0(inf$elev, ' m'),
-                                                   Descriotion = inf$site_description,
-                                                   Primary.Vegetation = inf$primary_veg_type
+                                                        Site.Type = inf$site_type,
+                                                        MAT = paste0(inf$MAT_worldclim, ' °C'),
+                                                        MAP = paste0(inf$MAP_worldclim, ' mm/year'),
+                                                        Koeppen.Class = inf$koeppen_geiger,
+                                                        Latitude = paste0(inf$lat, ' °'),
+                                                        Longitude = paste0(inf$lon, ' °'),
+                                                        Elevation = paste0(inf$elev, ' m'),
+                                                        Descriotion = inf$site_description,
+                                                        Primary.Vegetation = inf$primary_veg_type
                                       ))
                                       x
                                     })
@@ -526,7 +526,7 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   output$downloadROI <- downloadHandler(
     filename = function(){
-      paste0(input$owner, '_',roilabel(),'_roi.zip')
+      make.names(paste0(input$owner, '_',roilabel(),'_roi.zip'))
     },
     content = function(fname){
       tmpdir <- tempdir()
@@ -544,14 +544,17 @@ shinyServer(function(input, output, session) {
                       updateDate = strftime(systime, format = '%Y-%m-%d'),
                       updateTime = strftime(systime, format = '%H:%M:%S'),
                       masks = values$MASKs)
+      
       roifilename <- paste0(roilabel(),'_roi.csv')
       writeROIListFile(ROIList, path = '',  roifilename)
-      fs <- c(roifilename, paste0(names(ROIList$masks), '.tif'))
+      fs <- c(roifilename, 
+              paste0(names(ROIList$masks), '.tif'),
+              paste0(names(ROIList$masks), '_vector.csv'))
       zip(zipfile=fname, files=fs)
     },
     contentType = "application/zip"
   )
-
+  
   
   
   
@@ -561,6 +564,11 @@ shinyServer(function(input, output, session) {
   observeEvent(input$emailROI,{
     values$slideShow <- 0 
     if(length(values$MASKs)==0) return()
+    
+    tmpdir <- tempdir()
+    setwd(tempdir())
+    print(tempdir())
+    
     systime <- format(Sys.time(), '%Y-%m-%d %H:%M:%S')
     ROIList <- list(siteName = input$site, 
                     vegType = input$vegtype, 
@@ -574,7 +582,39 @@ shinyServer(function(input, output, session) {
                     masks = values$MASKs)
     
     roifilename <- paste0(roilabel(),'_roi.csv')
-    writeROIListFile(ROIList, path = roipath(),  roifilename)
+    writeROIListFile(ROIList, path = '',  roifilename)
+    fs <- c(roifilename, 
+            paste0(names(ROIList$masks), '.tif'),
+            paste0(names(ROIList$masks), '_vector.csv'))
+    fname <- make.names(paste0(input$owner, '_',roilabel(),'_roi.zip'))
+    
+    zip(zipfile=fname, files=fs)
+    
+    msg <- paste0(
+      '---------\n',
+      'Submit time: \t', as.character(Sys.time()), '\n',
+      # 'IP address: \t', as.character(system('ipconfig getifaddr en0', intern=TRUE)),'\n',
+      'Site: \t', input$site, '\n',
+      'Owner: \t', input$owner, '\n',
+      '---------\n'
+    )
+    attachmentObject <- mime_part(x = fname, name = fname)
+    bodyWithAttachment <- list(msg, attachmentObject)
+    
+    
+    sendmail(from = 'phenocam.network@gmail.com', 
+             to = 'phenocam.network@gmail.com', 
+             # subject = paste0('drawROI error submitted at ', as.character(Sys.time())), 
+             subject = 'New ROI was just submitted via drawROI!', 
+             msg = bodyWithAttachment)
+    
+    showModal(modalDialog(title = 'ROI was submitted!',width='250px',
+                          "The new ROI will be reviewed shortly.",
+                          easyClose = T,
+                          size = 'm',
+                          footer = NULL
+    ))
+    
     
   })
   

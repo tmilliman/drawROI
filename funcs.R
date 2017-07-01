@@ -153,6 +153,7 @@ writeROIListFile <- function(ROIList, path='ROI/', roifilename){
                     '\n# Description: ', ROIList$Description,
                     '\n#\n')
   
+  
   bdyText <- 'start_date,start_time,end_date,end_time,maskfile,sample_image\n'
   
   for(i in 1:length(ROIList$masks)){
@@ -170,10 +171,12 @@ writeROIListFile <- function(ROIList, path='ROI/', roifilename){
     
     writeTIFF(m*1 , where = paste0(path, rName,'.tif'))
     
-    
     maskpoints <- ROIList$masks[[i]]$maskpoints
     maskpoints <- rbind(dim(m), maskpoints)
-    if(nrow(maskpoints)>3)write.table(maskpoints, file = paste0(path, rName,'_vector.csv'), col.names = F, row.names = F, sep = ',')
+    if(nrow(maskpoints)>3)
+      write.table(maskpoints, file = paste0(path, rName,'_vector.csv'), col.names = F, row.names = F, sep = ',')
+  # }
+  # for(i in 1:length(ROIList$masks)){
     
     bdyLine <- paste( ROIList$masks[[i]]$startdate,
                       ROIList$masks[[i]]$starttime,
@@ -185,6 +188,7 @@ writeROIListFile <- function(ROIList, path='ROI/', roifilename){
     
     bdyText <- paste0(bdyText, bdyLine, '\n')
   }
+  
   fcon <- file(paste0(path, roifilename))
   writeLines(paste0(hdrText, bdyText), con = fcon)
   close(fcon)
