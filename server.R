@@ -846,6 +846,8 @@ shinyServer(function(input, output, session) {
       }
       mask <- curMask()
       res <- dim(mask)
+      setwd(tmpDir())
+      
       plot(NA,xlim=c(1,res[2]),ylim=c(1,res[1]), type='n',
            xaxs='i',yaxs='i',xaxt='n',yaxt='n',xlab='',ylab='',bty='o')
       dummy=0
