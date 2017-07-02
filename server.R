@@ -484,7 +484,13 @@ shinyServer(function(input, output, session) {
       par(mar=c(0,0,0,0))
       plotJPEG(sampleImage())
       roicol <- if (input$roicol=='transparent') '#ffffff00' else paste0(input$roicol, '80')
-      polygon(values$centers, col = roicol, pch = 9, lwd=2)
+      if(is.null(values$centers)) 
+        absPoints <- NULL
+      else if(nrow(values$centers)==1) 
+        absPoints <- values$centers*sampleImageSize()
+      else 
+        absPoints <- t(apply(values$centers, 1, '*', sampleImageSize()))
+      polygon(absPoints, col = roicol, pch = 9, lwd=2)
     }
   })
   
@@ -506,7 +512,7 @@ shinyServer(function(input, output, session) {
   observeEvent(input$newPoint, {
     values$slideShow <- 0 
     newPoint <- matrix(c(input$newPoint[['x']], input$newPoint[['y']]),1, 2)
-    values$centers <- rbind(values$centers, newPoint)
+    values$centers <- rbind(values$centers, newPoint/sampleImageSize())
   })
   
   

@@ -98,6 +98,7 @@ extractCCC <- function(path, mmsk){
 
 
 createRasteredROI <- function(pnts, imgSize){
+  pnts <- t(apply(pnts, 1, '*', imgSize))
   ext <- extent(1, imgSize[1], 1, imgSize[2])
   poly <- as(ext  ,"SpatialPolygons")
   poly@polygons[[1]]@Polygons[[1]]@coords <- as.matrix(pnts)
