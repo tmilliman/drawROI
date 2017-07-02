@@ -88,7 +88,7 @@ fluidPage(
                ),
                
                fluidRow(
-                 column(1, actionButton('siteInfo', label = NULL, icon = icon('info'), width = '100%', style="border-color: #fff; align:center"),
+                 column(1, actionButton('siteInfo', label = NULL, icon = icon('info'), width = '100%', style="border-color: #fff; align:center; color:#FF0000"),
                         bsModal("modalSiteInfo", "Site Info", "siteInfo", size = "large",footer = NULL, 
                                 tableOutput("tblSiteInfo"))
                  ),
