@@ -23,8 +23,9 @@ source('funcs.R')
 
 
 midddayListPath <- '/home/bijan/middayList/'
+bijanWD <- "/Users/bijan/Projects/drawROI"
 
-if(getwd()=="/Users/bijan/Projects/drawROI") 
+if(getwd()==bijanWD) 
   midddayListPath <- 'midddayListPath/'
 
 
@@ -80,7 +81,7 @@ shinyServer(function(input, output, session) {
     phenoSitesList <- sapply(values$phenoSites, function(x){x$site})
     names(values$phenoSites) <- phenoSitesList
     phenoSitesList <- phenoSitesList[-which(phenoSitesList=='HF_Vivotek')]
-    if(getwd()=="/Users/bijan/Projects/drawROI") 
+    if(getwd()==bijanWD) 
       phenoSitesList <- c('acadia','dukehw','harvard')
     
     values$sitesList <- phenoSitesList
@@ -90,7 +91,7 @@ shinyServer(function(input, output, session) {
   observe({
     updateSelectInput(session, inputId = 'siteName', choices = values$sitesList)
     updateSelectInput(session, inputId = 'errorSite', choices = values$sitesList)
-    if(getwd()!="/Users/bijan/Projects/drawROI") 
+    if(getwd()!=bijanWD) 
       updateSelectInput(session, inputId = 'siteName', selected = 'ahwahnee')
   })
   
@@ -168,7 +169,7 @@ shinyServer(function(input, output, session) {
   roipath <- reactive({
     tmp <- (paste0('/data/archive/', input$siteName,'/ROI/'))
     
-    if(getwd()=="/Users/bijan/Projects/drawROI") 
+    if(getwd()==bijanWD) 
       tmp <- (paste0('phenocamdata/data/archive/', input$siteName,'/ROI/'))
     return(tmp)
   }  )
@@ -414,7 +415,7 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   # Plot image
   # ----------------------------------------------------------------------
-  output$imagePlot <- renderPlot(width = 350, {
+  output$imagePlot <- renderPlot(width = 350, height=260, {
     if(is.na(sampleImage())){
       par(mar=c(0,0,0,0))
       plot(NA, xlim=c(0,1), ylim=c(0,1), xaxs='i',yaxs='i', xaxt='n', yaxt='n', bty='o', xlab='',ylab='')
@@ -788,7 +789,7 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   
   output$maskPlot <- 
-    renderPlot(width = 350, {
+    renderPlot(width = 350,  height=260, {
       par(mar=c(0,0,0,0))
       plot(1,
            type='n',

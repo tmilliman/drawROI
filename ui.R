@@ -17,6 +17,7 @@ library(tiff)
 library(data.table)
 library(lubridate)
 library(plotly)
+bijanWD <- "/Users/bijan/Projects/drawROI"
 
 
 fluidPage(
@@ -26,7 +27,7 @@ fluidPage(
              
              headerPanel("PhenoCam ROI Tool"),
              sidebarPanel(width = 4,
-                          selectInput("siteName", "Site", choices = 'ahwahnee'),
+                          selectInput("siteName", "Site", choices = if(getwd()==bijanWD)'acadia'else'ahwahnee'),
                           selectInput("roiName", "ROIs", 'New ROI'),
                           selectInput("vegType", "Vegetation Type", choices = ''),
                           textInput('siteDescription','Description', placeholder = 'Enter a description for the ROI'),
@@ -107,6 +108,8 @@ fluidPage(
                fluidRow(
                  column(6, plotOutput("imagePlot", click = "newPoint", width = "350px", height = '260px')),
                  column(6, plotOutput("maskPlot", width = "350px", height = '260px'))
+                 # column(6, plotOutput("imagePlot", click = "newPoint")),
+                 # column(6, plotOutput("maskPlot"))
                ),
                br(),
                
