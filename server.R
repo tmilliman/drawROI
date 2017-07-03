@@ -415,7 +415,7 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   # Plot image
   # ----------------------------------------------------------------------
-  output$imagePlot <- renderPlot(width = 350, height=260, {
+  output$imagePlot <- renderPlot({
     if(is.na(sampleImage())){
       par(mar=c(0,0,0,0))
       plot(NA, xlim=c(0,1), ylim=c(0,1), xaxs='i',yaxs='i', xaxt='n', yaxt='n', bty='o', xlab='',ylab='')
@@ -789,7 +789,7 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   
   output$maskPlot <- 
-    renderPlot(width = 350,  height=260, {
+    renderPlot({
       par(mar=c(0,0,0,0))
       plot(1,
            type='n',

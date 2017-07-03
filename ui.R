@@ -108,8 +108,6 @@ fluidPage(
                fluidRow(
                  column(6, plotOutput("imagePlot", click = "newPoint", width = "350px", height = '260px')),
                  column(6, plotOutput("maskPlot", width = "350px", height = '260px'))
-                 # column(6, plotOutput("imagePlot", click = "newPoint")),
-                 # column(6, plotOutput("maskPlot"))
                ),
                br(),
                
