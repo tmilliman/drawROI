@@ -72,15 +72,10 @@ shinyServer(function(input, output, session) {
     dummy <- 0
     # getIMG.DT(input$siteName, midddayListPath)
     
-    imgDT <- data.table()
-    sites <- input$siteName
-    for(site in sites){
-      tbl <- read.table(paste0(midddayListPath, site), header = F, colClasses = 'character', col.names = 'path')
-      imgDT.tmp <- as.data.table(tbl)
-      imgDT <- rbind(imgDT, imgDT.tmp)
-    }
-    
-    
+    writeLines(input$siteName, '/tmp/.sitename.tmp')
+    site <- input$siteName
+    tbl <- read.table(paste0(midddayListPath, site), header = F, colClasses = 'character', col.names = 'path')
+    imgDT <- as.data.table(tbl)
     splt <- imgDT[, tstrsplit(path, split = '/')]
     
     colnames(splt) <- c('empty','data','archive','site','year','month','filenames') 
@@ -109,7 +104,7 @@ shinyServer(function(input, output, session) {
     phenoSitesList <- phenoSitesList[-which(phenoSitesList=='HF_Vivotek')]
     if(getwd()=="/Users/bijan/Projects/drawROI") 
       phenoSitesList <- c('acadia','dukehw','harvard')
-      
+    
     values$sitesList <- phenoSitesList
     
   })
@@ -252,7 +247,7 @@ shinyServer(function(input, output, session) {
     updateTextInput(session, inputId = 'siteDescription', value = values$parsedROIList$Description)
     updateTextInput(session, inputId = 'roiOwner', value = values$parsedROIList$Owner)
     dummy=0
-
+    
     values$MASKs <- values$parsedROIList$masks
     
     updateSelectInput(session, inputId = 'maskName', choices = c(names(values$MASKs), 'New mask'))
@@ -298,7 +293,7 @@ shinyServer(function(input, output, session) {
       shinyjs::enable("emailROI")
     }
   })
-
+  
   
   # ----------------------------------------------------------------------
   # VegType
@@ -490,8 +485,8 @@ shinyServer(function(input, output, session) {
         absPoints <- values$centers*sampleImageSize()
       else 
         absPoints <- t(apply(values$centers, 1, '*', sampleImageSize()))
-     dummy <- 0
-       polygon(absPoints, col = roiColors, pch = 9, lwd=2)
+      dummy <- 0
+      polygon(absPoints, col = roiColors, pch = 9, lwd=2)
     }
   })
   
@@ -501,7 +496,7 @@ shinyServer(function(input, output, session) {
       # values$MASKs <- list()
       values$centers <- matrix(numeric(), 0, 2)
       return()
-      }
+    }
     tmpmask <- values$MASKs[[input$maskName]]
     
     values$centers <- tmpmask$maskpoints
@@ -554,7 +549,7 @@ shinyServer(function(input, output, session) {
                     updateTime = strftime(systime, format = '%H:%M:%S'),
                     masks = values$MASKs)
     
-
+    
     roifilename <- paste0(roiLabel(),'_roi.csv')
     writeROIListFile(ROIList, path = roipath(),  roifilename)
     
@@ -834,7 +829,7 @@ shinyServer(function(input, output, session) {
       
     }
   })
-
+  
   
   
   # ----------------------------------------------------------------------
