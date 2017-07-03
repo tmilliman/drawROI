@@ -33,15 +33,13 @@ shinyServer(function(input, output, session) {
   values <- reactiveValues(centers = matrix(numeric(), 0, 2),
                            MASKs = list(),
                            slideShow = 0,
-                           contID= 1, 
                            ROIs = vector(),
                            sitesList = vector(),
                            parsedROIList = NULL,
                            phenoSites = fromJSON(file = 'https://phenocam.sr.unh.edu/webcam/network/siteinfo/')
   )
   
-  autoInvalidate1 <- reactiveTimer(1000)
-  autoInvalidate2 <- reactiveTimer(1000)
+  autoInvalidate <- reactiveTimer(1000)
   
   observe({
     vegTypes <-   list('AG','DB','EB','EN','DN','GR','MX',
@@ -99,7 +97,6 @@ shinyServer(function(input, output, session) {
   observeEvent(input$siteName, {
     dummy = 0
     updateSelectInput(session, inputId = 'errorSite', selected = input$siteName)
-    values$contID <- 1
     values$slideShow <- 0
     
     updateSliderInput(session,
@@ -242,7 +239,7 @@ shinyServer(function(input, output, session) {
   })
   
   nroi <- reactive({
-    autoInvalidate1()
+    autoInvalidate()
     tmpl <- paste0(input$siteName, '_', input$vegType)
     sum(grepl(tmpl, values$ROIs))+1
   })
@@ -328,8 +325,9 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   observe({
     if(values$slideShow==0) return()
-    autoInvalidate2()
-    values$contID <- isolate(values$contID) + values$slideShow
+    updateSliderInput(session,
+                      inputId = 'contID',
+                      value = as.numeric(input$contID) + values$slideShow)
   })
   
   observeEvent(input$pause, {
@@ -359,7 +357,7 @@ shinyServer(function(input, output, session) {
   # Sample Image
   # ----------------------------------------------------------------------
   sampleImage <- reactive({
-    imgDT()[Site==input$siteName&Year==input$year&DOY==input$viewDay, path][1]
+    imgDT()[Site==input$siteName&Year==yearID()&DOY==doyID(), path][1]
   }  )
   
   sampleImageSize <- reactive(
@@ -396,59 +394,21 @@ shinyServer(function(input, output, session) {
   })
   
   
-  observeEvent(values$contID,{
-    dummy <- 0
-    if(length(values$contID)==0) values$contID <- 1
-    tmpid <- dayYearIDTable()[ID==as.numeric(values$contID),ID]
-    tmpday <- dayYearIDTable()[ID==as.numeric(values$contID),DOY]
-    tmpyear <- dayYearIDTable()[ID==as.numeric(values$contID),Year]
-    
-    updateSliderInput(session, 'contID', value = tmpid)
-    updateSliderInput(session, 'viewDay', value = tmpday)
-    updateSelectInput(session, 'year', selected = tmpyear)
-  })
   
-  doy <- reactive(
-    dayYearIDTable()[ID==as.numeric(values$contID),ID]
+  doyID <- reactive(
+    dayYearIDTable()[ID==as.numeric(input$contID),DOY]
   )
-  observeEvent(input$contID, {
-    values$contID <- input$contID
+  yearID <- reactive(
+    dayYearIDTable()[ID==as.numeric(input$contID),Year]
+  )
+  output$yearOut <- renderText({
+    paste0('    Year:  ', yearID())
   })
   
-  validDOY <- reactive(dayYearIDTable()[Year==as.numeric(input$year), DOY])
-  
-  observeEvent(input$year, {
-    # values$slideShow <- 0 
-    dummy <- 0
-    if(length(validDOY())==0) return()
-    if(!input$viewDay%in%validDOY()) {
-      newDOY <- validDOY()[which.min(abs(validDOY() - input$viewDay))+1]
-      updateSliderInput(session, 'viewDay', value = newDOY)
-      tmpid <- dayYearIDTable()[Year==as.numeric(input$year)&DOY==newDOY, ID]
-    }else{
-      tmpid <- dayYearIDTable()[Year==as.numeric(input$year)&DOY==as.numeric(input$viewDay), ID]
-    }
-    # if(length(tmpid)==0) tmpid =1
-    values$contID <- tmpid
-    updateSliderInput(session, 'contID', value = tmpid)
+  output$doyOut <- renderText({
+    paste0('    DOY:  ', doyID())
   })
   
-  observeEvent(input$viewDay,{
-    # values$slideShow <- 0 
-    if(length(validDOY())==0) return()
-    tmpx <- NULL
-    if(!input$viewDay%in%validDOY()) {
-      tmpx <- abs(validDOY())
-      newDOY <- validDOY()[which.min(abs(validDOY() - input$viewDay))+1]
-      updateSliderInput(session, 'viewDay', value = newDOY)
-      tmpid <- dayYearIDTable()[Year==as.numeric(input$year)&DOY==newDOY, ID]
-    }else{
-      tmpid <- dayYearIDTable()[Year==as.numeric(input$year)&DOY==as.numeric(input$viewDay), ID]
-    }
-    # if(length(tmpid)==0) tmpid =1
-    values$contID <- tmpid
-    updateSliderInput(session, 'contID', value = tmpid)
-  })
   
   
   # ----------------------------------------------------------------------
@@ -491,8 +451,12 @@ shinyServer(function(input, output, session) {
     updateDateRangeInput(session, inputId = 'roiDateRange', end=tmpmask$enddate)
     updateTextInput(session, inputId = 'maskStartTime', value = tmpmask$starttime)
     updateTextInput(session, inputId = 'maskEndTime', value = tmpmask$endtime)
-    updateSelectInput(session, inputId = 'year', selected = tmpmask$sampleyear)
-    updateSelectInput(session, inputId = 'viewDay', selected = tmpmask$sampleday)
+    
+    tmpID <- dayYearIDTable()[Year==as.numeric(yearID())&DOY==as.numeric(doyID()), ID]
+    if(length(tmpID)==0) tmpID <- 1
+    values$ID <- tmpID[1]
+    # updateSelectInput(session, inputId = 'year', selected = tmpmask$sampleyear)
+    # updateSelectInput(session, inputId = 'viewDay', selected = tmpmask$sampleday)
   })
   
   observeEvent(input$newPoint, {
@@ -657,10 +621,10 @@ shinyServer(function(input, output, session) {
   
   tsYearDayRange <- reactive({
     if(input$ccRange=="week")
-      return(imgDT()[Site==input$siteName&Year==input$year&DOY%in%(input$viewDay[1]:(input$viewDay[1]+7)),YearDOY])
+      return(imgDT()[Site==input$siteName&Year==yearID()&DOY%in%(doyID()[1]:(doyID()[1]+7)),YearDOY])
     else if(input$ccRange=="year")
       # return(1:365)
-      return(imgDT()[Site==input$siteName&Year==input$year,YearDOY])
+      return(imgDT()[Site==input$siteName&Year==yearID(),YearDOY])
     else if(input$ccRange=="all")
       return(imgDT()[Site==input$siteName,YearDOY])
   })
@@ -771,8 +735,8 @@ shinyServer(function(input, output, session) {
                       enddate = input$roiDateRange[2], 
                       starttime = input$maskStartTime, 
                       endtime = input$maskEndTime, 
-                      sampleyear = input$year, 
-                      sampleday = input$viewDay,
+                      sampleyear = yearID(), 
+                      sampleday = doyID(),
                       sampleImage = sampleImageName(),
                       rasteredMask = createRasteredROI(values$centers, sampleImageSize()))
       
@@ -805,8 +769,8 @@ shinyServer(function(input, output, session) {
                       enddate = input$roiDateRange[2], 
                       starttime = input$maskStartTime, 
                       endtime = input$maskEndTime, 
-                      sampleyear = input$year, 
-                      sampleday = input$viewDay,
+                      sampleyear = yearID(), 
+                      sampleday = doyID(),
                       sampleImage = sampleImageName(),
                       rasteredMask = newMASK)
       

@@ -76,26 +76,32 @@ fluidPage(
                                         animate=F,
                                         value = 1,
                                         step = 1,
-                                        width = '100%'))),
-               
-               fluidRow(
-                 column(2, selectInput("year", "Year", '', width = '80px')),
-                 br(),
-                 column(10, sliderInput(inputId = "viewDay", label =  NULL,
-                                        min = 1, max = 365, ticks = F, animate=F,
-                                        value = 1, round = T, step = 1, width = '700px'))
+                                        width = '100%'))
                ),
                
+               
                fluidRow(
-                 column(1, actionButton('siteInfo', label = NULL, icon = icon('info'), width = '100%', style="border-color: #fff; align:center; color:#FF0000"),
-                        bsModal("modalSiteInfo", "Site Info", "siteInfo", size = "large",footer = NULL, 
-                                tableOutput("tblSiteInfo"))
+                 column(6, 
+                        fluidRow(
+                          column(2, actionButton('siteInfo', label = NULL, icon = icon('info'), width = '100%', style="border-color: #fff; align:center; color:#FF0000"),
+                                 bsModal("modalSiteInfo", "Site Info", "siteInfo", size = "large",footer = NULL, 
+                                         tableOutput("tblSiteInfo"))
+                          ),
+                          column(2, actionButton("backplay", "", icon = icon('step-backward'), width = '100%', style="border-color: #fff; align:center")),
+                          column(2, actionButton("back", "", icon = icon('backward'), width = '100%', style="border-color: #fff")),
+                          column(2, actionButton("pause", "", icon = icon('pause'), width = '100%',  style="border-color: #fff")),
+                          column(2, actionButton("forw", "", icon = icon('forward'), width = '100%',  style="border-color: #fff")),
+                          column(2, actionButton("play", "", icon = icon('step-forward'), width = '100%', style="border-color: #fff; align:center"))
+                        )
                  ),
-                 column(1, actionButton("backplay", "", icon = icon('step-backward'), width = '100%', style="border-color: #fff; align:center")),
-                 column(1, actionButton("back", "", icon = icon('backward'), width = '100%', style="border-color: #fff")),
-                 column(1, actionButton("pause", "", icon = icon('pause'), width = '100%',  style="border-color: #fff")),
-                 column(1, actionButton("forw", "", icon = icon('forward'), width = '100%',  style="border-color: #fff")),
-                 column(1, actionButton("play", "", icon = icon('step-forward'), width = '100%', style="border-color: #fff; align:center"))
+                 column(6, 
+                        fluidRow(
+                          column(6, strong(textOutput('yearOut'))),
+                          column(6, strong(textOutput('doyOut')))
+                          
+                          
+                        )
+                 )
                ),
                
                fluidRow(
