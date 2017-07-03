@@ -92,6 +92,8 @@ shinyServer(function(input, output, session) {
   observe({
     updateSelectInput(session, inputId = 'siteName', choices = values$sitesList)
     updateSelectInput(session, inputId = 'errorSite', choices = values$sitesList)
+    if(getwd()!="/Users/bijan/Projects/drawROI") 
+      updateSelectInput(session, inputId = 'siteName', selected = 'ahwahnee')
   })
   
   observeEvent(input$siteName, {
