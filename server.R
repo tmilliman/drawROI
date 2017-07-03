@@ -442,7 +442,7 @@ shinyServer(function(input, output, session) {
     values$slideShow <- 0 
     if(input$maskName=='New mask') {
       # values$MASKs <- list()
-      values$centers <- matrix(numeric(), 0, 2)
+      # values$centers <- matrix(numeric(), 0, 2)
       return()
     }
     tmpmask <- values$MASKs[[input$maskName]]
