@@ -99,7 +99,7 @@ shinyServer(function(input, output, session) {
   # Site
   # ----------------------------------------------------------------------
   observe({
-    phenoSitesList <- sapply(values$phenoSites, function(x){x$siteName})
+    phenoSitesList <- sapply(values$phenoSites, function(x){x$site})
     names(values$phenoSites) <- phenoSitesList
     phenoSitesList <- phenoSitesList[-which(phenoSitesList=='HF_Vivotek')]
     if(getwd()=="/Users/bijan/Projects/drawROI") 
