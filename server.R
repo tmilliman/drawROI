@@ -269,7 +269,7 @@ shinyServer(function(input, output, session) {
   # MASKs
   # ----------------------------------------------------------------------
   observeEvent(values$MASKs,{
-    if(length(values$MASKs)==1) {
+    if(length(values$MASKs)==0) {
       shinyjs::disable("downloadROI")
       shinyjs::disable("emailROI")
     }else{
@@ -284,7 +284,7 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   observeEvent(input$vegType,{
     values$slideShow <- 0 
-    if(length(values$MASKs)==1) return()
+    if(length(values$MASKs)==0) return()
     
     maskNames <- names(values$MASKs)
     f <- function(x, y){
@@ -408,6 +408,9 @@ shinyServer(function(input, output, session) {
     updateSelectInput(session, 'year', selected = tmpyear)
   })
   
+  doy <- reactive(
+    dayYearIDTable()[ID==as.numeric(values$contID),ID]
+  )
   observeEvent(input$contID, {
     values$contID <- input$contID
   })
@@ -520,7 +523,7 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   observeEvent(input$saveROI,{
     values$slideShow <- 0 
-    if(length(values$MASKs)==1) return()
+    if(length(values$MASKs)==0) return()
     systime <- format(Sys.time(), '%Y-%m-%d %H:%M:%S')
     ROIList <- list(siteName = input$siteName, 
                     vegType = input$vegType, 
@@ -592,7 +595,7 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   observeEvent(input$emailROI,{
     values$slideShow <- 0 
-    if(length(values$MASKs)==1) return()
+    if(length(values$MASKs)==0) return()
     
     tmpdir <- tempdir()
     setwd(tempdir())
