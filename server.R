@@ -124,6 +124,7 @@ shinyServer(function(input, output, session) {
   })
   
   siteInfo <- reactive({
+    dummy <- 0
     values$phenoSites[[input$siteName]]
   })
   
@@ -146,8 +147,9 @@ shinyServer(function(input, output, session) {
                                     spacing = 's',
                                     options = list( lengthChange = FALSE),{
                                       dummy <- 1
+                                      dummy <- 1
                                       inf <- siteInfo()
-                                      x <- t(data.frame(Site = inf$siteName, 
+                                      x <- t(data.frame(Site = inf$site, 
                                                         Site.Type = inf$site_type,
                                                         MAT = paste0(inf$MAT_worldclim, ' °C'),
                                                         MAP = paste0(inf$MAP_worldclim, ' mm/year'),
