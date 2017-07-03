@@ -26,7 +26,7 @@ fluidPage(
              
              headerPanel("PhenoCam ROI Tool"),
              sidebarPanel(width = 4,
-                          selectInput("siteName", "Site", choices = 'acadia'),
+                          selectInput("siteName", "Site", choices = 'ahwahnee'),
                           selectInput("roiName", "ROIs", 'New ROI'),
                           selectInput("vegType", "Vegetation Type", choices = ''),
                           textInput('siteDescription','Description', placeholder = 'Enter a description for the ROI'),
