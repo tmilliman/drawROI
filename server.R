@@ -69,27 +69,7 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   imgDT <- reactive({
     dummy <- 0
-    dummy <- 0
-    # getIMG.DT(input$siteName, midddayListPath)
-    
-    writeLines(input$siteName, '/tmp/.sitename.tmp')
-    site <- input$siteName
-    tbl <- read.table(paste0(midddayListPath, site), header = F, colClasses = 'character', col.names = 'path')
-    imgDT <- as.data.table(tbl)
-    splt <- imgDT[, tstrsplit(path, split = '/')]
-    
-    colnames(splt) <- c('empty','data','archive','site','year','month','filenames') 
-    splt[, newpath:=paste(empty, data, archive, site, 'originals', year, month, filenames, sep='/')]
-    
-    imgDT$filenames <- splt$filenames
-    imgDT$newpath <- splt$newpath
-    
-    #imgDT[grepl(pattern = 'NEON', filenames), path:=newpath]
-    imgDT$newpath <- NULL
-    
-    imgDT <- imgDT[str_count(filenames, pattern = '_')==4, ]
-    imgDT <- parseIMG.DT(imgDT)
-    imgDT
+    getIMG.DT(input$siteName, midddayListPath)
     
   })
   

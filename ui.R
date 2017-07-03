@@ -33,7 +33,7 @@ fluidPage(
                           textInput('roiOwner','Owner', placeholder = 'Enter your name'),
                           hr(),
                           strong(textOutput('roiFileName')),
-                          selectInput("maskName", "Mask", choices = 'New mask'),
+                          selectInput("maskName", label = NULL, choices = 'New mask'),
                           # textOutput('maskfilename'),
                           strong('Sample Image:'),
                           textOutput('sampleImagePath'),
