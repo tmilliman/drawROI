@@ -31,11 +31,9 @@ fluidPage(
                           textInput('descr','Description', placeholder = 'Enter a description for the ROI'),
                           textInput('owner','Owner', placeholder = 'Enter your name'),
                           hr(),
-                          
-                          strong('ROI List filename:'),
-                          textOutput('roilabel'),
-                          br(),
-                          selectInput("masks", "Mask", choices = NULL),
+                          strong(textOutput('roilabel')),
+                          selectInput("masks", "Mask", choices = 'New mask'),
+                          textOutput('maskfilename'),
                           strong('Sample Image:'),
                           textOutput('sampleImagePath'),
                           br(),
@@ -71,13 +69,13 @@ fluidPage(
                fluidRow( 
                  column(2, actionButton('nextsite', label = 'Next Site', width = '80px',class="btn-primary")),
                  column(10, sliderInput(inputId = "contID",
-                           label =  NULL,
-                           min = 1, max = 1,
-                           ticks = F,
-                           animate=F,
-                           value = 1,
-                           step = 1,
-                           width = '100%'))),
+                                        label =  NULL,
+                                        min = 1, max = 1,
+                                        ticks = F,
+                                        animate=F,
+                                        value = 1,
+                                        step = 1,
+                                        width = '100%'))),
                
                fluidRow(
                  column(2, selectInput("year", "Year", '', width = '80px')),
@@ -114,10 +112,11 @@ fluidPage(
                         # column( 2, actionButton( 'gotoShiftFOV', label = 'Go', width = '100%', class="btn-success"))
                  ),
                  
-                 column(6, actionButton("cancel", "Clear", icon = icon('refresh'), class="btn-primary", width = "85px"),
-                        actionButton("undo", "Undo", icon = icon('undo'), class="btn-primary", width = "85px"),
-                        actionButton("save", "Edit", icon = icon('edit'), class="btn-danger", width = "85px"),
-                        actionButton("accept", "Add", icon = icon('save'), class="btn-danger", width = "85px"))
+                 column(6, actionButton("cancel", "Clear", icon = icon('refresh'), class="btn-primary", width = "113px"),
+                        actionButton("undo", "Undo", icon = icon('undo'), class="btn-primary", width = "113px"),
+                        # actionButton("save", "Edit", icon = icon('edit'), class="btn-danger", width = "85px"),
+                        # actionButton("accept", "Add", icon = icon('save'), class="btn-danger", width = "85px"),
+                        actionButton("saveMask", "Save", icon = icon('save'), class="btn-danger", width = "113px"))
                ),
                
                hr(),
