@@ -29,7 +29,7 @@ fluidPage(
              sidebarPanel(width = 4,
                           selectInput("siteName", "Site", choices = if(getwd()==bijanWD)'acadia'else'ahwahnee'),
                           selectInput("roiName", "ROIs", 'New ROI'),
-                          selectInput("vegType", "Vegetation Type", choices = ''),
+                          selectInput("vegType", "Vegetation Type", choices = 'AG'),
                           textInput('siteDescription','Description', placeholder = 'Enter a description for the ROI'),
                           textInput('roiOwner','Owner', placeholder = 'Enter your name'),
                           hr(),

@@ -32,12 +32,12 @@ if(getwd()==bijanWD)
 shinyServer(function(input, output, session) {
   options(warn = -1)
   rv <- reactiveValues(centers = matrix(numeric(), 0, 2),
-                           MASKs = list(),
-                           slideShow = 0,
-                           ROIs = vector(),
-                           sitesList = vector(),
-                           parsedROIList = NULL,
-                           phenoSites = fromJSON(file = 'https://phenocam.sr.unh.edu/webcam/network/siteinfo/')
+                       MASKs = list(),
+                       slideShow = 0,
+                       ROIs = vector(),
+                       sitesList = vector(),
+                       parsedROIList = NULL,
+                       phenoSites = fromJSON(file = 'https://phenocam.sr.unh.edu/webcam/network/siteinfo/')
   )
   
   autoInvalidate <- reactiveTimer(1000)
@@ -223,7 +223,7 @@ shinyServer(function(input, output, session) {
     dummy=0
     dummy=0
     rv$parsedROIList <- parseROI(roifilename=input$roiName,
-                                     roipath = roipath())
+                                 roipath = roipath())
     
     updateSelectInput(session, inputId = 'vegType', selected =  rv$parsedROIList$vegType)
     updateTextInput(session, inputId = 'siteDescription', value = rv$parsedROIList$Description)
@@ -241,8 +241,22 @@ shinyServer(function(input, output, session) {
   
   nroi <- reactive({
     autoInvalidate()
-    tmpl <- paste0(input$siteName, '_', input$vegType)
-    sum(grepl(tmpl, rv$ROIs))+1
+    dummy <- 0
+    template <- paste0(input$siteName, '_', input$vegType)
+    sameTemplate <- grepl(template, rv$ROIs)
+    if(sum(sameTemplate)==0) 
+      n <- 1
+    else
+      n <- max(
+        as.numeric(
+          sapply(
+            strsplit(
+              rv$ROIs[sameTemplate], '_'), 
+            function(x)(x[3])
+          )
+        )
+      ) + 1
+    n
   })
   
   
@@ -746,10 +760,10 @@ shinyServer(function(input, output, session) {
       
       if(length(rv$MASKs)!=0)
         maskID <- max(
-        as.numeric(
-          sapply(
-            strsplit(
-              names(rv$MASKs), split = '_'), function(x)(x[length(x)]))
+          as.numeric(
+            sapply(
+              strsplit(
+                names(rv$MASKs), split = '_'), function(x)(x[length(x)]))
           )
         ) + 1
       else maskID <- 1
