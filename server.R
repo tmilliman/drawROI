@@ -126,7 +126,8 @@ shinyServer(function(input, output, session) {
     updateSelectInput(session, "year", choices = x)
     updateSelectInput(session, 'rois', choices = values$ROIs, selected = 'New ROI')
     dummy <- 0
-    
+    values$MASKs <- NULL
+    updateSelectInput(session, inputId = 'masks', choices = '')
   })
   
   siteInfo <- reactive({
