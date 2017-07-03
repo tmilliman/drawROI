@@ -23,17 +23,18 @@ fluidPage(
   shinyjs::useShinyjs(),  
   tabsetPanel(
     tabPanel('ROI Tool',
+             
              headerPanel("PhenoCam ROI Tool"),
              sidebarPanel(width = 4,
-                          selectInput("site", "Site", choices = 'acadia'),
-                          selectInput("rois", "ROIs", 'New ROI'),
-                          selectInput("vegtype", "Vegetation Type", choices = ''),
-                          textInput('descr','Description', placeholder = 'Enter a description for the ROI'),
-                          textInput('owner','Owner', placeholder = 'Enter your name'),
+                          selectInput("siteName", "Site", choices = 'acadia'),
+                          selectInput("roiName", "ROIs", 'New ROI'),
+                          selectInput("vegType", "Vegetation Type", choices = ''),
+                          textInput('siteDescription','Description', placeholder = 'Enter a description for the ROI'),
+                          textInput('roiOwner','Owner', placeholder = 'Enter your name'),
                           hr(),
-                          strong(textOutput('roilabel')),
-                          selectInput("masks", "Mask", choices = 'New mask'),
-                          textOutput('maskfilename'),
+                          strong(textOutput('roiFileName')),
+                          selectInput("maskName", "Mask", choices = 'New mask'),
+                          # textOutput('maskfilename'),
                           strong('Sample Image:'),
                           textOutput('sampleImagePath'),
                           br(),
@@ -44,8 +45,8 @@ fluidPage(
                           br(),
                           dateRangeInput(inputId = 'roiDateRange', label = 'ROI Start/End Dates:', start = '2001-01-01', end = '2016-01-01', separator = '-', startview='day'),
                           fluidRow(
-                            column(width = 6, textInput('starttime', label = 'Start Time:', width = '80px', value = '00:08:00')),
-                            column(width = 6, textInput('endtime', label = 'End Time:', width = '80px', value = '00:20:00'))
+                            column(width = 6, textInput('maskStartTime', label = 'Start Time:', width = '80px', value = '00:08:00')),
+                            column(width = 6, textInput('maskEndTime', label = 'End Time:', width = '80px', value = '00:20:00'))
                           ),
                           
                           br(),
@@ -67,7 +68,7 @@ fluidPage(
              
              mainPanel(
                fluidRow( 
-                 column(2, actionButton('nextsite', label = 'Next Site', width = '80px',class="btn-primary")),
+                 column(2, actionButton('nextSite', label = 'Next Site', width = '80px',class="btn-primary")),
                  column(10, sliderInput(inputId = "contID",
                                         label =  NULL,
                                         min = 1, max = 1,
@@ -98,36 +99,36 @@ fluidPage(
                ),
                
                fluidRow(
-                 column(6, plotOutput("plot", click = "newPoint", width = "350px", height = '260px')),
-                 column(6, plotOutput("maskplot", width = "350px", height = '260px'))
+                 column(6, plotOutput("imagePlot", click = "newPoint", width = "350px", height = '260px')),
+                 column(6, plotOutput("maskPlot", width = "350px", height = '260px'))
                ),
                br(),
                
                fluidRow(
                  
                  column(6,
-                        column( 4, colourpicker::colourInput(inputId = 'roicol', allowTransparent=T, transparentText = 'clear', label = NULL,value = '#ab5222', showColour = 'background')),
+                        column( 4, colourpicker::colourInput(inputId = 'roiColors', allowTransparent=T, transparentText = 'clear', label = NULL,value = '#ab5222', showColour = 'background')),
                         
                         column( 8, selectInput('shiftsList', label = NULL, choices = 'Possible shifts in FOV', width = '100%'))
                         # column( 2, actionButton( 'gotoShiftFOV', label = 'Go', width = '100%', class="btn-success"))
                  ),
                  
-                 column(6, actionButton("cancel", "Clear", icon = icon('refresh'), class="btn-primary", width = "113px"),
-                        actionButton("undo", "Undo", icon = icon('undo'), class="btn-primary", width = "113px"),
+                 column(6, actionButton("clearCanvas", "Clear", icon = icon('refresh'), class="btn-primary", width = "113px"),
+                        actionButton("undoCanvas", "Undo", icon = icon('undo'), class="btn-primary", width = "113px"),
                         # actionButton("save", "Edit", icon = icon('edit'), class="btn-danger", width = "85px"),
                         # actionButton("accept", "Add", icon = icon('save'), class="btn-danger", width = "85px"),
-                        actionButton("saveMask", "Save", icon = icon('save'), class="btn-danger", width = "113px"))
+                        actionButton("acceptCanvas", "Save", icon = icon('save'), class="btn-danger", width = "113px"))
                ),
                
                hr(),
                
                fluidRow(
-                 column(3, radioButtons('sevenorall', label = 'Time series range:', choices = c('week', 'year', 'all'), width = "330px",inline = T)),
+                 column(3, radioButtons('ccRange', label = 'Time series range:', choices = c('week', 'year', 'all'), width = "330px",inline = T)),
                  br(),
                  
-                 column(2, actionButton("extract", "Extract", class="btn-primary", icon = icon('line-chart'), onclick="Shiny.onInputChange('stopThis',false)", width = "100%")),
-                 column(2, actionButton("stopExtract", "Stop", class="btn-danger", icon = icon('stop'), onclick="Shiny.onInputChange('stopThis',true)", width = "100%")),
-                 column(3, checkboxGroupInput('ccselect', label = NULL, choices = c('R','G','B'), selected = c('R','G','B'), width = '100%', inline = T)),
+                 column(2, actionButton("startExtractCC", "Extract", class="btn-primary", icon = icon('line-chart'), onclick="Shiny.onInputChange('stopThis',false)", width = "100%")),
+                 column(2, actionButton("stopExtractCC", "Stop", class="btn-danger", icon = icon('stop'), onclick="Shiny.onInputChange('stopThis',true)", width = "100%")),
+                 column(3, checkboxGroupInput('ccBand', label = NULL, choices = c('R','G','B'), selected = c('R','G','B'), width = '100%', inline = T)),
                  column(2, downloadButton("downloadTSData", "Download"))
                ),
                
