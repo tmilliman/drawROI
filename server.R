@@ -21,15 +21,11 @@ library(plotly)
 
 source('funcs.R')
 
-# library(rjson)
-# phenoSites <- fromJSON(file = 'https://phenocam.sr.unh.edu/webcam/network/siteinfo/')
-# # phenoSites
-# phenoROIs <- fromJSON(file = 'https://phenocam.sr.unh.edu/webcam/roi/roilistinfo/')
-
 
 midddayListPath <- '/home/bijan/middayList/'
-### XXX
-if(getwd()=="/Users/bijan/Projects/drawROI") midddayListPath <- 'midddayListPath/'
+
+if(getwd()=="/Users/bijan/Projects/drawROI") 
+  midddayListPath <- 'midddayListPath/'
 
 
 shinyServer(function(input, output, session) {
@@ -77,12 +73,12 @@ shinyServer(function(input, output, session) {
     getIMG.DT(input$siteName, midddayListPath)
   })
   
+  
+  
   # ----------------------------------------------------------------------
   # Site
   # ----------------------------------------------------------------------
   observe({
-    # values$sitesList <- imgDT[,unique(Site)]
-    
     phenoSitesList <- sapply(values$phenoSites, function(x){x$siteName})
     names(values$phenoSites) <- phenoSitesList
     phenoSitesList <- phenoSitesList[-which(phenoSitesList=='HF_Vivotek')]
@@ -101,8 +97,6 @@ shinyServer(function(input, output, session) {
   observeEvent(input$siteName, {
     dummy = 0
     updateSelectInput(session, inputId = 'errorSite', selected = input$siteName)
-    # values$ROIs <- c(dir(roipath(), pattern = 'roi.csv'), "New ROI")
-    # values$MASKs <- NULL
     values$contID <- 1
     values$slideShow <- 0
     
@@ -144,10 +138,6 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   # Site info
   # ----------------------------------------------------------------------
-  # observeEvent(input$siteInfo,{
-  #   
-  # })
-  # 
   output$tblSiteInfo = renderTable( rownames = T, 
                                     colnames = F, 
                                     striped = T, 
@@ -176,8 +166,9 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   roipath <- reactive({
     tmp <- (paste0('/data/archive/', input$siteName,'/ROI/'))
-    ### XXX
-    if(getwd()=="/Users/bijan/Projects/drawROI") tmp <- (paste0('phenocamdata/data/archive/', input$siteName,'/ROI/'))
+    
+    if(getwd()=="/Users/bijan/Projects/drawROI") 
+      tmp <- (paste0('phenocamdata/data/archive/', input$siteName,'/ROI/'))
     return(tmp)
   }  )
   
@@ -195,12 +186,9 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   roiLabel <- reactive({
     dummy = 0 
-    # if(input$roiName=='New ROI')
     label <- paste(input$siteName, 
                    input$vegType, 
                    sprintf('%04d',roiID()), sep = '_')
-    # else
-    #   label <- input$roiName
     label
   }
   )
@@ -217,8 +205,6 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   # Parsed ROI List
   # ----------------------------------------------------------------------
-  
-  
   observeEvent(input$roiName,{
     dummy = 0
     values$slideShow <- 0 
@@ -241,7 +227,7 @@ shinyServer(function(input, output, session) {
     updateTextInput(session, inputId = 'siteDescription', value = values$parsedROIList$Description)
     updateTextInput(session, inputId = 'roiOwner', value = values$parsedROIList$Owner)
     dummy=0
-    # updateSelectInput(session, inputId = 'maskName', choices = names(values$parsedROIList$masks))
+
     values$MASKs <- values$parsedROIList$masks
     
     updateSelectInput(session, inputId = 'maskName', choices = c(names(values$MASKs), 'New mask'))
@@ -253,7 +239,6 @@ shinyServer(function(input, output, session) {
   
   nroi <- reactive({
     autoInvalidate1()
-    # roils <- dir(roipath(), pattern = '*roi.csv')
     tmpl <- paste0(input$siteName, '_', input$vegType)
     sum(grepl(tmpl, values$ROIs))+1
   })
@@ -288,20 +273,7 @@ shinyServer(function(input, output, session) {
       shinyjs::enable("emailROI")
     }
   })
-  # observe({
-  #   dummy =0
-  #   maskchoice <- names(values$MASKs)
-  #   if(is.null(maskchoice)) 
-  #     updateSelectInput(session, 'maskName', choices = '')
-  #   else if(length(maskchoice)==1)
-  #     updateSelectInput(session, 'maskName', choices = maskchoice)
-  #   else
-  #     updateSelectInput(session, 'maskName', choices = maskchoice, selected = isolate(input$maskName))
-  #   dummy =0
-  #   
-  # }
-  # )
-  # 
+
   
   # ----------------------------------------------------------------------
   # VegType
@@ -383,7 +355,6 @@ shinyServer(function(input, output, session) {
   # Sample Image
   # ----------------------------------------------------------------------
   sampleImage <- reactive({
-    # if(input$siteName=='') return(NA)
     imgDT()[Site==input$siteName&Year==input$year&DOY==input$viewDay, path][1]
   }  )
   
@@ -444,7 +415,6 @@ shinyServer(function(input, output, session) {
     dummy <- 0
     if(length(validDOY())==0) return()
     if(!input$viewDay%in%validDOY()) {
-      # tmpx <- abs(validDOY())
       newDOY <- validDOY()[which.min(abs(validDOY() - input$viewDay))+1]
       updateSliderInput(session, 'viewDay', value = newDOY)
       tmpid <- dayYearIDTable()[Year==as.numeric(input$year)&DOY==newDOY, ID]
@@ -512,8 +482,6 @@ shinyServer(function(input, output, session) {
     values$centers <- tmpmask$maskpoints
     updateDateRangeInput(session, inputId = 'roiDateRange', start=tmpmask$startdate)
     updateDateRangeInput(session, inputId = 'roiDateRange', end=tmpmask$enddate)
-    # updateTimeInput(session, inputId = 'maskStartTime', value = tmpmask$starttime)
-    # updateTimeInput(session, inputId = 'maskEndTime', value = tmpmask$endtime)
     updateTextInput(session, inputId = 'maskStartTime', value = tmpmask$starttime)
     updateTextInput(session, inputId = 'maskEndTime', value = tmpmask$endtime)
     updateSelectInput(session, inputId = 'year', selected = tmpmask$sampleyear)
@@ -525,8 +493,6 @@ shinyServer(function(input, output, session) {
     newPoint <- matrix(c(input$newPoint[['x']], input$newPoint[['y']]),1, 2)
     values$centers <- rbind(values$centers, newPoint/sampleImageSize())
   })
-  
-  
   
   
   
@@ -563,8 +529,7 @@ shinyServer(function(input, output, session) {
                     updateTime = strftime(systime, format = '%H:%M:%S'),
                     masks = values$MASKs)
     
-    # roifilename <- input$roiName
-    # if(input$roiName=='New ROI')roifilename <- paste(ROIList$siteName, ROIList$vegType, sprintf('%04d', ROIList$ID), 'roi.csv', sep = '_')
+
     roifilename <- paste0(roiLabel(),'_roi.csv')
     writeROIListFile(ROIList, path = roipath(),  roifilename)
     
@@ -572,7 +537,6 @@ shinyServer(function(input, output, session) {
                           "New file for ROI List was saved in the database!",
                           easyClose = T,
                           size = 's',
-                          # footer = modalButton('OK')
                           footer = NULL
     ))
   })
@@ -665,7 +629,6 @@ shinyServer(function(input, output, session) {
     
     sendmail(from = 'phenocam.network@gmail.com', 
              to = 'phenocam.network@gmail.com', 
-             # subject = paste0('drawROI error submitted at ', as.character(Sys.time())), 
              subject = 'New ROI was just submitted via drawROI!', 
              msg = bodyWithAttachment)
     
@@ -687,7 +650,6 @@ shinyServer(function(input, output, session) {
   
   tsYearDayRange <- reactive({
     if(input$ccRange=="week")
-      # return(input$viewDay[1]:(input$viewDay[1]+7))
       return(imgDT()[Site==input$siteName&Year==input$year&DOY%in%(input$viewDay[1]:(input$viewDay[1]+7)),YearDOY])
     else if(input$ccRange=="year")
       # return(1:365)
@@ -782,7 +744,7 @@ shinyServer(function(input, output, session) {
   
   
   # ----------------------------------------------------------------------
-  # Save mask
+  # Accept canvas
   # ----------------------------------------------------------------------
   observeEvent(input$acceptCanvas,{
     if(input$maskName=='New mask'){
@@ -848,85 +810,7 @@ shinyServer(function(input, output, session) {
     }
   })
 
-  # ----------------------------------------------------------------------
-  # Accept mask
-  # ----------------------------------------------------------------------
-  # observeEvent(input$accept,{
-  #   values$slideShow <- 0 
-  #   if(is.null(values$centers)) return()
-  #   if (nrow(values$centers)<3) return()
-  #   
-  #   showModal(modalDialog(title = 'Processing',width='300px',
-  #                         "Mask raster is being produced ...",
-  #                         easyClose = F,
-  #                         size = 's',
-  #                         footer = NULL
-  #   ))
-  #   
-  #   newMask <- list(maskpoints = values$centers, 
-  #                   startdate = input$roiDateRange[1], 
-  #                   enddate = input$roiDateRange[2], 
-  #                   starttime = input$maskStartTime, 
-  #                   endtime = input$endtime, 
-  #                   sampleyear = input$year, 
-  #                   sampleday = input$viewDay,
-  #                   sampleImage = sampleImageName(),
-  #                   rasteredMask = createRasteredROI(values$centers, sampleImageSize()))
-  #   
-  #   tmp <- values$MASKs
-  #   tmp[[length(tmp)+1]] <-  newMask
-  #   tmpName <- paste(input$siteName, input$vegType, 
-  #                    sprintf('%04d',roiID()),
-  #                    sprintf('%02d',length(tmp)), sep = '_')
-  #   names(tmp)[length(tmp)] <- tmpName
-  #   values$MASKs <- tmp
-  #   updateSelectInput(session, inputId = 'maskName', choices = c(names(tmp), 'New mask'), selected = tmpName)
-  #   
-  #   removeModal()
-  #   # values$msk <- tmp$rasteredMask
-  # })
-  # 
-  # # ----------------------------------------------------------------------
-  # # Save mask
-  # # ----------------------------------------------------------------------
-  # 
-  # observeEvent(input$save,{
-  #   values$slideShow <- 0 
-  #   if(is.null(curMask()))return()
-  #   if(is.null(values$centers)) return()
-  #   if (nrow(values$centers)<3) return()
-  #   
-  #   showModal(modalDialog(title = 'Processing',width='300px',
-  #                         "Mask raster is being updated ...",
-  #                         easyClose = F,
-  #                         size = 's',
-  #                         footer = NULL
-  #   ))
-  #   
-  #   newMASK <- createRasteredROI(values$centers, sampleImageSize())
-  #   tmpMask <- list(maskpoints = values$centers, 
-  #                   startdate = input$roiDateRange[1], 
-  #                   enddate = input$roiDateRange[2], 
-  #                   starttime = input$maskStartTime, 
-  #                   endtime = input$endtime, 
-  #                   sampleyear = input$year, 
-  #                   sampleday = input$viewDay,
-  #                   sampleImage = sampleImageName(),
-  #                   rasteredMask = newMASK)
-  #   
-  #   values$MASKs[[input$maskName]] <- tmpMask
-  #   
-  #   removeModal()
-  #   
-  #   # showModal(modalDialog(title = 'Complete',width='300px',
-  #   #                       "Mask info was saved!",
-  #   #                       easyClose = T,
-  #   #                       size = 's',
-  #   #                       footer = NULL
-  #   # ))
-  #   
-  #   
-  # })
+  
   
   # ----------------------------------------------------------------------
   # Plot mask
@@ -962,8 +846,6 @@ shinyServer(function(input, output, session) {
       
       plot(rmask,legend=F, add=T, col='black')
       file.remove('.tmpraster.tif')
-      # plot(mask,legend=F, add=T)
-      # }
       setwd(wd)
     })
   

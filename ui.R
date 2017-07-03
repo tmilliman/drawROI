@@ -108,15 +108,11 @@ fluidPage(
                  
                  column(6,
                         column( 4, colourpicker::colourInput(inputId = 'roiColors', allowTransparent=T, transparentText = 'clear', label = NULL,value = '#ab5222', showColour = 'background')),
-                        
                         column( 8, selectInput('shiftsList', label = NULL, choices = 'Possible shifts in FOV', width = '100%'))
-                        # column( 2, actionButton( 'gotoShiftFOV', label = 'Go', width = '100%', class="btn-success"))
                  ),
                  
                  column(6, actionButton("clearCanvas", "Clear", icon = icon('refresh'), class="btn-primary", width = "113px"),
                         actionButton("undoCanvas", "Undo", icon = icon('undo'), class="btn-primary", width = "113px"),
-                        # actionButton("save", "Edit", icon = icon('edit'), class="btn-danger", width = "85px"),
-                        # actionButton("accept", "Add", icon = icon('save'), class="btn-danger", width = "85px"),
                         actionButton("acceptCanvas", "Save", icon = icon('save'), class="btn-danger", width = "113px"))
                ),
                
@@ -156,9 +152,7 @@ fluidPage(
                ),
                
                mainPanel( 
-                 # tags$textarea(id="errorMessage", rows=10, cols=40, "Explain the error please.")
                  textAreaInput('errorMessage', label = 'Explain the error please.', cols = 200, rows = 20) 
-                 # aceEditor("errorMessage", value="Explain the error please.", mode = 'text', theme = 'eclipse')
                )               
              )
     )
