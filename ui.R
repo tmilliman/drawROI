@@ -120,7 +120,7 @@ fluidPage(
                  
                  column(6, actionButton("clearCanvas", "Clear", icon = icon('refresh'), class="btn-primary", width = "113px"),
                         actionButton("undoCanvas", "Undo", icon = icon('undo'), class="btn-primary", width = "113px"),
-                        actionButton("acceptCanvas", "Save", icon = icon('save'), class="btn-danger", width = "113px"))
+                        actionButton("acceptCanvas", "Accept", icon = icon('thumbs-up'), class="btn-danger", width = "113px"))
                ),
                
                hr(),

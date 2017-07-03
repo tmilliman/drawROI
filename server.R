@@ -743,9 +743,16 @@ shinyServer(function(input, output, session) {
       
       tmp <- values$MASKs
       tmp[[length(tmp)+1]] <-  newMask
+      maskID <- max(
+        as.numeric(
+          sapply(
+            strsplit(
+              names(values$MASKs), split = '_'), function(x)(x[length(x)]))
+          )
+        ) + 1
       tmpName <- paste(input$siteName, input$vegType, 
                        sprintf('%04d',roiID()),
-                       sprintf('%02d',length(tmp)), sep = '_')
+                       sprintf('%02d',maskID), sep = '_')
       names(tmp)[length(tmp)] <- tmpName
       values$MASKs <- tmp
       updateSelectInput(session, inputId = 'maskName', choices = c(names(tmp), 'New mask'), selected = tmpName)
