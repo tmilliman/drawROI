@@ -84,15 +84,15 @@ fluidPage(
                fluidRow(
                  column(6, 
                         fluidRow(
-                          column(2, actionButton('siteInfo', label = NULL, icon = icon('info'), width = '100%', style="border-color: #fff; align:center; color:#FF0000"),
-                                 bsModal("modalSiteInfo", "Site Info", "siteInfo", size = "medium",footer = NULL, 
-                                         tableOutput("tblSiteInfo"))
-                          ),
                           column(2, actionButton("backplay", "", icon = icon('step-backward'), width = '100%', style="border-color: #fff; align:center")),
                           column(2, actionButton("back", "", icon = icon('backward'), width = '100%', style="border-color: #fff")),
                           column(2, actionButton("pause", "", icon = icon('pause'), width = '100%',  style="border-color: #fff")),
                           column(2, actionButton("forw", "", icon = icon('forward'), width = '100%',  style="border-color: #fff")),
-                          column(2, actionButton("play", "", icon = icon('step-forward'), width = '100%', style="border-color: #fff; align:center"))
+                          column(2, actionButton("play", "", icon = icon('step-forward'), width = '100%', style="border-color: #fff; align:center")),
+                          column(2, actionButton('siteInfo', label = NULL, icon = icon('info'), width = '100%', style="border-color: #fff; align:center; color:#FF0000"),
+                                 bsModal("modalSiteInfo", "Site Info", "siteInfo", size = "medium",footer = NULL, 
+                                         tableOutput("tblSiteInfo"))
+                          )
                         )
                  ),
                  column(6, 
