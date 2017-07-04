@@ -85,7 +85,7 @@ fluidPage(
                  column(6, 
                         fluidRow(
                           column(2, actionButton('siteInfo', label = NULL, icon = icon('info'), width = '100%', style="border-color: #fff; align:center; color:#FF0000"),
-                                 bsModal("modalSiteInfo", "Site Info", "siteInfo", size = "large",footer = NULL, 
+                                 bsModal("modalSiteInfo", "Site Info", "siteInfo", size = "medium",footer = NULL, 
                                          tableOutput("tblSiteInfo"))
                           ),
                           column(2, actionButton("backplay", "", icon = icon('step-backward'), width = '100%', style="border-color: #fff; align:center")),
