@@ -120,7 +120,7 @@ fluidPage(
                  
                  column(6, actionButton("clearCanvas", "Clear", icon = icon('refresh'), class="btn-primary", width = "113px"),
                         actionButton("undoCanvas", "Undo", icon = icon('undo'), class="btn-primary", width = "113px"),
-                        actionButton("acceptCanvas", "Accept", icon = icon('thumbs-up'), class="btn-danger", width = "113px"))
+                        actionButton("acceptCanvas", "Accept", icon = icon('thumbs-up'), class="btn-primary", width = "113px"))
                ),
                
                hr(),
@@ -129,9 +129,9 @@ fluidPage(
                  column(3, radioButtons('ccRange', label = 'Time series range:', choices = c('week', 'year', 'all'), width = "330px",inline = T)),
                  br(),
                  
-                 column(2, actionButton("startExtractCC", "Extract", class="btn-primary", icon = icon('line-chart'), onclick="Shiny.onInputChange('stopThis',false)", width = "100%")),
-                 column(2, actionButton("stopExtractCC", "Stop", class="btn-danger", icon = icon('stop'), onclick="Shiny.onInputChange('stopThis',true)", width = "100%")),
                  column(3, checkboxGroupInput('ccBand', label = NULL, choices = c('R','G','B'), selected = c('R','G','B'), width = '100%', inline = T)),
+                 column(2, actionButton("startExtractCC", "Extract", class="btn-primary", icon = icon('line-chart'), onclick="Shiny.onInputChange('stopThis',false)", width = "100%")),
+                 # column(2, actionButton("stopExtractCC", "Stop", class="btn-danger", icon = icon('stop'), onclick="Shiny.onInputChange('stopThis',true)", width = "100%")),
                  column(2, downloadButton("downloadTSData", "Download"))
                ),
                

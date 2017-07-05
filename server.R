@@ -707,8 +707,21 @@ shinyServer(function(input, output, session) {
         return(p)
       }
       
+      showModal(modalDialog(title = 'Extracting CC',width='300px',
+                            "Time series data are being extracted ...",
+                            easyClose = F,
+                            size = 's',
+                            footer = actionButton(inputId = "stopExtractCC2",
+                                                  label =  "Stop", 
+                                                  class="btn-danger", 
+                                                  icon = icon('stop'),
+                                                  onclick="Shiny.onInputChange('stopThis',true)")
+      ))
+      
       cvals <- ccVals()
       tvals <- ccTime()
+      
+      removeModal()
       
       shinyjs::enable("downloadTSData")
       dummy=0
@@ -725,6 +738,8 @@ shinyServer(function(input, output, session) {
                    type = 'scatter', mode = 'lines+markers') %>%
         layout(xaxis = xAxis, yaxis = yAxis)
       hide_legend(p)
+      
+      
       
     })
   
