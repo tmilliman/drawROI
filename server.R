@@ -106,12 +106,15 @@ shinyServer(function(input, output, session) {
                       min= min(dayYearIDTable()$ID),
                       max= max(dayYearIDTable()$ID)  )
     
-    dmin <- imgDT()[Site==input$siteName, min(Date)]
-    dmax <- imgDT()[Site==input$siteName, max(Date)]
-    updateDateRangeInput(session ,
-                         inputId = 'roiDateRange',
-                         start = dmin,
-                         end = dmax)  
+    # dmin <- imgDT()[Site==input$siteName, min(Date)]
+    # dmax <- imgDT()[Site==input$siteName, max(Date)]
+
+    # updateDateRangeInput(session ,
+    #                      inputId = 'roiDateRange',
+    #                      start = dmin,
+    #                      end = dmax)  
+    # updateDateInput(session, 'maskStartDate', value = dmin)
+    # updateDateInput(session, 'maskEndDate', value = dmax)
     
     x <- imgDT()[Site==input$siteName, unique(Year)]
     if (is.null(x)) x <- character(0)
@@ -135,6 +138,15 @@ shinyServer(function(input, output, session) {
     if (w==length(rv$sitesList)) wNext= 1
     nextSite <- rv$sitesList[wNext]
     updateSelectInput(session, 'siteName', selected = nextSite)
+  })
+  
+  observeEvent(input$lastSite, {
+    dummy <- 0
+    w <- which(rv$sitesList==input$siteName)
+    wLast <- w - 1
+    if (w==1) wLast= length(rv$sitesList)
+    lastSite <- rv$sitesList[wLast]
+    updateSelectInput(session, 'siteName', selected = lastSite)
   })
   # ----------------------------------------------------------------------
   # Site info
@@ -394,7 +406,9 @@ shinyServer(function(input, output, session) {
     HHMMSS <- gsub(tmp[5], pattern = '.jpg',replacement = '')
     startTime <- paste(substring(HHMMSS, c(1,3,5), c(2,4,6)), collapse = ':')
     
-    updateDateRangeInput(session, inputId = 'roiDateRange', start = startDate)
+    # updateDateRangeInput(session, inputId = 'roiDateRange', start = startDate)
+    updateDateInput(session, 'maskStartDate', value = startDate)
+    
     updateTextInput(session, inputId = 'maskStartTime', value = startTime)
   })
   
@@ -404,7 +418,9 @@ shinyServer(function(input, output, session) {
     HHMMSS <- gsub(tmp[5], pattern = '.jpg',replacement = '')
     endTime <- paste(substring(HHMMSS, c(1,3,5), c(2,4,6)), collapse = ':')
     
-    updateDateRangeInput(session, inputId = 'roiDateRange', end = endDate)
+    # updateDateRangeInput(session, inputId = 'roiDateRange', end = endDate)
+    updateDateInput(session, 'maskEndDate', value = endDate)
+    
     updateTextInput(session, inputId = 'maskEndTime', value = endTime)
   })
   
@@ -462,8 +478,11 @@ shinyServer(function(input, output, session) {
     tmpmask <- rv$MASKs[[input$maskName]]
     
     rv$centers <- tmpmask$maskpoints
-    updateDateRangeInput(session, inputId = 'roiDateRange', start=tmpmask$startdate)
-    updateDateRangeInput(session, inputId = 'roiDateRange', end=tmpmask$enddate)
+    # updateDateRangeInput(session, inputId = 'roiDateRange', start=tmpmask$startdate)
+    # updateDateRangeInput(session, inputId = 'roiDateRange', end=tmpmask$enddate)
+    updateDateInput(session, 'maskStartDate', value = tmpmask$startdate)
+    updateDateInput(session, 'maskEndDate', value = tmpmask$enddate)
+    
     updateTextInput(session, inputId = 'maskStartTime', value = tmpmask$starttime)
     updateTextInput(session, inputId = 'maskEndTime', value = tmpmask$endtime)
     
@@ -761,8 +780,10 @@ shinyServer(function(input, output, session) {
       ))
       
       newMask <- list(maskpoints = rv$centers, 
-                      startdate = input$roiDateRange[1], 
-                      enddate = input$roiDateRange[2], 
+                      # startdate = input$roiDateRange[1], 
+                      # enddate = input$roiDateRange[2], 
+                      startdate = input$maskStartDate, 
+                      enddate = input$maskEndDate, 
                       starttime = input$maskStartTime, 
                       endtime = input$maskEndTime, 
                       sampleyear = yearID(), 
@@ -806,8 +827,10 @@ shinyServer(function(input, output, session) {
       
       newMASK <- createRasteredROI(rv$centers, sampleImageSize())
       tmpMask <- list(maskpoints = rv$centers, 
-                      startdate = input$roiDateRange[1], 
-                      enddate = input$roiDateRange[2], 
+                      # startdate = input$roiDateRange[1], 
+                      # enddate = input$roiDateRange[2], 
+                      startdate = input$maskStartDate, 
+                      enddate = input$maskEndDate, 
                       starttime = input$maskStartTime, 
                       endtime = input$maskEndTime, 
                       sampleyear = yearID(), 

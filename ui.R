@@ -44,11 +44,23 @@ fluidPage(
                             column(6, actionButton( 'matchEnd', 'Match end', width = '100%', style='background-color:#666; color:#fff'))
                           ),
                           br(),
-                          dateRangeInput(inputId = 'roiDateRange', label = 'Start and End:', start = '2001-01-01', end = '2016-01-01', separator = '-', startview='day'),
+                          
                           fluidRow(
-                            column(width = 6, textInput('maskStartTime', label = NULL, width = '80px', value = '00:08:00')),
-                            column(width = 6, textInput('maskEndTime', label = NULL, width = '80px', value = '00:20:00'))
+                            column(2, strong('Start:')),
+                            column(6, dateInput('maskStartDate', label = NULL, value =  '2001-01-01', startview = 'day')),
+                            column(4, textInput('maskStartTime', label = NULL, width = '80px', value = '00:08:00'))
                           ),
+                          fluidRow(
+                            column(2, strong('End:')),
+                            column(6, dateInput('maskEndDate', label = NULL, value =  '2099-01-01', startview = 'day')),
+                            column(4, textInput('maskEndTime', label = NULL, width = '80px', value = '00:20:00'))
+                          ),
+
+                          # dateRangeInput(inputId = 'roiDateRange', label = 'Start and End:', start = '2001-01-01', end = '2016-01-01', separator = '-', startview='day'),
+                          # fluidRow(
+                          #   column(width = 6, textInput('maskStartTime', label = NULL, width = '80px', value = '00:08:00')),
+                          #   column(width = 6, textInput('maskEndTime', label = NULL, width = '80px', value = '00:20:00'))
+                          # ),
                           
                           br(),
                           fluidRow(
@@ -69,8 +81,9 @@ fluidPage(
              
              mainPanel(
                fluidRow( 
+                 column(2, actionButton('lastSite', label = 'Last Site', width = '80px',class="btn-primary")),
                  column(2, actionButton('nextSite', label = 'Next Site', width = '80px',class="btn-primary")),
-                 column(10, sliderInput(inputId = "contID",
+                 column(8, sliderInput(inputId = "contID",
                                         label =  NULL,
                                         min = 1, max = 1,
                                         ticks = F,
