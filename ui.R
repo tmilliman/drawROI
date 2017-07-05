@@ -28,7 +28,7 @@ fluidPage(
              headerPanel("PhenoCam ROI Tool"),
              sidebarPanel(width = 4,
                           selectInput("siteName", "Site", choices = if(getwd()==bijanWD)'acadia'else'ahwahnee'),
-                          selectInput("roiName", "ROIs", 'New ROI'),
+                          selectInput("roiName", "ROI", 'New ROI'),
                           selectInput("vegType", "Vegetation Type", choices = list('Agriculture (AG)'='AG')),
                           textInput('siteDescription','Description', placeholder = 'Enter a description for the ROI'),
                           textInput('roiOwner','Owner', placeholder = 'Enter your name'),
@@ -44,10 +44,10 @@ fluidPage(
                             column(6, actionButton( 'matchEnd', 'Match end', width = '100%', style='background-color:#666; color:#fff'))
                           ),
                           br(),
-                          dateRangeInput(inputId = 'roiDateRange', label = 'ROI Start/End Dates:', start = '2001-01-01', end = '2016-01-01', separator = '-', startview='day'),
+                          dateRangeInput(inputId = 'roiDateRange', label = 'Start and End:', start = '2001-01-01', end = '2016-01-01', separator = '-', startview='day'),
                           fluidRow(
-                            column(width = 6, textInput('maskStartTime', label = 'Start Time:', width = '80px', value = '00:08:00')),
-                            column(width = 6, textInput('maskEndTime', label = 'End Time:', width = '80px', value = '00:20:00'))
+                            column(width = 6, textInput('maskStartTime', label = NULL, width = '80px', value = '00:08:00')),
+                            column(width = 6, textInput('maskEndTime', label = NULL, width = '80px', value = '00:20:00'))
                           ),
                           
                           br(),

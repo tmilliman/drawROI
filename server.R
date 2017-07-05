@@ -437,7 +437,7 @@ shinyServer(function(input, output, session) {
     }else{
       par(mar=c(0,0,0,0))
       plotJPEG(sampleImage())
-      roiColors <- if (input$roiColors=='transparent') '#ffffff00' else paste0(input$roiColors, '80')
+      roiColors <- if (input$roiColors=='transparent') '#ffffff00' else paste0(input$roiColors, '60')
       dummy <- 0
       if(is.null(rv$centers)) 
         absPoints <- matrix(numeric(), 0, 2)
