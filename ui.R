@@ -33,8 +33,12 @@ fluidPage(
                             ),
                             br(),
                             column(2, strong(actionButton('siteInfo', label = NULL, icon = icon('info'), width = '100%', style="border-color: #f5f5f5; align:center; background-color:#f5f5f5; color:#337ab7; font-size: 200%")),
-                                   bsModal("modalSiteInfo", "Site Info", "siteInfo", size = "medium",footer = NULL, 
-                                           tableOutput("tblSiteInfo")))
+                                   bsModal("modalSiteInfo", "Site Info", "siteInfo", 
+                                           size = "medium",
+                                           footer = NULL, 
+                                           tableOutput("tblSiteInfo")
+                                           )
+                                   )
                           ),
                           selectInput("roiName", "ROI", 'New ROI'),
                           selectInput("vegType", "Vegetation Type", choices = list('Agriculture (AG)'='AG')),

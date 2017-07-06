@@ -1076,5 +1076,16 @@ shinyServer(function(input, output, session) {
   shinyjs::disable("gotoShiftFOV")
   
   removeModal()
+  
+  showModal(strong(
+    modalDialog(HTML('This is the beta version of PhenoCam ROI app. <br> 
+                Please do not share with others.'),
+                easyClose = T, 
+                fade = T,
+                size = 'm',
+                style='background-color:#3b3a35; color:#fce319; ',
+                footer = NULL
+    )))
+  
 })
 
