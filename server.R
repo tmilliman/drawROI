@@ -771,6 +771,7 @@ shinyServer(function(input, output, session) {
                           size = 's',
                           footer = actionButton(inputId = "stopExtractCC2",
                                                 label =  "Stop", 
+                                                width = '100%',
                                                 class="btn-danger", 
                                                 icon = icon('stop'),
                                                 style='background-color:#3b3a35; color:#fce319; ',
