@@ -124,6 +124,8 @@ shinyServer(function(input, output, session) {
     updateSelectInput(session, inputId = 'errorSite', selected = input$siteName)
     rv$slideShow <- 0
     
+    updateCheckboxInput(session, 'openEnd', value = F)
+    
     updateSliderInput(session,
                       inputId = 'contID',
                       value = 1,
@@ -611,12 +613,13 @@ shinyServer(function(input, output, session) {
     roifilename <- paste0(roiLabel(),'_roi.csv')
     writeROIListFile(ROIList, path = roipath(),  roifilename)
     
-    showModal(modalDialog(title = 'Complete',width='300px',
+    showModal(strong(modalDialog(title = 'Complete',width='300px',
                           "New file for ROI List was saved in the database!",
+                          style='background-color:#3b3a35; color:#fce319; ',
                           easyClose = T,
                           size = 's',
                           footer = NULL
-    ))
+    )))
   })
   
   
@@ -720,12 +723,13 @@ shinyServer(function(input, output, session) {
              subject = 'New ROI was just submitted via drawROI!', 
              msg = bodyWithAttachment)
     
-    showModal(modalDialog(title = 'ROI was submitted!',width='250px',
+    showModal(strong(modalDialog(title = 'ROI was submitted!',width='250px',
                           "The new ROI will be reviewed shortly.",
+                          style='background-color:#3b3a35; color:#fce319; ',
                           easyClose = T,
                           size = 's',
                           footer = NULL
-    ))
+    )))
     
     
   })
@@ -755,7 +759,21 @@ shinyServer(function(input, output, session) {
       return(data.frame(rcc=NA, gcc=NA, bcc=NA))
     }
     dummy <- 0
-    extractCCCTimeSeries(isolate(curMask()), paths()$path)
+    showModal(strong(modalDialog(title = 'Extracting CC',width='300px',
+                          "Time series data are being extracted ...",
+                          style='background-color:#3b3a35; color:#fce319; ',
+                          easyClose = F,
+                          size = 's',
+                          footer = actionButton(inputId = "stopExtractCC2",
+                                                label =  "Stop", 
+                                                class="btn-danger", 
+                                                icon = icon('stop'),
+                                                onclick="Shiny.onInputChange('stopThis',true)")
+    )))
+    
+    cc <- extractCCCTimeSeries(isolate(curMask()), paths()$path)
+    removeModal()
+    cc
   })
   
   ccTime <- eventReactive(input$startExtractCC,{
@@ -815,21 +833,14 @@ shinyServer(function(input, output, session) {
         return(p)
       }
       
-      showModal(modalDialog(title = 'Extracting CC',width='300px',
-                            "Time series data are being extracted ...",
-                            easyClose = F,
-                            size = 's',
-                            footer = actionButton(inputId = "stopExtractCC2",
-                                                  label =  "Stop", 
-                                                  class="btn-danger", 
-                                                  icon = icon('stop'),
-                                                  onclick="Shiny.onInputChange('stopThis',true)")
-      ))
       
       cvals <- ccVals()
       tvals <- ccTime()
       
-      removeModal()
+      wZeros <- (rowSums(cvals)==0)
+      cvals[wZeros,] <- c(NA, NA, NA)
+      # cvals <- cvals[!wZeros,]
+      # tvals <- tvals[!wZeros]
       
       shinyjs::enable("downloadTSData")
       dummy=0
@@ -872,12 +883,13 @@ shinyServer(function(input, output, session) {
     
     if(input$maskName=='New mask'){
       
-      showModal(modalDialog(title = 'Processing',width='300px',
+      showModal(strong(modalDialog(title = 'Processing',width='300px',
                             "Raster is being produced ...",
+                            style='background-color:#3b3a35; color:#fce319; ',
                             easyClose = F,
                             size = 's',
                             footer = NULL
-      ))
+      )))
       
       newMask <- list(maskpoints = rv$centers, 
                       # startdate = input$roiDateRange[1], 
@@ -915,12 +927,13 @@ shinyServer(function(input, output, session) {
     }else{
       if(is.null(curMask()))return()
       
-      showModal(modalDialog(title = 'Processing',width='300px',
+      showModal(strong(modalDialog(title = 'Processing',width='300px',
                             "Raster is being updated ...",
+                            style='background-color:#3b3a35; color:#fce319; ',
                             easyClose = F,
                             size = 's',
                             footer = NULL
-      ))
+      )))
       
       newMASK <- createRasteredROI(rv$centers, sampleImageSize())
       tmpMask <- list(maskpoints = rv$centers, 
@@ -1033,12 +1046,13 @@ shinyServer(function(input, output, session) {
              subject = 'a drawROI user just submitted an error report', 
              msg = msg)
     
-    showModal(modalDialog(title = 'Message was submitted!',width='250px',
+    showModal(strong(modalDialog(title = 'Message was submitted!',width='250px',
                           "Thank you for helping us to improve the app.",
+                          style='background-color:#3b3a35; color:#fce319; ',
                           easyClose = T,
                           size = 'm',
                           footer = NULL
-    ))
+    )))
     
     
   })

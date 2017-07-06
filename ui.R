@@ -55,16 +55,16 @@ fluidPage(
                           br(),
                           
                           fluidRow(
-                            column(1, strong('')),
+                            column(1, strong('from', style='font-size:70%')),
                             column(5, dateInput('maskStartDate', label = NULL, value =  '2001-01-01', startview = 'day')),
                             column(4, textInput('maskStartTime', label = NULL, value = '00:08:00')),
                             column(1, '')
                           ),
                           fluidRow(
-                            column(1, strong('to')),
+                            column(1, strong('to', style='font-size:70%')),
                             column(5, dateInput('maskEndDate', label = NULL, value =  '2099-01-01', startview = 'day')),
                             column(4, textInput('maskEndTime', label = NULL, value = '00:20:00')),
-                            column(1, checkboxInput('openEnd', label = NULL, value = T))
+                            column(1, checkboxInput('openEnd', label = '', value = F))
                           ),
                           
                           
@@ -89,8 +89,6 @@ fluidPage(
                fluidRow( 
                  column(3, 
                         fluidRow( 
-                          # column(6, strong(textOutput('yearOut'))),
-                          # column(6, strong(textOutput('doyOut')))
                           column(8, strong(dateInput('gotoDate', label = ''), style='font-size:40%')),
                           column(4, actionButton('gotoDateButton', label = NULL, icon = icon('refresh'), width = '100%', style="border-color: #fff; align:center; font-size: 200%"))
                         )
@@ -108,19 +106,12 @@ fluidPage(
                
                fluidRow(
                  column(1, strong()),
-                 # column(5,                
-                 # fluidRow(
                  column(1, actionButton("backplay", "", icon = icon('step-backward'), width = '100%', style="border-color: #fff; align:center")),
                  column(1, actionButton("back", "", icon = icon('backward'), width = '100%', style="border-color: #fff")),
                  column(1, actionButton("pause", "", icon = icon('pause'), width = '100%',  style="border-color: #fff")),
                  column(1, actionButton("forw", "", icon = icon('forward'), width = '100%',  style="border-color: #fff")),
                  column(1, actionButton("play", "", icon = icon('step-forward'), width = '100%', style="border-color: #fff; align:center")),
                  column(5, selectInput('shiftsList', label = NULL, choices = 'List of shifts in FOV', width = '100%')),
-                 # column(2, actionButton('siteInfo', label = NULL, icon = icon('info'), width = '100%', style="border-color: #fff; align:center; color:#FF0000; font-size: 175%"),
-                 #        bsModal("modalSiteInfo", "Site Info", "siteInfo", size = "medium",footer = NULL, 
-                 #                tableOutput("tblSiteInfo"))
-                 # )
-                 # )),
                  column(1, strong())
                  
                ),
@@ -148,38 +139,16 @@ fluidPage(
                  column(1, strong())
                ),
                
-               # fluidRow(
-               #   column(1, strong()),
-               #   column(10, 
-               #          fluidRow(
-               #            column(4, actionButton("clearCanvas", "Clear", icon = icon('refresh'), class="btn-primary", width = "100%")),
-               #            column(4, actionButton("undoCanvas", "Undo", icon = icon('undo'), class="btn-primary", width = "100%")),
-               #            column(4, actionButton("acceptCanvas", "Accept", icon = icon('thumbs-up'), class="btn-primary", width = "100%"))
-               #          )),
-               #   column(1, strong())
-               # ),
-               # br(),
-               # 
-               # fluidRow(
-               #   column(1, strong()),
-               #   column(10, plotOutput("maskPlot", width = "600px", height = '400px')),
-               #   column(1, strong())
-               # ),
-               # 
-               
                hr(),
                
                fluidRow(
-                 column(3, radioButtons('ccRange', label = 'Time series range:', choices = c('week', 'year', 'all'), width = "330px",inline = T)),
-                 br(),
-                 
+                 column(3, radioButtons('ccRange', label = NULL, choices = c('week', 'year', 'all'), width = "330px",inline = T)),
+                 column(3, actionButton("startExtractCC", "Extract time series", class="btn-primary", icon = icon('line-chart'), onclick="Shiny.onInputChange('stopThis',false)", width = "100%")),
                  column(3, checkboxGroupInput('ccBand', label = NULL, choices = c('R','G','B'), selected = c('R','G','B'), width = '100%', inline = T)),
-                 column(2, actionButton("startExtractCC", "Extract", class="btn-primary", icon = icon('line-chart'), onclick="Shiny.onInputChange('stopThis',false)", width = "100%")),
-                 # column(2, actionButton("stopExtractCC", "Stop", class="btn-danger", icon = icon('stop'), onclick="Shiny.onInputChange('stopThis',true)", width = "100%")),
-                 column(2, downloadButton("downloadTSData", "Download"))
+                 column(3, downloadButton("downloadTSData", "Download"))
                ),
                
-               plotlyOutput(outputId = "timeSeriesPlotly", height = "300px", width = "100%")
+               plotlyOutput(outputId = "timeSeriesPlotly", height = "500px", width = "100%")
              )
     ),
     
