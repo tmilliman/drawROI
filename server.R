@@ -177,7 +177,7 @@ shinyServer(function(input, output, session) {
                                       dummy <- 1
                                       inf <- siteInfo()
                                       wNULL <- which(sapply(inf, is.null))
-                                      for(wi in w)inf[wi] <- 'N.A.'
+                                      for(wi in wNULL)inf[wi] <- 'N.A.'
                                       
                                       x <- data.frame(Site = inf$site, 
                                                         Site.Type = inf$site_type,
@@ -190,6 +190,7 @@ shinyServer(function(input, output, session) {
                                                         Descriotion = inf$site_description,
                                                         Primary.Vegetation = inf$primary_veg_type
                                       )
+                                      
                                       tx <- t(x)
                                       
                                       tx
@@ -200,6 +201,7 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   roipath <- reactive({
     tmp <- (paste0('/data/archive/', input$siteName,'/ROI/'))
+    tmp <- ('ROI/')
     
     if(getwd()==bijanWD) 
       tmp <- (paste0('phenocamdata/data/archive/', input$siteName,'/ROI/'))
