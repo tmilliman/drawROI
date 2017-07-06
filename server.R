@@ -815,7 +815,7 @@ shinyServer(function(input, output, session) {
       if(input$startExtractCC==0|is.null(isolate(curMask()))){
         
         
-        showModal(strong(modalDialog('First, create a mask!',
+        if(input$startExtractCC>0)showModal(strong(modalDialog('You first have to create a mask!',
                                      style='background-color:#3b3a35; color:#fce319; ',
                                      footer = NULL, easyClose = T, size = 's')))
         
