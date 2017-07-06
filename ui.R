@@ -27,7 +27,15 @@ fluidPage(
              
              headerPanel("PhenoCam ROI Tool"),
              sidebarPanel(width = 4,
-                          selectInput("siteName", "Site", choices = if(getwd()==bijanWD)'acadia'else'ahwahnee'),
+                          fluidRow(
+                            column(10, 
+                                   selectInput("siteName", "Site", choices = if(getwd()==bijanWD)'acadia'else'ahwahnee')
+                            ),
+                            br(),
+                            column(2, strong(actionButton('siteInfo', label = NULL, icon = icon('info'), width = '100%', style="border-color: #f5f5f5; align:center; background-color:#f5f5f5; color:#337ab7; font-size: 200%")),
+                                   bsModal("modalSiteInfo", "Site Info", "siteInfo", size = "medium",footer = NULL, 
+                                           tableOutput("tblSiteInfo")))
+                          ),
                           selectInput("roiName", "ROI", 'New ROI'),
                           selectInput("vegType", "Vegetation Type", choices = list('Agriculture (AG)'='AG')),
                           textInput('siteDescription','Description', placeholder = 'Enter a description for the ROI'),
@@ -88,8 +96,8 @@ fluidPage(
                         fluidRow( 
                           # column(6, strong(textOutput('yearOut'))),
                           # column(6, strong(textOutput('doyOut')))
-                          column(8, strong(dateInput('gotoDate', label = NULL))),
-                          column(4, actionButton('gotoDateButton', label = NULL, icon = icon('caret-square-o-right'), width = '100%', style="border-color: #fff; align:center"))
+                          column(8, strong(dateInput('gotoDate', label = ''), style='font-size:40%')),
+                          column(4, actionButton('gotoDateButton', label = NULL, icon = icon('refresh'), width = '100%', style="border-color: #fff; align:center; font-size: 200%"))
                         )
                  ),
                  column(9, sliderInput(inputId = "contID",
@@ -105,42 +113,42 @@ fluidPage(
                
                fluidRow(
                  column(1, strong()),
-                 column(10,                
-                        fluidRow(
-                          column(2, actionButton("backplay", "", icon = icon('step-backward'), width = '100%', style="border-color: #fff; align:center")),
-                          column(2, actionButton("back", "", icon = icon('backward'), width = '100%', style="border-color: #fff")),
-                          column(2, actionButton("pause", "", icon = icon('pause'), width = '100%',  style="border-color: #fff")),
-                          column(2, actionButton("forw", "", icon = icon('forward'), width = '100%',  style="border-color: #fff")),
-                          column(2, actionButton("play", "", icon = icon('step-forward'), width = '100%', style="border-color: #fff; align:center")),
-                          column(2, actionButton('siteInfo', label = NULL, icon = icon('info'), width = '100%', style="border-color: #fff; align:center; color:#FF0000"),
-                                 bsModal("modalSiteInfo", "Site Info", "siteInfo", size = "medium",footer = NULL, 
-                                         tableOutput("tblSiteInfo"))
-                          )
-                        )),
+                 # column(5,                
+                 # fluidRow(
+                 column(1, actionButton("backplay", "", icon = icon('step-backward'), width = '100%', style="border-color: #fff; align:center")),
+                 column(1, actionButton("back", "", icon = icon('backward'), width = '100%', style="border-color: #fff")),
+                 column(1, actionButton("pause", "", icon = icon('pause'), width = '100%',  style="border-color: #fff")),
+                 column(1, actionButton("forw", "", icon = icon('forward'), width = '100%',  style="border-color: #fff")),
+                 column(1, actionButton("play", "", icon = icon('step-forward'), width = '100%', style="border-color: #fff; align:center")),
+                 # column(2, actionButton('siteInfo', label = NULL, icon = icon('info'), width = '100%', style="border-color: #fff; align:center; color:#FF0000; font-size: 175%"),
+                 #        bsModal("modalSiteInfo", "Site Info", "siteInfo", size = "medium",footer = NULL, 
+                 #                tableOutput("tblSiteInfo"))
+                 # )
+                 # )),
                  column(1, strong())
                  
                ),
                fluidRow(
-                 column(1, actionButton('lastSite', label = NULL, icon = icon('arrow-circle-left'), width = '100%',  style="border-color: #fff")),
+                 column(1, actionButton('lastSite', label = NULL, icon = icon('arrow-circle-left'), width = '100%',  style="border-color: #fff; font-size: 175%")),
                  column(5, plotOutput("imagePlot", click = "newPoint", width = "300px", height = '222px')),
                  column(5, plotOutput("maskPlot", width = "300px", height = '222px')),
-                 column(1, actionButton('nextSite', label = NULL, icon = icon('arrow-circle-right'), width = '100%',  style="border-color: #fff"))
+                 column(1, actionButton('nextSite', label = NULL, icon = icon('arrow-circle-right'), width = '100%',  style="border-color: #fff; font-size: 175%"))
                ),
                br(),
                fluidRow(
                  column(1, strong()),
+                 column(5, 
+                        fluidRow(
+                          column(4, actionButton("clearCanvas", "Erase", icon = icon('eraser'), class="btn-primary", width = "100%")),
+                          column(4, actionButton("undoCanvas", "Undo", icon = icon('undo'), class="btn-primary", width = "100%")),
+                          column(4, actionButton("acceptCanvas", "Accept", icon = icon('thumbs-up'), class="btn-primary", width = "100%"))
+                        )),
                  column(5,
                         fluidRow(
                           column( 4, colourpicker::colourInput(inputId = 'roiColors', allowTransparent=T, transparentText = 'clear', label = NULL,value = '#ab5222', showColour = 'background')),
                           column( 8, selectInput('shiftsList', label = NULL, choices = 'FOV shifts', width = '100%'))
                         )
                  ),
-                 column(5, 
-                        fluidRow(
-                          column(4, actionButton("clearCanvas", "Clear", icon = icon('refresh'), class="btn-primary", width = "100%")),
-                          column(4, actionButton("undoCanvas", "Undo", icon = icon('undo'), class="btn-primary", width = "100%")),
-                          column(4, actionButton("acceptCanvas", "Accept", icon = icon('thumbs-up'), class="btn-primary", width = "100%"))
-                        )),
                  column(1, strong())
                ),
                

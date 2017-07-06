@@ -202,7 +202,7 @@ shinyServer(function(input, output, session) {
   roipath <- reactive({
     tmp <- (paste0('/data/archive/', input$siteName,'/ROI/'))
     tmp <- ('/home/shiny/drawROI/ROI/')
-    # tmp <- tempdir()
+    tmp <- tempdir()
     
     if(getwd()==bijanWD) 
       tmp <- (paste0('phenocamdata/data/archive/', input$siteName,'/ROI/'))
@@ -378,9 +378,12 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   observe({
     if(rv$slideShow==0) return()
+    nextID <- as.numeric(input$contID) + rv$slideShow
+    if(nextID > max(dayYearIDTable()$ID)) nextID <- 1
+    if(nextID == 0) nextID <- max(dayYearIDTable()$ID)
     updateSliderInput(session,
                       inputId = 'contID',
-                      value = as.numeric(input$contID) + rv$slideShow)
+                      value = nextID)
   })
   
   observeEvent(input$pause, {
@@ -397,12 +400,20 @@ shinyServer(function(input, output, session) {
   
   observeEvent(input$back, {
     rv$slideShow <- 0 
-    updateSliderInput(session, "contID", value = input$contID-1)
+    nextID <- as.numeric(input$contID) - 1
+    if(nextID > max(dayYearIDTable()$ID)) nextID <- 1
+    if(nextID == 0) nextID <- max(dayYearIDTable()$ID)
+    
+    updateSliderInput(session, "contID", value = nextID)
   })
   
   observeEvent(input$forw, {
     rv$slideShow <- 0 
-    updateSliderInput(session, "contID", value = input$contID+1)
+    nextID <- as.numeric(input$contID) + 1
+    if(nextID > max(dayYearIDTable()$ID)) nextID <- 1
+    if(nextID == 0) nextID <- max(dayYearIDTable()$ID)
+    
+    updateSliderInput(session, "contID", value = nextID)
   })
   
   
