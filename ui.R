@@ -120,6 +120,7 @@ fluidPage(
                  column(1, actionButton("pause", "", icon = icon('pause'), width = '100%',  style="border-color: #fff")),
                  column(1, actionButton("forw", "", icon = icon('forward'), width = '100%',  style="border-color: #fff")),
                  column(1, actionButton("play", "", icon = icon('step-forward'), width = '100%', style="border-color: #fff; align:center")),
+                 column(5, selectInput('shiftsList', label = NULL, choices = 'List of shifts in FOV', width = '100%')),
                  # column(2, actionButton('siteInfo', label = NULL, icon = icon('info'), width = '100%', style="border-color: #fff; align:center; color:#FF0000; font-size: 175%"),
                  #        bsModal("modalSiteInfo", "Site Info", "siteInfo", size = "medium",footer = NULL, 
                  #                tableOutput("tblSiteInfo"))
@@ -145,8 +146,8 @@ fluidPage(
                         )),
                  column(5,
                         fluidRow(
-                          column( 4, colourpicker::colourInput(inputId = 'roiColors', allowTransparent=T, transparentText = 'clear', label = NULL,value = '#ab5222', showColour = 'background')),
-                          column( 8, selectInput('shiftsList', label = NULL, choices = 'FOV shifts', width = '100%'))
+                          column( 5, colourpicker::colourInput(inputId = 'roiColors', allowTransparent=T, transparentText = 'clear', label = NULL,value = '#ab5222', showColour = 'background')),
+                          column( 7, p())
                         )
                  ),
                  column(1, strong())
