@@ -472,6 +472,10 @@ shinyServer(function(input, output, session) {
     updateSliderInput(session, inputId = 'contID', value = id)
   })
   
+  observeEvent(input$contID,{
+    tmpDate <- dayYearIDTable()[ID==input$contID, Date]
+    updateDateInput(session, 'gotoDate', value = tmpDate)
+  })
   # ----------------------------------------------------------------------
   # Plot image
   # ----------------------------------------------------------------------

@@ -88,7 +88,7 @@ fluidPage(
                         fluidRow( 
                           # column(6, strong(textOutput('yearOut'))),
                           # column(6, strong(textOutput('doyOut')))
-                          column(8, dateInput('gotoDate', label = NULL)),
+                          column(8, strong(dateInput('gotoDate', label = NULL))),
                           column(4, actionButton('gotoDateButton', label = NULL, icon = icon('caret-square-o-right'), width = '100%', style="border-color: #fff; align:center"))
                         )
                  ),
