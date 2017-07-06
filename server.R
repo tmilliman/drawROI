@@ -367,6 +367,7 @@ shinyServer(function(input, output, session) {
                  asText <- input$maskStartTime
                  asTextNew <- fixFormatTime(asText)
                  if(asTextNew!=asText) updateTextInput(session, 'maskStartTime', value = asTextNew)
+                 if(input$maskName!='New mask') rv$MASKs[[input$maskName]]$starttime <- asTextNew
                })
   
   observeEvent(input$maskEndTime, 
@@ -374,8 +375,15 @@ shinyServer(function(input, output, session) {
                  asText <- input$maskEndTime
                  asTextNew <- fixFormatTime(asText)
                  if(asTextNew!=asText) updateTextInput(session, 'maskEndTime', value = asTextNew)
+                 if(input$maskName!='New mask') rv$MASKs[[input$maskName]]$endtime <- asTextNew
                })
   
+  observeEvent(input$maskStartDate,{
+    if(input$maskName!='New mask') rv$MASKs[[input$maskName]]$startdate <- input$maskStartDate
+  })
+  observeEvent(input$maskEndDate,{
+    if(input$maskName!='New mask') rv$MASKs[[input$maskName]]$enddate <- input$maskEndDate
+  })
   
   dayYearIDTable <- reactive({
     dummy <- 0
@@ -531,8 +539,10 @@ shinyServer(function(input, output, session) {
     if(input$maskName=='New mask') {
       # rv$MASKs <- list()
       # rv$centers <- matrix(numeric(), 0, 2)
+      updateCheckboxInput(session, 'openEnd', value = T)
       return()
     }
+    updateCheckboxInput(session, 'openEnd', value = F)
     tmpmask <- rv$MASKs[[input$maskName]]
     
     rv$centers <- tmpmask$maskpoints

@@ -55,21 +55,16 @@ fluidPage(
                           br(),
                           
                           fluidRow(
-                            column(9,
-                                   fluidRow(
-                                     column(2, strong('From')),
-                                     column(6, dateInput('maskStartDate', label = NULL, value =  '2001-01-01', startview = 'day')),
-                                     column(4, textInput('maskStartTime', label = NULL, width = '80px', value = '00:08:00'))
-                                   )),
-                            column(3, '')),
+                            column(1, strong('')),
+                            column(5, dateInput('maskStartDate', label = NULL, value =  '2001-01-01', startview = 'day')),
+                            column(4, textInput('maskStartTime', label = NULL, value = '00:08:00')),
+                            column(1, '')
+                          ),
                           fluidRow(
-                            column(9,
-                                   fluidRow(
-                                     column(2, strong('to')),
-                                     column(6, dateInput('maskEndDate', label = NULL, value =  '2099-01-01', startview = 'day')),
-                                     column(4, textInput('maskEndTime', label = NULL, width = '80px', value = '00:20:00'))
-                                   )),
-                            column(3, checkboxInput('openEnd', 'open', value = T))
+                            column(1, strong('to')),
+                            column(5, dateInput('maskEndDate', label = NULL, value =  '2099-01-01', startview = 'day')),
+                            column(4, textInput('maskEndTime', label = NULL, value = '00:20:00')),
+                            column(1, checkboxInput('openEnd', label = NULL, value = T))
                           ),
                           
                           
