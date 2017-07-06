@@ -726,13 +726,17 @@ shinyServer(function(input, output, session) {
   )
   
   ccVals <- eventReactive(input$startExtractCC,{
-    if(is.null(curMask())|length(paths()$path)==0) return(data.frame(rcc=NA, gcc=NA, bcc=NA))
+    if(is.null(curMask())|length(paths()$path)==0) {
+      return(data.frame(rcc=NA, gcc=NA, bcc=NA))
+    }
     dummy <- 0
     extractCCCTimeSeries(isolate(curMask()), paths()$path)
   })
   
   ccTime <- eventReactive(input$startExtractCC,{
-    if(is.null(curMask())) return(NA)
+    if(is.null(curMask())) {
+      return(NA)
+    }
     paths()[,conT]
   })
   
@@ -759,6 +763,7 @@ shinyServer(function(input, output, session) {
       
       
       if(input$startExtractCC==0|is.null(isolate(curMask()))){
+        
         tvals <- 1:7
         dummy=0
         
@@ -826,10 +831,21 @@ shinyServer(function(input, output, session) {
   # Accept canvas
   # ----------------------------------------------------------------------
   observeEvent(input$acceptCanvas,{
+    rv$slideShow <- 0 
+    if(is.null(rv$centers)) {
+      showModal(strong(modalDialog('First draw a polgon by clicking on the image!', 
+                                   style='background-color:#3b3a35; color:#fce319; ',
+                                   footer = NULL, easyClose = T, size = 'm')))
+      return()
+    }
+    if (nrow(rv$centers)<3) {
+      showModal(strong(modalDialog('At least 3 points are needed to create a polygon!',
+                                   style='background-color:#3b3a35; color:#fce319; ',
+                                   footer = NULL, easyClose = T, size = 'm')))
+      return()
+    }
+    
     if(input$maskName=='New mask'){
-      rv$slideShow <- 0 
-      if(is.null(rv$centers)) return()
-      if (nrow(rv$centers)<3) return()
       
       showModal(modalDialog(title = 'Processing',width='300px',
                             "Raster is being produced ...",
@@ -872,10 +888,7 @@ shinyServer(function(input, output, session) {
       
       removeModal()
     }else{
-      rv$slideShow <- 0 
       if(is.null(curMask()))return()
-      if(is.null(rv$centers)) return()
-      if (nrow(rv$centers)<3) return()
       
       showModal(modalDialog(title = 'Processing',width='300px',
                             "Raster is being updated ...",
