@@ -213,8 +213,8 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   roipath <- reactive({
     tmp <- (paste0('/data/archive/', input$siteName,'/ROI/'))
-    tmp <- ('/home/shiny/drawROI/ROI/')
-    tmp <- tempdir()
+    # tmp <- ('/home/shiny/drawROI/ROI/')
+    # tmp <- tempdir()
     
     if(getwd()==bijanWD) 
       tmp <- (paste0('phenocamdata/data/archive/', input$siteName,'/ROI/'))
