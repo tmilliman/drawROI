@@ -621,8 +621,7 @@ shinyServer(function(input, output, session) {
     roifilename <- paste0(roiLabel(),'_roi.csv')
     writeROIListFile(ROIList, path = roipath(),  roifilename)
     
-    showModal(strong(modalDialog(title = 'Complete',width='300px',
-                          "New file for ROI List was saved in the database!",
+    showModal(strong(modalDialog("ROI was saved in the database!",
                           style='background-color:#3b3a35; color:#fce319; ',
                           easyClose = T,
                           size = 's',
@@ -731,8 +730,7 @@ shinyServer(function(input, output, session) {
              subject = 'New ROI was just submitted via drawROI!', 
              msg = bodyWithAttachment)
     
-    showModal(strong(modalDialog(title = 'ROI was submitted!',width='250px',
-                          "The new ROI will be reviewed shortly.",
+    showModal(strong(modalDialog("The new ROI will be reviewed shortly.",
                           style='background-color:#3b3a35; color:#fce319; ',
                           easyClose = T,
                           size = 's',
@@ -767,8 +765,7 @@ shinyServer(function(input, output, session) {
       return(data.frame(rcc=NA, gcc=NA, bcc=NA))
     }
     dummy <- 0
-    showModal(strong(modalDialog(title = 'Extracting CC',width='300px',
-                          "Time series data are being extracted ...",
+    showModal(strong(modalDialog("Time series data are being extracted ...",
                           style='background-color:#3b3a35; color:#fce319; ',
                           easyClose = F,
                           size = 's',
@@ -776,6 +773,7 @@ shinyServer(function(input, output, session) {
                                                 label =  "Stop", 
                                                 class="btn-danger", 
                                                 icon = icon('stop'),
+                                                style='background-color:#3b3a35; color:#fce319; ',
                                                 onclick="Shiny.onInputChange('stopThis',true)")
     )))
     
@@ -891,8 +889,7 @@ shinyServer(function(input, output, session) {
     
     if(input$maskName=='New mask'){
       
-      showModal(strong(modalDialog(title = 'Processing',width='300px',
-                            "Raster is being produced ...",
+      showModal(strong(modalDialog("Raster is being produced ...",
                             style='background-color:#3b3a35; color:#fce319; ',
                             easyClose = F,
                             size = 's',
@@ -935,8 +932,7 @@ shinyServer(function(input, output, session) {
     }else{
       if(is.null(curMask()))return()
       
-      showModal(strong(modalDialog(title = 'Processing',width='300px',
-                            "Raster is being updated ...",
+      showModal(strong(modalDialog("Raster is being updated ...",
                             style='background-color:#3b3a35; color:#fce319; ',
                             easyClose = F,
                             size = 's',
@@ -1054,8 +1050,7 @@ shinyServer(function(input, output, session) {
              subject = 'a drawROI user just submitted an error report', 
              msg = msg)
     
-    showModal(strong(modalDialog(title = 'Message was submitted!',width='250px',
-                          "Thank you for helping us to improve the app.",
+    showModal(strong(modalDialog("Message was submitted. Thank you for helping us to improve the app.",
                           style='background-color:#3b3a35; color:#fce319; ',
                           easyClose = T,
                           size = 'm',
