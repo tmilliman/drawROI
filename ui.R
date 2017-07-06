@@ -89,7 +89,7 @@ fluidPage(
                           # column(6, strong(textOutput('yearOut'))),
                           # column(6, strong(textOutput('doyOut')))
                           column(8, dateInput('gotoDate', label = NULL)),
-                          column(4, actionButton('gotoDateButton', label = 'Go', width = '100%'))
+                          column(4, actionButton('gotoDateButton', label = NULL, icon = icon('caret-square-o-right'), width = '100%', style="border-color: #fff; align:center"))
                         )
                  ),
                  column(9, sliderInput(inputId = "contID",
@@ -122,7 +122,8 @@ fluidPage(
                ),
                fluidRow(
                  column(1, actionButton('lastSite', label = NULL, icon = icon('arrow-circle-left'), width = '100%',  style="border-color: #fff")),
-                 column(10, plotOutput("imagePlot", click = "newPoint", width = "600px", height = '400px')),
+                 column(5, plotOutput("imagePlot", click = "newPoint", width = "300px", height = '222px')),
+                 column(5, plotOutput("maskPlot", width = "300px", height = '222px')),
                  column(1, actionButton('nextSite', label = NULL, icon = icon('arrow-circle-right'), width = '100%',  style="border-color: #fff"))
                ),
                br(),
@@ -153,14 +154,14 @@ fluidPage(
                #          )),
                #   column(1, strong())
                # ),
-               br(),
-               
-               fluidRow(
-                 column(1, strong()),
-                 column(10, plotOutput("maskPlot", width = "600px", height = '400px')),
-                 column(1, strong())
-               ),
-               
+               # br(),
+               # 
+               # fluidRow(
+               #   column(1, strong()),
+               #   column(10, plotOutput("maskPlot", width = "600px", height = '400px')),
+               #   column(1, strong())
+               # ),
+               # 
                
                hr(),
                
