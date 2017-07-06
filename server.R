@@ -814,6 +814,11 @@ shinyServer(function(input, output, session) {
       
       if(input$startExtractCC==0|is.null(isolate(curMask()))){
         
+        
+        showModal(strong(modalDialog('First, create a mask!',
+                                     style='background-color:#3b3a35; color:#fce319; ',
+                                     footer = NULL, easyClose = T, size = 's')))
+        
         tvals <- 1:7
         dummy=0
         
@@ -882,7 +887,7 @@ shinyServer(function(input, output, session) {
       return()
     }
     if (nrow(rv$centers)<3) {
-      showModal(strong(modalDialog('At least 3 points are needed to create a polygon!',
+      showModal(strong(modalDialog('At least 3 points are required to create a polygon!',
                                    style='background-color:#3b3a35; color:#fce319; ',
                                    footer = NULL, easyClose = T, size = 'm')))
       return()
