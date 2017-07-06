@@ -34,7 +34,8 @@ fluidPage(
                           textInput('roiOwner','Owner', placeholder = 'Enter your name'),
                           hr(),
                           strong(textOutput('roiFileName')),
-                          selectInput("maskName", label = NULL, choices = 'New mask'),
+                          br(),
+                          selectInput("maskName", label = 'Mask', choices = 'New mask'),
                           # textOutput('maskfilename'),
                           strong('Sample Image:'),
                           textOutput('sampleImagePath'),
@@ -46,21 +47,23 @@ fluidPage(
                           br(),
                           
                           fluidRow(
-                            column(2, strong('Start:')),
-                            column(6, dateInput('maskStartDate', label = NULL, value =  '2001-01-01', startview = 'day')),
-                            column(4, textInput('maskStartTime', label = NULL, width = '80px', value = '00:08:00'))
-                          ),
+                            column(9,
+                                   fluidRow(
+                                     column(2, strong('From')),
+                                     column(6, dateInput('maskStartDate', label = NULL, value =  '2001-01-01', startview = 'day')),
+                                     column(4, textInput('maskStartTime', label = NULL, width = '80px', value = '00:08:00'))
+                                   )),
+                            column(3, '')),
                           fluidRow(
-                            column(2, strong('End:')),
-                            column(6, dateInput('maskEndDate', label = NULL, value =  '2099-01-01', startview = 'day')),
-                            column(4, textInput('maskEndTime', label = NULL, width = '80px', value = '00:20:00'))
+                            column(9,
+                                   fluidRow(
+                                     column(2, strong('to')),
+                                     column(6, dateInput('maskEndDate', label = NULL, value =  '2099-01-01', startview = 'day')),
+                                     column(4, textInput('maskEndTime', label = NULL, width = '80px', value = '00:20:00'))
+                                   )),
+                            column(3, checkboxInput('openEnd', 'open', value = T))
                           ),
                           
-                          # dateRangeInput(inputId = 'roiDateRange', label = 'Start and End:', start = '2001-01-01', end = '2016-01-01', separator = '-', startview='day'),
-                          # fluidRow(
-                          #   column(width = 6, textInput('maskStartTime', label = NULL, width = '80px', value = '00:08:00')),
-                          #   column(width = 6, textInput('maskEndTime', label = NULL, width = '80px', value = '00:20:00'))
-                          # ),
                           
                           br(),
                           fluidRow(
@@ -83,11 +86,12 @@ fluidPage(
                fluidRow( 
                  column(3, 
                         fluidRow( 
-                          column(6, strong(textOutput('yearOut'))),
-                          column(6, strong(textOutput('doyOut')))
-                        )),
-                 # column(2, actionButton('lastSite', label = 'Last Site', width = '80px',class="btn-primary")),
-                 # column(2, actionButton('nextSite', label = 'Next Site', width = '80px',class="btn-primary")),
+                          # column(6, strong(textOutput('yearOut'))),
+                          # column(6, strong(textOutput('doyOut')))
+                          column(8, dateInput('gotoDate', label = NULL)),
+                          column(4, actionButton('gotoDateButton', label = 'Go', width = '100%'))
+                        )
+                 ),
                  column(9, sliderInput(inputId = "contID",
                                        label =  NULL,
                                        min = 1, max = 1,
@@ -99,77 +103,62 @@ fluidPage(
                ),
                
                
-               # fluidRow(
-               #   column(6, 
-               #          fluidRow(
-               #            column(2, actionButton("backplay", "", icon = icon('step-backward'), width = '100%', style="border-color: #fff; align:center")),
-               #            column(2, actionButton("back", "", icon = icon('backward'), width = '100%', style="border-color: #fff")),
-               #            column(2, actionButton("pause", "", icon = icon('pause'), width = '100%',  style="border-color: #fff")),
-               #            column(2, actionButton("forw", "", icon = icon('forward'), width = '100%',  style="border-color: #fff")),
-               #            column(2, actionButton("play", "", icon = icon('step-forward'), width = '100%', style="border-color: #fff; align:center")),
-               #            column(2, actionButton('siteInfo', label = NULL, icon = icon('info'), width = '100%', style="border-color: #fff; align:center; color:#FF0000"),
-               #                   bsModal("modalSiteInfo", "Site Info", "siteInfo", size = "medium",footer = NULL, 
-               #                           tableOutput("tblSiteInfo"))
-               #            )
-               #          )
-               #   ),
-               #   column(6, 
-               #          fluidRow(
-               #            column(6, strong(textOutput('yearOut'))),
-               #            column(6, strong(textOutput('doyOut')))
-               #            
-               #            
-               #          )
-               #   )
-               # ),
                fluidRow(
-                 column(2, strong()),
-                 column(8,                fluidRow(
-                   column(2, actionButton("backplay", "", icon = icon('step-backward'), width = '100%', style="border-color: #fff; align:center")),
-                   column(2, actionButton("back", "", icon = icon('backward'), width = '100%', style="border-color: #fff")),
-                   column(2, actionButton("pause", "", icon = icon('pause'), width = '100%',  style="border-color: #fff")),
-                   column(2, actionButton("forw", "", icon = icon('forward'), width = '100%',  style="border-color: #fff")),
-                   column(2, actionButton("play", "", icon = icon('step-forward'), width = '100%', style="border-color: #fff; align:center")),
-                   column(2, actionButton('siteInfo', label = NULL, icon = icon('info'), width = '100%', style="border-color: #fff; align:center; color:#FF0000"),
-                          bsModal("modalSiteInfo", "Site Info", "siteInfo", size = "medium",footer = NULL, 
-                                  tableOutput("tblSiteInfo"))
-                   )
-                 )),
-                 column(2, strong())
+                 column(1, strong()),
+                 column(10,                
+                        fluidRow(
+                          column(2, actionButton("backplay", "", icon = icon('step-backward'), width = '100%', style="border-color: #fff; align:center")),
+                          column(2, actionButton("back", "", icon = icon('backward'), width = '100%', style="border-color: #fff")),
+                          column(2, actionButton("pause", "", icon = icon('pause'), width = '100%',  style="border-color: #fff")),
+                          column(2, actionButton("forw", "", icon = icon('forward'), width = '100%',  style="border-color: #fff")),
+                          column(2, actionButton("play", "", icon = icon('step-forward'), width = '100%', style="border-color: #fff; align:center")),
+                          column(2, actionButton('siteInfo', label = NULL, icon = icon('info'), width = '100%', style="border-color: #fff; align:center; color:#FF0000"),
+                                 bsModal("modalSiteInfo", "Site Info", "siteInfo", size = "medium",footer = NULL, 
+                                         tableOutput("tblSiteInfo"))
+                          )
+                        )),
+                 column(1, strong())
                  
                ),
                fluidRow(
-                 column(2, actionButton('lastSite', label = 'Last Site', width = '80px',class="btn-primary")),
-                 column(8, plotOutput("imagePlot", click = "newPoint", width = "500px", height = '370px')),
-                 column(2, actionButton('nextSite', label = 'Next Site', width = '80px',class="btn-primary"))
+                 column(1, actionButton('lastSite', label = NULL, icon = icon('arrow-circle-left'), width = '100%',  style="border-color: #fff")),
+                 column(10, plotOutput("imagePlot", click = "newPoint", width = "600px", height = '400px')),
+                 column(1, actionButton('nextSite', label = NULL, icon = icon('arrow-circle-right'), width = '100%',  style="border-color: #fff"))
                ),
                br(),
                fluidRow(
-                 column(2, strong()),
-                 column(8,
+                 column(1, strong()),
+                 column(5,
                         fluidRow(
-                          column( 3, colourpicker::colourInput(inputId = 'roiColors', allowTransparent=T, transparentText = 'clear', label = NULL,value = '#ab5222', showColour = 'background')),
-                          column( 9, selectInput('shiftsList', label = NULL, choices = 'Possible shifts in FOV', width = '100%'))
+                          column( 4, colourpicker::colourInput(inputId = 'roiColors', allowTransparent=T, transparentText = 'clear', label = NULL,value = '#ab5222', showColour = 'background')),
+                          column( 8, selectInput('shiftsList', label = NULL, choices = 'FOV shifts', width = '100%'))
                         )
                  ),
-                 column(2, strong())
-               ),
-               
-               fluidRow(
-                 column(2, strong()),
-                 column(8, 
+                 column(5, 
                         fluidRow(
                           column(4, actionButton("clearCanvas", "Clear", icon = icon('refresh'), class="btn-primary", width = "100%")),
                           column(4, actionButton("undoCanvas", "Undo", icon = icon('undo'), class="btn-primary", width = "100%")),
                           column(4, actionButton("acceptCanvas", "Accept", icon = icon('thumbs-up'), class="btn-primary", width = "100%"))
                         )),
-                 column(2, strong())
+                 column(1, strong())
                ),
+               
+               # fluidRow(
+               #   column(1, strong()),
+               #   column(10, 
+               #          fluidRow(
+               #            column(4, actionButton("clearCanvas", "Clear", icon = icon('refresh'), class="btn-primary", width = "100%")),
+               #            column(4, actionButton("undoCanvas", "Undo", icon = icon('undo'), class="btn-primary", width = "100%")),
+               #            column(4, actionButton("acceptCanvas", "Accept", icon = icon('thumbs-up'), class="btn-primary", width = "100%"))
+               #          )),
+               #   column(1, strong())
+               # ),
                br(),
+               
                fluidRow(
-                 column(2, strong()),
-                 column(10, plotOutput("maskPlot", width = "500px", height = '350px')),
-                 column(2, strong())
+                 column(1, strong()),
+                 column(10, plotOutput("maskPlot", width = "600px", height = '400px')),
+                 column(1, strong())
                ),
                
                

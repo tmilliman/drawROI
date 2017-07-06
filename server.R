@@ -30,6 +30,20 @@ if(getwd()==bijanWD)
 
 
 shinyServer(function(input, output, session) {
+  observe({
+    input$maskEndDate
+    input$maskEndTime
+    if(input$openEnd) {
+      shinyjs::disable('maskEndDate')
+      shinyjs::disable('maskEndTime')
+      updateDateInput(session, 'maskEndDate', value = '9999-12-31')
+      updateTextInput(session, 'maskEndTime', value = '23:59:59')
+    }else{
+      shinyjs::enable('maskEndDate')
+      shinyjs::enable('maskEndTime')
+    }
+  })
+
   options(warn = -1)
   rv <- reactiveValues(centers = matrix(numeric(), 0, 2),
                        MASKs = list(),
@@ -106,9 +120,10 @@ shinyServer(function(input, output, session) {
                       min= min(dayYearIDTable()$ID),
                       max= max(dayYearIDTable()$ID)  )
     
-    # dmin <- imgDT()[Site==input$siteName, min(Date)]
-    # dmax <- imgDT()[Site==input$siteName, max(Date)]
-
+    dmin <- imgDT()[Site==input$siteName, min(Date)]
+    dmax <- imgDT()[Site==input$siteName, max(Date)]
+    updateDateInput(session, 'gotoDate', value = dmin, min = dmin, max = dmax)
+    
     # updateDateRangeInput(session ,
     #                      inputId = 'roiDateRange',
     #                      start = dmin,
@@ -161,7 +176,10 @@ shinyServer(function(input, output, session) {
                                       dummy <- 1
                                       dummy <- 1
                                       inf <- siteInfo()
-                                      x <- t(data.frame(Site = inf$site, 
+                                      wNULL <- which(sapply(inf, is.null))
+                                      for(wi in w)inf[wi] <- 'N.A.'
+                                      
+                                      x <- data.frame(Site = inf$site, 
                                                         Site.Type = inf$site_type,
                                                         MAT = paste0(inf$MAT_worldclim, ' °C'),
                                                         MAP = paste0(inf$MAP_worldclim, ' mm/year'),
@@ -171,8 +189,10 @@ shinyServer(function(input, output, session) {
                                                         Elevation = paste0(inf$elev, ' m'),
                                                         Descriotion = inf$site_description,
                                                         Primary.Vegetation = inf$primary_veg_type
-                                      ))
-                                      x
+                                      )
+                                      tx <- t(x)
+                                      
+                                      tx
                                     })
   
   # ----------------------------------------------------------------------
@@ -343,7 +363,7 @@ shinyServer(function(input, output, session) {
   
   dayYearIDTable <- reactive({
     dummy <- 0
-    imgDT()[Site==input$siteName,.(ID=1:.N,Year, DOY)]
+    imgDT()[Site==input$siteName,.(ID=1:.N,Year, DOY, Date)]
   }    )
   
   
@@ -440,7 +460,14 @@ shinyServer(function(input, output, session) {
     paste0('    DOY:  ', doyID())
   })
   
-  
+  observeEvent(input$gotoDateButton,{
+    dummy <- 1
+    dummy <- 1
+    tmpDT <- dayYearIDTable()
+    tmpDT[, dif:=abs(Date-input$gotoDate)]
+    id <- tmpDT[dif==min(dif), ID]
+    updateSliderInput(session, inputId = 'contID', value = id)
+  })
   
   # ----------------------------------------------------------------------
   # Plot image
@@ -669,6 +696,7 @@ shinyServer(function(input, output, session) {
   
   ccVals <- eventReactive(input$startExtractCC,{
     if(is.null(curMask())|length(paths()$path)==0) return(data.frame(rcc=NA, gcc=NA, bcc=NA))
+    dummy <- 0
     extractCCCTimeSeries(isolate(curMask()), paths()$path)
   })
   

@@ -81,6 +81,8 @@ extractCCC <- function(path, mmsk){
                    g = as.vector(jp[,,2]),
                    b = as.vector(jp[,,3]),
                    m = as.vector(msk))
+  DT[m==0, m:=NA]
+  
   DT[,rcc:= r/(r+g+b)]
   DT[,gcc:= g/(r+g+b)]
   DT[,bcc:= b/(r+g+b)]
