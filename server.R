@@ -30,6 +30,16 @@ if(getwd()==bijanWD)
 
 
 shinyServer(function(input, output, session) {
+  
+  showModal(strong(
+    modalDialog("Please wait for initial configurations ...",
+                easyClose = F,
+                fade = T,
+                size = 's',
+                style='background-color:#3b3a35; color:#fce319; ',
+                footer = NULL
+    )))
+  
   observe({
     input$maskEndDate
     input$maskEndTime
@@ -43,7 +53,7 @@ shinyServer(function(input, output, session) {
       shinyjs::enable('maskEndTime')
     }
   })
-
+  
   options(warn = -1)
   rv <- reactiveValues(centers = matrix(numeric(), 0, 2),
                        MASKs = list(),
@@ -180,15 +190,15 @@ shinyServer(function(input, output, session) {
                                       for(wi in wNULL)inf[wi] <- 'N.A.'
                                       
                                       x <- data.frame(Site = inf$site, 
-                                                        Site.Type = inf$site_type,
-                                                        MAT = paste0(inf$MAT_worldclim, ' °C'),
-                                                        MAP = paste0(inf$MAP_worldclim, ' mm/year'),
-                                                        Koeppen.Class = inf$koeppen_geiger,
-                                                        Latitude = paste0(inf$lat, ' °'),
-                                                        Longitude = paste0(inf$lon, ' °'),
-                                                        Elevation = paste0(inf$elev, ' m'),
-                                                        Descriotion = inf$site_description,
-                                                        Primary.Vegetation = inf$primary_veg_type
+                                                      Site.Type = inf$site_type,
+                                                      MAT = paste0(inf$MAT_worldclim, ' °C'),
+                                                      MAP = paste0(inf$MAP_worldclim, ' mm/year'),
+                                                      Koeppen.Class = inf$koeppen_geiger,
+                                                      Latitude = paste0(inf$lat, ' °'),
+                                                      Longitude = paste0(inf$lon, ' °'),
+                                                      Elevation = paste0(inf$elev, ' m'),
+                                                      Descriotion = inf$site_description,
+                                                      Primary.Vegetation = inf$primary_veg_type
                                       )
                                       
                                       tx <- t(x)
@@ -1010,5 +1020,6 @@ shinyServer(function(input, output, session) {
   shinyjs::disable("shiftsList")
   shinyjs::disable("gotoShiftFOV")
   
+  removeModal()
 })
 
