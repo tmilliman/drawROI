@@ -1078,7 +1078,7 @@ shinyServer(function(input, output, session) {
   removeModal()
   
   showModal(strong(
-    modalDialog(HTML('This is the beta version of PhenoCam ROI app. <br> 
+    modalDialog(HTML('This is the beta version of PhenoCam ROI app. Thanks for helping us to improve it. <br> 
                 Please do not share with others.'),
                 easyClose = T, 
                 fade = T,
