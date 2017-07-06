@@ -124,8 +124,15 @@ shinyServer(function(input, output, session) {
     updateSelectInput(session, inputId = 'errorSite', selected = input$siteName)
     rv$slideShow <- 0
     
-    updateCheckboxInput(session, 'openEnd', value = F)
+    tmp <- unlist(strsplit(sampleImageName(), '_'))
+    startDate <- as.Date(paste(tmp[2:4], collapse = '-'))
+    HHMMSS <- gsub(tmp[5], pattern = '.jpg',replacement = '')
+    startTime <- paste(substring(HHMMSS, c(1,3,5), c(2,4,6)), collapse = ':')
+    updateDateInput(session, 'maskStartDate', value = startDate)
+    updateTextInput(session, inputId = 'maskStartTime', value = startTime)
     
+    updateCheckboxInput(session, 'openEnd', value = F)
+
     updateSliderInput(session,
                       inputId = 'contID',
                       value = 1,
@@ -541,6 +548,7 @@ shinyServer(function(input, output, session) {
     if(input$maskName=='New mask') {
       # rv$MASKs <- list()
       # rv$centers <- matrix(numeric(), 0, 2)
+      
       updateCheckboxInput(session, 'openEnd', value = T)
       return()
     }
