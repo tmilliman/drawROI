@@ -601,7 +601,12 @@ shinyServer(function(input, output, session) {
                     updateDate = strftime(systime, format = '%Y-%m-%d'),
                     updateTime = strftime(systime, format = '%H:%M:%S'),
                     masks = rv$MASKs)
-    
+
+    if(input$roiName!='New ROI'){
+      ROIList$createDate <- rv$parsedROIList$createDate
+      ROIList$createTime <- rv$parsedROIList$createTime
+    }
+    dummy <- 0
     
     roifilename <- paste0(roiLabel(),'_roi.csv')
     writeROIListFile(ROIList, path = roipath(),  roifilename)
@@ -642,6 +647,11 @@ shinyServer(function(input, output, session) {
                       updateTime = strftime(systime, format = '%H:%M:%S'),
                       masks = rv$MASKs)
       
+      if(input$roiName!='New ROI'){
+        ROIList$createDate <- rv$parsedROIList$createDate
+        ROIList$createTime <- rv$parsedROIList$createTime
+      }
+      
       roifilename <- paste0(roiLabel(),'_roi.csv')
       writeROIListFile(ROIList, path = '',  roifilename)
       fs <- c(roifilename, 
@@ -678,6 +688,11 @@ shinyServer(function(input, output, session) {
                     updateDate = strftime(systime, format = '%Y-%m-%d'),
                     updateTime = strftime(systime, format = '%H:%M:%S'),
                     masks = rv$MASKs)
+    
+    if(input$roiName!='New ROI'){
+      ROIList$createDate <- rv$parsedROIList$createDate
+      ROIList$createTime <- rv$parsedROIList$createTime
+    }
     
     roifilename <- paste0(roiLabel(),'_roi.csv')
     writeROIListFile(ROIList, path = '',  roifilename)
