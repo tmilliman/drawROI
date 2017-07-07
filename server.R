@@ -757,7 +757,7 @@ shinyServer(function(input, output, session) {
   })
   
   paths <- reactive(
-    imgDT()[Site==input$siteName&YearDOY%in%tsYearDayRange(), .(paths=path[1]),.(conT, Year, DOY)]
+    imgDT()[Site==input$siteName&YearDOY%in%tsYearDayRange(), .(paths=path[1]),.(conT, Year, DOY, Date)]
   )
   
   ccVals <- eventReactive(input$startExtractCC,{
@@ -787,7 +787,8 @@ shinyServer(function(input, output, session) {
     if(is.null(curMask())) {
       return(NA)
     }
-    paths()[,conT]
+    # paths()[, conT]
+    paths()[, Date]
   })
   
   
@@ -803,7 +804,7 @@ shinyServer(function(input, output, session) {
       )
       xAxis <- list(
         # title = "Day of year",
-        title = "Time (Year)",
+        title = "Time",
         titlefont = fontList
       )
       yAxis <- list(
@@ -819,7 +820,7 @@ shinyServer(function(input, output, session) {
                                      style='background-color:#3b3a35; color:#fce319; ',
                                      footer = NULL, easyClose = T, size = 's')))
         
-        tvals <- 1:7
+        tvals <- 0:1
         dummy=0
         
         cvals <- matrix(NA, nrow=length(tvals), ncol = 3)
@@ -827,7 +828,7 @@ shinyServer(function(input, output, session) {
         cvals <- as.data.frame(cvals)
         
         yAxis$range <- c(0,1)
-        xAxis$range <- range(tvals)
+        xAxis$range <- c(0,1)
         dummy=0
         cc <- melt(data.frame(red= cvals$rcc, green = cvals$gcc, blue= cvals$bcc), 
                    variable.name='band', value.name='cc', id.vars=NULL)
