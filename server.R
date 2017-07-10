@@ -1091,9 +1091,9 @@ shinyServer(function(input, output, session) {
   
   ##LOG
   
-  message(paste('--------------------------------------------------------------------\n', 
+  message(paste('\n--------------------------------------------------------------------\n', 
                 as.character(Sys.time()),'New session just started!',
-                '--------------------------------------------------------------------\n'))
+                '\n--------------------------------------------------------------------\n'))
   observeEvent(input$siteName, message(paste(as.character(Sys.time()), 'input$siteName was changed to:', input$siteName, '\t')))
   observeEvent(input$siteDescription, message(paste(as.character(Sys.time()), 'input$siteDescription was changed to:', input$siteDescription, '\t')))
   observeEvent(input$vegType, message(paste(as.character(Sys.time()), 'input$vegType was changed to:', input$vegType, '\t')))
