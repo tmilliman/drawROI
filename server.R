@@ -171,16 +171,18 @@ shinyServer(function(input, output, session) {
     wNext <- w + 1
     if (w==length(rv$sitesList)) wNext= 1
     nextSite <- rv$sitesList[wNext]
+    updateSliderInput(session, 'contID', 1)
     updateSelectInput(session, 'siteName', selected = nextSite)
   })
   
-  observeEvent(input$lastSite, {
+  observeEvent(input$previousSite, {
     dummy <- 0
     w <- which(rv$sitesList==input$siteName)
     wLast <- w - 1
     if (w==1) wLast= length(rv$sitesList)
-    lastSite <- rv$sitesList[wLast]
-    updateSelectInput(session, 'siteName', selected = lastSite)
+    previousSite <- rv$sitesList[wLast]
+    updateSliderInput(session, 'contID', 1)
+    updateSelectInput(session, 'siteName', selected = previousSite)
   })
   # ----------------------------------------------------------------------
   # Site info
