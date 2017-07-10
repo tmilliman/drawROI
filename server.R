@@ -579,7 +579,17 @@ shinyServer(function(input, output, session) {
     rv$centers <- rbind(rv$centers, newPoint/sampleImageSize())
   })
   
-  
+  # observeEvent(input$endPoint, {
+  #   rv$slideShow <- 0 
+  #   pnts <- rv$centers
+  #   tbl <- as.data.table(na.omit(cbind(pnts,cumsum(is.na(pnts[,1]))+1 )))
+  #   colnames(tbl) <- c('x', 'y', 'g')
+  #   tbln <- table(tbl$g)
+  #   if(tbln[length(tbln)]<3) return()
+  #   newPoint <- matrix(c(NA, NA),1, 2)
+  #   rv$centers <- rbind(rv$centers, newPoint)
+  # })
+  # 
   
   observeEvent(input$clearCanvas, {
     rv$slideShow <- 0 
@@ -904,6 +914,8 @@ shinyServer(function(input, output, session) {
                             size = 's',
                             footer = NULL
       )))
+      dummy <- 0
+      dummy <- 0
       
       newMask <- list(maskpoints = rv$centers, 
                       # startdate = input$roiDateRange[1], 
@@ -1086,15 +1098,15 @@ shinyServer(function(input, output, session) {
   
   removeModal()
   
-  showModal(strong(
-    modalDialog(HTML('This is the beta version of PhenoCam ROI app. Thanks for helping us to improve it. <br> 
-                Please do not share with others.'),
-                easyClose = T, 
-                fade = T,
-                size = 'm',
-                style='background-color:#3b3a35; color:#fce319; ',
-                footer = NULL
-    )))
+  # showModal(strong(
+  #   modalDialog(HTML('This is the beta version of PhenoCam ROI app. Thanks for helping us to improve it. <br> 
+  #               Please do not share with others.'),
+  #               easyClose = T, 
+  #               fade = T,
+  #               size = 'm',
+  #               style='background-color:#3b3a35; color:#fce319; ',
+  #               footer = NULL
+  #   )))
   
 })
 

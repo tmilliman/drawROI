@@ -104,6 +104,16 @@ createRasteredROI <- function(pnts, imgSize){
   ext <- extent(1, imgSize[1], 1, imgSize[2])
   poly <- as(ext  ,"SpatialPolygons")
   poly@polygons[[1]]@Polygons[[1]]@coords <- as.matrix(pnts)
+  
+  # tbl <- as.data.table(na.omit(cbind(pnts,cumsum(is.na(pnts[,1]))+1 )))
+  # colnames(tbl) <- c('x', 'y', 'g')
+  # ng <- table(tbl$g)
+  # 
+  # polyList <- list()
+  # for(gi in 1:length(ng[which(ng>=3)]))
+  #   polyList[[gi]] <- Polygon(as.matrix(tbl[g==gi, .(x,y)]), hole = F)
+  # poly@polygons <- polyList
+  
   r <- rasterize(poly, raster(ext, nrow = imgSize[1], ncol = imgSize[2]))
   m1 <- as.matrix(r)
   m <- m1
@@ -182,8 +192,8 @@ writeROIListFile <- function(ROIList, path='ROI/', roifilename){
     maskpoints <- rbind(dim(m), maskpoints)
     if(nrow(maskpoints)>3)
       write.table(maskpoints, file = paste0(path, rName,'_vector.csv'), col.names = F, row.names = F, sep = ',')
-  # }
-  # for(i in 1:length(ROIList$masks)){
+    # }
+    # for(i in 1:length(ROIList$masks)){
     
     bdyLine <- paste( ROIList$masks[[i]]$startdate,
                       ROIList$masks[[i]]$starttime,
@@ -311,7 +321,7 @@ parseROI <- function(roifilename, roipath){
                     rasteredMask = as.matrix(raster(maskpath)))
     tmpMask$rasteredMask[(!is.na(tmpMask$rasteredMask))&tmpMask$rasteredMask!=0] <- 1
     
-      
+    
     sampleYMD <- strsplit(tmpMask$sampleImage, split = '_')[[1]][2:4]
     tmpMask$sampleyear <- as.numeric(sampleYMD)[1]
     tmpMask$sampleday <- yday(paste(sampleYMD, collapse = '-'))
