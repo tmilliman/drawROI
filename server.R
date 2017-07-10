@@ -1146,7 +1146,7 @@ shinyServer(function(input, output, session) {
   observeEvent(input$siteInfo, cat('input$siteInfo was changed to:', input$siteInfo, '\n'))
   observeEvent(input$modalSiteInfo, cat('input$modalSiteInfo was changed to:', input$modalSiteInfo, '\n'))
 
-    observeEvent(input$newPoint, cat('input$newPoint was changed to:', input$newPoint, '\n'))
+    # observeEvent(input$newPoint, cat('input$newPoint was changed to:', input$newPoint, '\n'))
   
   shinyjs::disable("downloadTSData")
   shinyjs::disable("saveROI")
