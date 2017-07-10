@@ -132,7 +132,7 @@ shinyServer(function(input, output, session) {
     updateTextInput(session, inputId = 'maskStartTime', value = startTime)
     
     updateCheckboxInput(session, 'openEnd', value = F)
-
+    
     updateSliderInput(session,
                       inputId = 'contID',
                       value = 1,
@@ -623,7 +623,7 @@ shinyServer(function(input, output, session) {
                     updateDate = strftime(systime, format = '%Y-%m-%d'),
                     updateTime = strftime(systime, format = '%H:%M:%S'),
                     masks = rv$MASKs)
-
+    
     if(input$roiName!='New ROI'){
       ROIList$createDate <- rv$parsedROIList$createDate
       ROIList$createTime <- rv$parsedROIList$createTime
@@ -634,10 +634,10 @@ shinyServer(function(input, output, session) {
     writeROIListFile(ROIList, path = roipath(),  roifilename)
     
     showModal(strong(modalDialog("ROI was saved in the database!",
-                          style='background-color:#3b3a35; color:#fce319; ',
-                          easyClose = T,
-                          size = 's',
-                          footer = NULL
+                                 style='background-color:#3b3a35; color:#fce319; ',
+                                 easyClose = T,
+                                 size = 's',
+                                 footer = NULL
     )))
   })
   
@@ -743,10 +743,10 @@ shinyServer(function(input, output, session) {
              msg = bodyWithAttachment)
     
     showModal(strong(modalDialog("The new ROI will be reviewed shortly.",
-                          style='background-color:#3b3a35; color:#fce319; ',
-                          easyClose = T,
-                          size = 's',
-                          footer = NULL
+                                 style='background-color:#3b3a35; color:#fce319; ',
+                                 easyClose = T,
+                                 size = 's',
+                                 footer = NULL
     )))
     
     
@@ -778,16 +778,16 @@ shinyServer(function(input, output, session) {
     }
     dummy <- 0
     showModal(strong(modalDialog("Time series data are being extracted ...",
-                          style='background-color:#3b3a35; color:#fce319; ',
-                          easyClose = F,
-                          size = 's',
-                          footer = actionButton(inputId = "stopExtractCC2",
-                                                label =  "Stop", 
-                                                width = '100%',
-                                                # class="btn-danger", 
-                                                icon = icon('stop'),
-                                                style='background-color:#3b3a35; color:#fce319; ',
-                                                onclick="Shiny.onInputChange('stopThis',true)")
+                                 style='background-color:#3b3a35; color:#fce319; ',
+                                 easyClose = F,
+                                 size = 's',
+                                 footer = actionButton(inputId = "stopExtractCC2",
+                                                       label =  "Stop", 
+                                                       width = '100%',
+                                                       # class="btn-danger", 
+                                                       icon = icon('stop'),
+                                                       style='background-color:#3b3a35; color:#fce319; ',
+                                                       onclick="Shiny.onInputChange('stopThis',true)")
     )))
     
     cc <- extractCCCTimeSeries(isolate(curMask()), paths()$path)
@@ -829,8 +829,8 @@ shinyServer(function(input, output, session) {
         
         
         if(input$startExtractCC>0)showModal(strong(modalDialog('You first have to create a mask!',
-                                     style='background-color:#3b3a35; color:#fce319; ',
-                                     footer = NULL, easyClose = T, size = 's')))
+                                                               style='background-color:#3b3a35; color:#fce319; ',
+                                                               footer = NULL, easyClose = T, size = 's')))
         
         tvals <- 0:1
         dummy=0
@@ -909,10 +909,10 @@ shinyServer(function(input, output, session) {
     if(input$maskName=='New mask'){
       
       showModal(strong(modalDialog("Raster is being produced ...",
-                            style='background-color:#3b3a35; color:#fce319; ',
-                            easyClose = F,
-                            size = 's',
-                            footer = NULL
+                                   style='background-color:#3b3a35; color:#fce319; ',
+                                   easyClose = F,
+                                   size = 's',
+                                   footer = NULL
       )))
       dummy <- 0
       dummy <- 0
@@ -954,10 +954,10 @@ shinyServer(function(input, output, session) {
       if(is.null(curMask()))return()
       
       showModal(strong(modalDialog("Raster is being updated ...",
-                            style='background-color:#3b3a35; color:#fce319; ',
-                            easyClose = F,
-                            size = 's',
-                            footer = NULL
+                                   style='background-color:#3b3a35; color:#fce319; ',
+                                   easyClose = F,
+                                   size = 's',
+                                   footer = NULL
       )))
       
       newMASK <- createRasteredROI(rv$centers, sampleImageSize())
@@ -1072,10 +1072,10 @@ shinyServer(function(input, output, session) {
              msg = msg)
     
     showModal(strong(modalDialog("Message was submitted. Thank you for helping us to improve the app.",
-                          style='background-color:#3b3a35; color:#fce319; ',
-                          easyClose = T,
-                          size = 'm',
-                          footer = NULL
+                                 style='background-color:#3b3a35; color:#fce319; ',
+                                 easyClose = T,
+                                 size = 'm',
+                                 footer = NULL
     )))
     
     
@@ -1087,6 +1087,66 @@ shinyServer(function(input, output, session) {
                  asTextNew <- fixFormatTime(asText)
                  if(asTextNew!=asText) updateTextInput(session, 'errorTime', value = asTextNew)
                })
+  
+  
+  ##LOG
+  observeEvent(input$siteName, cat('input$siteName was changed to:', input$siteName, '\n'))
+  observeEvent(input$siteDescription, cat('input$siteDescription was changed to:', input$siteDescription, '\n'))
+  observeEvent(input$vegType, cat('input$vegType was changed to:', input$vegType, '\n'))
+  observeEvent(input$roiName, cat('input$roiName was changed to:', input$roiName, '\n'))
+  observeEvent(input$roiOwner, cat('input$roiOwner was changed to:', input$roiOwner, '\n'))
+  observeEvent(input$roiColors, cat('input$roiColors was changed to:', input$roiColors, '\n'))
+  
+  observeEvent(input$back, cat('input$back was changed to:', input$back, '\n'))
+  observeEvent(input$backplay, cat('input$backplay was changed to:', input$backplay, '\n'))
+  observeEvent(input$forw, cat('input$forw was changed to:', input$forw, '\n'))
+  observeEvent(input$play, cat('input$play was changed to:', input$play, '\n'))
+  observeEvent(input$pause, cat('input$pause was changed to:', input$pause, '\n'))
+  
+  observeEvent(input$acceptCanvas, cat('input$acceptCanvas was changed to:', input$acceptCanvas, '\n'))
+  observeEvent(input$undoCanvas, cat('input$undoCanvas was changed to:', input$undoCanvas, '\n'))
+  observeEvent(input$clearCanvas, cat('input$clearCanvas was changed to:', input$clearCanvas, '\n'))
+  
+  observeEvent(input$nextSite, cat('input$nextSite was changed to:', input$nextSite, '\n'))
+  observeEvent(input$previousSite, cat('input$previousSite was changed to:', input$previousSite, '\n'))
+  
+  observeEvent(input$emailROI, cat('input$emailROI was changed to:', input$emailROI, '\n'))
+  observeEvent(input$saveROI, cat('input$previousSite was changed to:', input$saveROI, '\n'))
+  observeEvent(input$password, cat('input$password was changed to: xxx', '\n'))
+  
+  observeEvent(input$gotoDate, cat('input$gotoDate was changed to:', as.character(input$gotoDate), '\n'))
+  observeEvent(input$contID, cat('input$contID was changed to:', input$contID, '\n'))
+  observeEvent(input$gotoDateButton, cat('input$gotoDateButton was changed to:', input$gotoDateButton, '\n'))
+  
+  observeEvent(input$ccRange, cat('input$ccRange was changed to:', input$ccRange, '\n'))
+  observeEvent(input$startExtractCC, cat('input$startExtractCC was changed to:', input$startExtractCC, '\n'))
+  observeEvent(input$ccBand, cat('input$ccBand was changed to:', input$ccBand, '\n'))
+  
+  observeEvent(input$maskEndDate, cat('input$maskEndDate was changed to:', as.character(input$maskEndDate), '\n'))
+  observeEvent(input$maskEndTime, cat('input$maskEndTime was changed to:', input$maskEndTime, '\n'))
+  observeEvent(input$maskName, cat('input$maskName was changed to:', input$maskName, '\n'))
+  observeEvent(input$maskStartDate, cat('input$maskStartDate was changed to:', as.character(input$maskStartDate), '\n'))
+  observeEvent(input$maskStartTime, cat('input$maskStartTime was changed to:', input$maskStartTime, '\n'))
+  observeEvent(input$matchEnd, cat('input$matchEnd was changed to:', input$matchEnd, '\n'))
+  observeEvent(input$matchStart, cat('input$matchStart was changed to:', input$matchStart, '\n'))
+  observeEvent(input$matchStart, cat('input$matchStart was changed to:', input$matchStart, '\n'))
+  observeEvent(input$openEnd, cat('input$openEnd was changed to:', input$openEnd, '\n'))
+  
+  observeEvent(input$errorBrowser, cat('input$errorBrowser was changed to:', input$errorBrowser, '\n'))
+  observeEvent(input$errorDate, cat('input$errorDate was changed to:', as.character(input$errorDate), '\n'))
+  observeEvent(input$errorEmail, cat('input$errorEmail was changed to:', input$errorEmail, '\n'))
+  observeEvent(input$errorMessage, cat('input$errorMessage was changed to:', input$errorMessage, '\n'))
+  observeEvent(input$errorOS, cat('input$errorOS was changed to:', input$errorOS, '\n'))
+  observeEvent(input$errorSend, cat('input$errorSend was changed to:', input$errorSend, '\n'))
+  observeEvent(input$errorSite, cat('input$errorSite was changed to:', input$errorSite, '\n'))
+  observeEvent(input$errorTime, cat('input$errorTime was changed to:', input$errorTime, '\n'))
+  observeEvent(input$errorType, cat('input$errorType was changed to:', input$errorType, '\n'))
+  observeEvent(input$errorUser, cat('input$errorUser was changed to:', input$errorUser, '\n'))
+  
+  observeEvent(input$siteInfo, cat('input$siteInfo was changed to:', input$siteInfo, '\n'))
+  observeEvent(input$modalSiteInfo, cat('input$modalSiteInfo was changed to:', input$modalSiteInfo, '\n'))
+
+    observeEvent(input$newPoint, cat('input$newPoint was changed to:', input$newPoint, '\n'))
   
   shinyjs::disable("downloadTSData")
   shinyjs::disable("saveROI")
