@@ -1037,7 +1037,23 @@ shinyServer(function(input, output, session) {
   )
   
   observeEvent(input$password,{
-    if(input$password==readLines('.key.psw')){
+    filepass <- '.key.psw'
+    
+    if(file.exists(filepass)){
+      fcon <- try(file(filepass, 'r'), silent = F)
+      tmppass <- readLines(fcon)
+      close(fcon)
+    }else{
+      showModal(strong(modalDialog("Connection to the passfile was failed!",
+                                   style='background-color:#3b3a35; color:#fce319; ',
+                                   easyClose = T,
+                                   size = 's',
+                                   footer = NULL
+      )))
+      return()
+    }
+    
+    if(input$password==tmppass){
       shinyjs::enable("saveROI")
     }else{
       shinyjs::disable("saveROI")
@@ -1116,7 +1132,7 @@ shinyServer(function(input, output, session) {
   
   observeEvent(input$emailROI, message(paste(as.character(Sys.time()), 'input$emailROI was changed to:', '\t',input$emailROI, '\t')))
   observeEvent(input$saveROI, message(paste(as.character(Sys.time()), 'input$previousSite was changed to:', '\t',input$saveROI, '\t')))
-  observeEvent(input$password, message(paste(as.character(Sys.time()), 'input$password was changed to: xxx', '\t')))
+  observeEvent(input$password, message(paste(as.character(Sys.time()), 'input$password was changed to: ****', '\t')))
   
   observeEvent(input$gotoDate, message(paste(as.character(Sys.time()), 'input$gotoDate was changed to:', '\t',as.character(input$gotoDate), '\t')))
   observeEvent(input$contID, message(paste(as.character(Sys.time()), 'input$contID was changed to:', '\t',input$contID, '\t')))
