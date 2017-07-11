@@ -159,6 +159,7 @@ shinyServer(function(input, output, session) {
     dummy <- 0
     rv$MASKs <- list()
     updateSelectInput(session, inputId = 'maskName', choices = 'New mask')
+    rv$centers <- matrix(numeric(), 0, 2)
   })
   
   siteInfo <- reactive({
