@@ -1037,7 +1037,7 @@ shinyServer(function(input, output, session) {
   )
   
   observeEvent(input$password,{
-    filepass <- '.key.psw'
+    filepass <- '.key.psw2'
     
     if(file.exists(filepass)){
       fcon <- try(file(filepass, 'r'), silent = F)
