@@ -155,6 +155,7 @@ shinyServer(function(input, output, session) {
     
     updateSelectInput(session, "year", choices = x)
     updateSelectInput(session, 'roiName', choices = rv$ROIs, selected = 'New ROI')
+    updateSelectInput(session, 'roiName', selected = 'New ROI')
     dummy <- 0
     rv$MASKs <- list()
     updateSelectInput(session, inputId = 'maskName', choices = 'New mask')
