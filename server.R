@@ -173,6 +173,8 @@ shinyServer(function(input, output, session) {
     nextSite <- rv$sitesList[wNext]
     updateSliderInput(session, 'contID', value = 1)
     updateSelectInput(session, 'siteName', selected = nextSite)
+    updateSelectInput(session, 'roiName', selected = 'New ROI')
+    
   })
   
   observeEvent(input$previousSite, {
@@ -183,6 +185,8 @@ shinyServer(function(input, output, session) {
     previousSite <- rv$sitesList[wLast]
     updateSliderInput(session, 'contID', value = 1)
     updateSelectInput(session, 'siteName', selected = previousSite)
+    updateSelectInput(session, 'roiName', selected = 'New ROI')
+    
   })
   # ----------------------------------------------------------------------
   # Site info
