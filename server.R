@@ -585,17 +585,17 @@ shinyServer(function(input, output, session) {
     rv$centers <- rbind(rv$centers, newPoint/sampleImageSize())
   })
   
-  # observeEvent(input$endPoint, {
-  #   rv$slideShow <- 0 
-  #   pnts <- rv$centers
-  #   tbl <- as.data.table(na.omit(cbind(pnts,cumsum(is.na(pnts[,1]))+1 )))
-  #   colnames(tbl) <- c('x', 'y', 'g')
-  #   tbln <- table(tbl$g)
-  #   if(tbln[length(tbln)]<3) return()
-  #   newPoint <- matrix(c(NA, NA),1, 2)
-  #   rv$centers <- rbind(rv$centers, newPoint)
-  # })
-  # 
+  observeEvent(input$endPoint, {
+    rv$slideShow <- 0
+    pnts <- rv$centers
+    tbl <- as.data.table(na.omit(cbind(pnts,cumsum(is.na(pnts[,1]))+1 )))
+    colnames(tbl) <- c('x', 'y', 'g')
+    tbln <- table(tbl$g)
+    if(tbln[length(tbln)]<3) return()
+    newPoint <- matrix(c(NA, NA),1, 2)
+    rv$centers <- rbind(rv$centers, newPoint)
+  })
+
   
   observeEvent(input$clearCanvas, {
     rv$slideShow <- 0 
