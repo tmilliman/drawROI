@@ -110,11 +110,11 @@ fluidPage(
                
                fluidRow(
                  column(1, strong()),
-                 column(1, actionButton("backplay", "", icon = icon('step-backward'), width = '100%', style="border-color: #fff; align:center")),
-                 column(1, actionButton("back", "", icon = icon('backward'), width = '100%', style="border-color: #fff")),
-                 column(1, actionButton("pause", "", icon = icon('pause'), width = '100%',  style="border-color: #fff")),
-                 column(1, actionButton("forw", "", icon = icon('forward'), width = '100%',  style="border-color: #fff")),
-                 column(1, actionButton("play", "", icon = icon('step-forward'), width = '100%', style="border-color: #fff; align:center")),
+                 column(1, actionButton("back", "", icon = icon('minus'), width = '100%', style="border-color: #fff")),
+                 column(1, actionButton("backplay", "", icon = icon('backward'), width = '100%', style="border-color: #fff; align:center")),
+                 column(1, actionButton("pause", "", icon = icon('stop'), width = '100%',  style="border-color: #fff")),
+                 column(1, actionButton("play", "", icon = icon('forward'), width = '100%', style="border-color: #fff; align:center")),
+                 column(1, actionButton("forw", "", icon = icon('plus'), width = '100%',  style="border-color: #fff")),
                  column(5, selectInput('shiftsList', label = NULL, choices = 'List of shifts in FOV', width = '100%')),
                  column(1, strong())
                  
