@@ -158,8 +158,8 @@ shinyServer(function(input, output, session) {
     updateSelectInput(session, 'roiName', choices = rv$ROIs, selected = 'New ROI')
     updateSelectInput(session, 'roiName', selected = 'New ROI')
     updateSelectInput(session, 'vegType', selected = 'AG')
-    updateTextInput(session, 'siteDescription', value = NULL)
-    updateTextInput(session, 'roiOwner', value = NULL)
+    updateTextInput(session, 'siteDescription', value = '')
+    updateTextInput(session, 'roiOwner', value = '')
     dummy <- 0
     rv$MASKs <- list()
     updateSelectInput(session, inputId = 'maskName', choices = 'New mask')
