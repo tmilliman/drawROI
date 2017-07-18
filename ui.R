@@ -121,8 +121,10 @@ fluidPage(
                ),
                fluidRow(
                  column(1, actionButton('previousSite', label = NULL, icon = icon('arrow-circle-left'), width = '100%',  style="border-color: #fff; font-size: 175%")),
-                 column(5, plotOutput("imagePlot", click = "newPoint", dblclick = 'endPoint', width = "300px", height = '222px')),
-                 column(5, plotOutput("maskPlot", width = "300px", height = '222px')),
+                 # column(5, plotOutput("imagePlot", click = "newPoint", dblclick = 'endPoint', width = "300px", height = '222px')),
+                 column(5, plotOutput("imagePlot", click = "newPoint", dblclick = 'endPoint')),
+                 # column(5, plotOutput("maskPlot", width = "300px", height = '222px')),
+                 column(5, plotOutput("maskPlot")),
                  column(1, actionButton('nextSite', label = NULL, icon = icon('arrow-circle-right'), width = '100%',  style="border-color: #fff; font-size: 175%"))
                ),
                br(),
