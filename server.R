@@ -240,8 +240,10 @@ shinyServer(function(input, output, session) {
     return(tmp)
   }  )
   
-  observe(
+  observe({
+    autoInvalidate()
     rv$ROIs <- c(dir(roipath(), pattern = 'roi.csv$'), "New ROI")
+  }
   )
   
   observe(
