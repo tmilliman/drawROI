@@ -139,7 +139,7 @@ shinyServer(function(input, output, session) {
     
     updateCheckboxInput(session, 'openEnd', value = F)
     
-
+    
     dmin <- imgDT()[Site==input$siteName, min(Date)]
     dmax <- imgDT()[Site==input$siteName, max(Date)]
     updateDateInput(session, 'gotoDate', value = dmin, min = dmin, max = dmax)
@@ -510,7 +510,7 @@ shinyServer(function(input, output, session) {
     tmp <- dayYearIDTable()[ID==as.numeric(input$contID),Year]
     if(length(tmp)== 0) tmp <- dayYearIDTable()[ID==1,Year]
     tmp
-}  )
+  }  )
   output$yearOut <- renderText({
     paste0('    Year:  ', yearID())
   })
@@ -535,28 +535,30 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   # Plot image
   # ----------------------------------------------------------------------
-  output$imagePlot <- renderPlot({
-    if(is.na(sampleImage())){
-      par(mar=c(0,0,0,0))
-      plot(NA, xlim=c(0,1), ylim=c(0,1), xaxs='i',yaxs='i', xaxt='n', yaxt='n', bty='o', xlab='',ylab='')
-      text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No image for this date was found!', font=2, adj=.5)
-    }else{
-      par(mar=c(0,0,0,0))
-      plotJPEG(sampleImage())
-      roiColors <- if (input$roiColors=='transparent') '#ffffff00' else paste0(input$roiColors, '60')
-      dummy <- 0
-      if(is.null(rv$centers)) 
-        absPoints <- matrix(numeric(), 0, 2)
-      else if(nrow(rv$centers)==0) 
-        absPoints <- matrix(numeric(), 0, 2)
-      else if(nrow(rv$centers)==1) 
-        absPoints <- rv$centers*sampleImageSize()
-      else 
-        absPoints <- t(apply(rv$centers, 1, '*', sampleImageSize()))
-      dummy <- 0
-      polygon(absPoints, col = roiColors, pch = 9, lwd=2)
-    }
-  })
+  output$imagePlot <- renderPlot(
+    height = function(){floor(session$clientData$output_imagePlot_width/1.35)},
+    {
+      if(is.na(sampleImage())){
+        par(mar=c(0,0,0,0))
+        plot(NA, xlim=c(0,1), ylim=c(0,1), xaxs='i',yaxs='i', xaxt='n', yaxt='n', bty='o', xlab='',ylab='')
+        text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No image for this date was found!', font=2, adj=.5)
+      }else{
+        par(mar=c(0,0,0,0))
+        plotJPEG(sampleImage())
+        roiColors <- if (input$roiColors=='transparent') '#ffffff00' else paste0(input$roiColors, '60')
+        dummy <- 0
+        if(is.null(rv$centers)) 
+          absPoints <- matrix(numeric(), 0, 2)
+        else if(nrow(rv$centers)==0) 
+          absPoints <- matrix(numeric(), 0, 2)
+        else if(nrow(rv$centers)==1) 
+          absPoints <- rv$centers*sampleImageSize()
+        else 
+          absPoints <- t(apply(rv$centers, 1, '*', sampleImageSize()))
+        dummy <- 0
+        polygon(absPoints, col = roiColors, pch = 9, lwd=2)
+      }
+    })
   
   observeEvent(input$maskName, {
     rv$slideShow <- 0 
@@ -602,7 +604,7 @@ shinyServer(function(input, output, session) {
     newPoint <- matrix(c(NA, NA),1, 2)
     rv$centers <- rbind(rv$centers, newPoint)
   })
-
+  
   
   observeEvent(input$clearCanvas, {
     rv$slideShow <- 0 
@@ -1002,7 +1004,9 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   
   output$maskPlot <- 
-    renderPlot({
+    renderPlot(
+      height = function(){floor(session$clientData$output_maskPlot_width/1.35)},
+      {
       par(mar=c(0,0,0,0))
       plot(1,
            type='n',
@@ -1180,8 +1184,8 @@ shinyServer(function(input, output, session) {
   
   observeEvent(input$siteInfo, message(paste(as.character(Sys.time()), 'input$siteInfo was changed to:', '\t',input$siteInfo, '\t')))
   observeEvent(input$modalSiteInfo, message(paste(as.character(Sys.time()), 'input$modalSiteInfo was changed to:', '\t',input$modalSiteInfo, '\t')))
-
-    # observeEvent(input$newPoint, message(paste(as.character(Sys.time()), 'input$newPoint was changed to:', '\t',input$newPoint, '\t')))
+  
+  # observeEvent(input$newPoint, message(paste(as.character(Sys.time()), 'input$newPoint was changed to:', '\t',input$newPoint, '\t')))
   
   shinyjs::disable("downloadTSData")
   shinyjs::disable("saveROI")
