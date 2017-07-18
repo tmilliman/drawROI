@@ -157,6 +157,9 @@ shinyServer(function(input, output, session) {
     updateSelectInput(session, "year", choices = x)
     updateSelectInput(session, 'roiName', choices = rv$ROIs, selected = 'New ROI')
     updateSelectInput(session, 'roiName', selected = 'New ROI')
+    updateSelectInput(session, 'vegType', selected = 'AG')
+    updateTextInput(session, 'siteDescription', value = NULL)
+    updateTextInput(session, 'roiOwner', value = NULL)
     dummy <- 0
     rv$MASKs <- list()
     updateSelectInput(session, inputId = 'maskName', choices = 'New mask')
@@ -278,6 +281,7 @@ shinyServer(function(input, output, session) {
       shinyjs::enable('vegType')
       dummy =0 
       rv$MASKs <- list()
+      rv$centers <- matrix(numeric(), 0, 2)
       updateSelectInput(session, inputId = 'maskName', choices = 'New mask')
       updateSelectInput(session, inputId = 'vegType', selected = list('Agriculture (AG)'='AG'))
       updateSelectInput(session, inputId = 'siteDescription', selected = '')
@@ -506,11 +510,13 @@ shinyServer(function(input, output, session) {
     tmp
   }
   )
+  
   yearID <- reactive({
     tmp <- dayYearIDTable()[ID==as.numeric(input$contID),Year]
     if(length(tmp)== 0) tmp <- dayYearIDTable()[ID==1,Year]
     tmp
   }  )
+  
   output$yearOut <- renderText({
     paste0('    Year:  ', yearID())
   })
