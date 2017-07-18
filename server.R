@@ -124,6 +124,12 @@ shinyServer(function(input, output, session) {
     updateSelectInput(session, inputId = 'errorSite', selected = input$siteName)
     rv$slideShow <- 0
     
+    updateSliderInput(session,
+                      inputId = 'contID',
+                      value = 1,
+                      min= min(dayYearIDTable()$ID),
+                      max= max(dayYearIDTable()$ID)  )
+    
     tmp <- unlist(strsplit(sampleImageName(), '_'))
     startDate <- as.Date(paste(tmp[2:4], collapse = '-'))
     HHMMSS <- gsub(tmp[5], pattern = '.jpg',replacement = '')
@@ -133,12 +139,7 @@ shinyServer(function(input, output, session) {
     
     updateCheckboxInput(session, 'openEnd', value = F)
     
-    updateSliderInput(session,
-                      inputId = 'contID',
-                      value = 1,
-                      min= min(dayYearIDTable()$ID),
-                      max= max(dayYearIDTable()$ID)  )
-    
+
     dmin <- imgDT()[Site==input$siteName, min(Date)]
     dmax <- imgDT()[Site==input$siteName, max(Date)]
     updateDateInput(session, 'gotoDate', value = dmin, min = dmin, max = dmax)
@@ -498,12 +499,18 @@ shinyServer(function(input, output, session) {
   
   
   
-  doyID <- reactive(
-    dayYearIDTable()[ID==as.numeric(input$contID),DOY]
+  doyID <- reactive({
+    dummy <- 1
+    tmp <- dayYearIDTable()[ID==as.numeric(input$contID),DOY]
+    if(length(tmp)== 0) tmp <- dayYearIDTable()[ID==1,DOY]
+    tmp
+  }
   )
-  yearID <- reactive(
-    dayYearIDTable()[ID==as.numeric(input$contID),Year]
-  )
+  yearID <- reactive({
+    tmp <- dayYearIDTable()[ID==as.numeric(input$contID),Year]
+    if(length(tmp)== 0) tmp <- dayYearIDTable()[ID==1,Year]
+    tmp
+}  )
   output$yearOut <- renderText({
     paste0('    Year:  ', yearID())
   })
