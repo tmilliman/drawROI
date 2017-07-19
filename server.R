@@ -41,8 +41,10 @@ shinyServer(function(input, output, session) {
     )))
   
   observe({
-    input$maskEndDate
-    input$maskEndTime
+    message(paste(as.character(Sys.time()), 'openEnd observed experssion was called.\t'))
+    
+    req(input$maskEndDate)
+    req(input$maskEndTime)
     if(input$openEnd) {
       shinyjs::disable('maskEndDate')
       shinyjs::disable('maskEndTime')
@@ -58,6 +60,7 @@ shinyServer(function(input, output, session) {
   rv <- reactiveValues(centers = matrix(numeric(), 0, 2),
                        MASKs = list(),
                        slideShow = 0,
+                       nroi = NULL,
                        ROIs = vector(),
                        sitesList = vector(),
                        parsedROIList = NULL,
@@ -67,6 +70,8 @@ shinyServer(function(input, output, session) {
   autoInvalidate <- reactiveTimer(1000)
   
   observe({
+    message(paste(as.character(Sys.time()), 'vegTypes initial observed experssion was called.\t'))
+    
     vegTypes <-   list('AG','DB','EB','EN','DN','GR','MX',
                        'NV','RF','SH','TN','UN','WL','XX')
     names(vegTypes) <- c('Agriculture (AG)',
@@ -91,6 +96,8 @@ shinyServer(function(input, output, session) {
   # imgDT
   # ----------------------------------------------------------------------
   imgDT <- reactive({
+    message(paste(as.character(Sys.time()), 'imgDT reactive experssion was called.\t'))
+    
     dummy <- 0
     getIMG.DT(input$siteName, midddayListPath)
     
@@ -102,24 +109,29 @@ shinyServer(function(input, output, session) {
   # Site
   # ----------------------------------------------------------------------
   observe({
+    message(paste(as.character(Sys.time()), 'phenoSitesList observed experssion was called.\t'))
+    
     phenoSitesList <- sapply(rv$phenoSites, function(x){x$site})
     names(rv$phenoSites) <- phenoSitesList
     phenoSitesList <- phenoSitesList[-which(phenoSitesList=='HF_Vivotek')]
     if(getwd()==bijanWD) 
-      phenoSitesList <- c('acadia','dukehw','harvard')
+      phenoSitesList <- c('dukehw','harvard')
     
     rv$sitesList <- phenoSitesList
     
   })
   
   observe({
+    message(paste(as.character(Sys.time()), 'rv$sitesList initial observed experssion was called.\t'))
+    
     updateSelectInput(session, inputId = 'siteName', choices = rv$sitesList)
-    updateSelectInput(session, inputId = 'errorSite', choices = rv$sitesList)
     if(getwd()!=bijanWD) 
       updateSelectInput(session, inputId = 'siteName', selected = 'ahwahnee')
   })
   
   observeEvent(input$siteName, {
+    message(paste(as.character(Sys.time()), 'input$siteName was changed to:', '\t',input$siteName, '\t'))
+    
     dummy = 0
     updateSelectInput(session, inputId = 'errorSite', selected = input$siteName)
     rv$slideShow <- 0
@@ -167,11 +179,15 @@ shinyServer(function(input, output, session) {
   })
   
   siteInfo <- reactive({
+    message(paste(as.character(Sys.time()), 'siteInfo reactive experssion was called.\t'))
+    
     dummy <- 0
     rv$phenoSites[[input$siteName]]
   })
   
   observeEvent(input$nextSite, {
+    message(paste(as.character(Sys.time()), 'input$nextSite was changed to:', '\t',input$nextSite, '\t'))
+    
     dummy <- 0
     w <- which(rv$sitesList==input$siteName)
     wNext <- w + 1
@@ -184,6 +200,8 @@ shinyServer(function(input, output, session) {
   })
   
   observeEvent(input$previousSite, {
+    message(paste(as.character(Sys.time()), 'input$previousSite was changed to:', '\t',input$previousSite, '\t'))
+    
     dummy <- 0
     w <- which(rv$sitesList==input$siteName)
     wLast <- w - 1
@@ -231,6 +249,8 @@ shinyServer(function(input, output, session) {
   # ROIs
   # ----------------------------------------------------------------------
   roipath <- reactive({
+    message(paste(as.character(Sys.time()), 'roipath reactive experssion was called.\t'))
+    
     tmp <- (paste0('/data/archive/', input$siteName,'/ROI/'))
     # tmp <- ('/home/shiny/drawROI/ROI/')
     # tmp <- tempdir()
@@ -241,20 +261,29 @@ shinyServer(function(input, output, session) {
   }  )
   
   observe({
+    
     autoInvalidate()
-    rv$ROIs <- c(dir(roipath(), pattern = 'roi.csv$'), "New ROI")
+    tmp.rv.ROIs <- c(dir(roipath(), pattern = 'roi.csv$'), "New ROI")
+    if(!identical(rv$ROIs, tmp.rv.ROIs))    {
+      message(paste(as.character(Sys.time()), 'dir roi.csv observed experssion was called.\t'))
+      
+      rv$ROIs <- tmp.rv.ROIs
+    }
   }
   )
   
-  observe(
+  observe({
+    message(paste(as.character(Sys.time()), 'rv$ROIs observed experssion was called.\t'))
     updateSelectInput(session, 'roiName', choices = rv$ROIs, selected = 'New ROI')
-  )
+  })
   
   
   # ----------------------------------------------------------------------
   # ROI label
   # ----------------------------------------------------------------------
   roiLabel <- reactive({
+    message(paste(as.character(Sys.time()), 'roiLabel reactive experssion was called.\t'))
+    
     dummy = 0 
     label <- paste(input$siteName, 
                    input$vegType, 
@@ -276,6 +305,7 @@ shinyServer(function(input, output, session) {
   # Parsed ROI List
   # ----------------------------------------------------------------------
   observeEvent(input$roiName,{
+    message(paste(as.character(Sys.time()), 'input$roiName was changed to:', '\t',input$roiName, '\t'))
     dummy = 0
     rv$slideShow <- 0 
     
@@ -311,7 +341,7 @@ shinyServer(function(input, output, session) {
     dummy =0
   })
   
-  nroi <- reactive({
+  observe({
     autoInvalidate()
     dummy <- 0
     template <- paste0(input$siteName, '_', input$vegType)
@@ -329,12 +359,19 @@ shinyServer(function(input, output, session) {
         )
       ) + 1
     n
+    
+    if(!identical(n , rv$nroi)) {
+      message(paste(as.character(Sys.time()), 'rv$nroi observed experssion was called.\t'))
+      rv$nroi <- n
+    }
   })
   
   
   roiID <- reactive({
+    message(paste(as.character(Sys.time()), 'roiID reactive experssion was called.\t'))
+    
     if(input$roiName=='New ROI') {
-      return(nroi())
+      return(rv$nroi)
     }
     else {
       dummy = 0 
@@ -342,6 +379,8 @@ shinyServer(function(input, output, session) {
     }
   })
   curMask <- reactive({
+    message(paste(as.character(Sys.time()), 'curMask reactive experssion was called.\t'))
+    
     if(input$maskName=='New mask') {
       return(NULL)
     }
@@ -353,6 +392,7 @@ shinyServer(function(input, output, session) {
   # MASKs
   # ----------------------------------------------------------------------
   observeEvent(rv$MASKs,{
+    message(paste(as.character(Sys.time()), 'input$MASKs was changed to:', '\t','...', '\t'))
     if(length(rv$MASKs)==0) {
       shinyjs::disable("downloadROI")
       shinyjs::disable("emailROI")
@@ -367,6 +407,7 @@ shinyServer(function(input, output, session) {
   # VegType
   # ----------------------------------------------------------------------
   observeEvent(input$vegType,{
+    message(paste(as.character(Sys.time()), 'input$vegType was changed to:', '\t',input$vegType, '\t'))
     rv$slideShow <- 0 
     if(length(rv$MASKs)==0) return()
     
@@ -388,6 +429,7 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   observeEvent(input$maskStartTime, 
                {
+                 message(paste(as.character(Sys.time()), 'input$maskStartTime was changed to:', '\t',input$maskStartTime, '\t'))
                  asText <- input$maskStartTime
                  asTextNew <- fixFormatTime(asText)
                  if(asTextNew!=asText) updateTextInput(session, 'maskStartTime', value = asTextNew)
@@ -396,6 +438,7 @@ shinyServer(function(input, output, session) {
   
   observeEvent(input$maskEndTime, 
                {
+                 message(paste(as.character(Sys.time()), 'input$maskEndTime was changed to:', '\t',input$maskEndTime, '\t'))
                  asText <- input$maskEndTime
                  asTextNew <- fixFormatTime(asText)
                  if(asTextNew!=asText) updateTextInput(session, 'maskEndTime', value = asTextNew)
@@ -403,13 +446,18 @@ shinyServer(function(input, output, session) {
                })
   
   observeEvent(input$maskStartDate,{
+    message(paste(as.character(Sys.time()), 'input$maskStartDate was changed to:', '\t',input$maskStartDate, '\t'))
     if(input$maskName!='New mask') rv$MASKs[[input$maskName]]$startdate <- input$maskStartDate
   })
+  
   observeEvent(input$maskEndDate,{
+    message(paste(as.character(Sys.time()), 'input$maskEndDate was changed to:', '\t',input$maskEndDate, '\t'))
     if(input$maskName!='New mask') rv$MASKs[[input$maskName]]$enddate <- input$maskEndDate
   })
   
   dayYearIDTable <- reactive({
+    message(paste(as.character(Sys.time()), 'dayYearIDTable reactive experssion was called.\t'))
+    
     dummy <- 0
     imgDT()[Site==input$siteName,.(ID=1:.N,Year, DOY, Date)]
   }    )
@@ -419,28 +467,39 @@ shinyServer(function(input, output, session) {
   # Slideshow
   # ----------------------------------------------------------------------
   observe({
+    message(paste(as.character(Sys.time()), 'slideShow observed experssion was called.\t'))
+    
     if(rv$slideShow==0) return()
     nextID <- as.numeric(input$contID) + rv$slideShow
     if(nextID > max(dayYearIDTable()$ID)) nextID <- 1
-    if(nextID == 0) nextID <- max(dayYearIDTable()$ID)
+    if(nextID < 1) nextID <- max(dayYearIDTable()$ID)
+    
+    # print(paste(input$contID, '+', rv$slideShow, 'changed to', nextID))
+    dummy <- 0
     updateSliderInput(session,
                       inputId = 'contID',
                       value = nextID)
   })
   
   observeEvent(input$pause, {
+    message(paste(as.character(Sys.time()), 'input$pause was changed to:', '\t',input$pause, '\t'))
     rv$slideShow <- 0
   })
   
   observeEvent(input$play, {
-    rv$slideShow <- 1
+    message(paste(as.character(Sys.time()), 'input$play was changed to:', '\t',input$play, '\t'))
+    if(rv$slideShow==0) rv$slideShow <- 1
+    if(rv$slideShow==-1) rv$slideShow <- 0
   })
   
   observeEvent(input$backplay, {
-    rv$slideShow <- -1
+    message(paste(as.character(Sys.time()), 'input$backplay was changed to:', '\t',input$backplay, '\t'))
+    if(rv$slideShow==0) rv$slideShow <- -1
+    if(rv$slideShow==1) rv$slideShow <- 0
   })
   
   observeEvent(input$back, {
+    message(paste(as.character(Sys.time()), 'input$back was changed to:', '\t',input$back, '\t'))
     rv$slideShow <- 0 
     nextID <- as.numeric(input$contID) - 1
     if(nextID > max(dayYearIDTable()$ID)) nextID <- 1
@@ -450,6 +509,7 @@ shinyServer(function(input, output, session) {
   })
   
   observeEvent(input$forw, {
+    message(paste(as.character(Sys.time()), 'input$forw was changed to:', '\t',input$forw, '\t'))
     rv$slideShow <- 0 
     nextID <- as.numeric(input$contID) + 1
     if(nextID > max(dayYearIDTable()$ID)) nextID <- 1
@@ -463,14 +523,20 @@ shinyServer(function(input, output, session) {
   # Sample Image
   # ----------------------------------------------------------------------
   sampleImage <- reactive({
+    message(paste(as.character(Sys.time()), 'sampleImage reactive experssion was called.\t'))
+    
     imgDT()[Site==input$siteName&Year==yearID()&DOY==doyID(), path][1]
   }  )
   
-  sampleImageSize <- reactive(
+  sampleImageSize <- reactive({
+    message(paste(as.character(Sys.time()), 'sampleImageSize reactive experssion was called.\t'))
+    
     dim(readJPEG(sampleImage()))[1:2]
-  )
+  })
   
   sampleImageName <- reactive({
+    message(paste(as.character(Sys.time()), 'sampleImageName reactive experssion was called.\t'))
+    
     tmp <- unlist(strsplit(sampleImage(), split = '/'))
     tmp[length(tmp)]
   })
@@ -480,6 +546,7 @@ shinyServer(function(input, output, session) {
   )
   
   observeEvent(input$matchStart, {
+    message(paste(as.character(Sys.time()), 'input$matchStart was changed to:', '\t',input$matchStart, '\t'))
     tmp <- unlist(strsplit(sampleImageName(), '_'))
     startDate <- as.Date(paste(tmp[2:4], collapse = '-'))
     HHMMSS <- gsub(tmp[5], pattern = '.jpg',replacement = '')
@@ -492,6 +559,7 @@ shinyServer(function(input, output, session) {
   })
   
   observeEvent(input$matchEnd, {
+    message(paste(as.character(Sys.time()), 'input$matchEnd was changed to:', '\t',input$matchEnd, '\t'))
     tmp <- unlist(strsplit(sampleImageName(), '_'))
     endDate <- as.Date(paste(tmp[2:4], collapse = '-'))
     HHMMSS <- gsub(tmp[5], pattern = '.jpg',replacement = '')
@@ -506,6 +574,8 @@ shinyServer(function(input, output, session) {
   
   
   doyID <- reactive({
+    message(paste(as.character(Sys.time()), 'doyID reactive experssion was called.\t'))
+    
     dummy <- 1
     tmp <- dayYearIDTable()[ID==as.numeric(input$contID),DOY]
     if(length(tmp)== 0) tmp <- dayYearIDTable()[ID==1,DOY]
@@ -514,6 +584,8 @@ shinyServer(function(input, output, session) {
   )
   
   yearID <- reactive({
+    message(paste(as.character(Sys.time()), 'yearID reactive experssion was called.\t'))
+    
     tmp <- dayYearIDTable()[ID==as.numeric(input$contID),Year]
     if(length(tmp)== 0) tmp <- dayYearIDTable()[ID==1,Year]
     tmp
@@ -528,7 +600,7 @@ shinyServer(function(input, output, session) {
   })
   
   observeEvent(input$gotoDateButton,{
-    dummy <- 1
+    message(paste(as.character(Sys.time()), 'input$gotoDateButton was changed to:', '\t',input$gotoDateButton, '\t'))
     dummy <- 1
     tmpDT <- dayYearIDTable()
     tmpDT[, dif:=abs(Date-input$gotoDate)]
@@ -537,6 +609,7 @@ shinyServer(function(input, output, session) {
   })
   
   observeEvent(input$contID,{
+    message(paste(as.character(Sys.time()), 'input$contID was changed to:', '\t',input$contID, '\t'))
     tmpDate <- dayYearIDTable()[ID==input$contID, Date]
     updateDateInput(session, 'gotoDate', value = tmpDate)
   })
@@ -570,6 +643,7 @@ shinyServer(function(input, output, session) {
     })
   
   observeEvent(input$maskName, {
+    message(paste(as.character(Sys.time()), 'input$maskName was changed to:', '\t',input$maskName, '\t'))
     rv$slideShow <- 0 
     if(input$maskName=='New mask') {
       # rv$MASKs <- list()
@@ -598,12 +672,14 @@ shinyServer(function(input, output, session) {
   })
   
   observeEvent(input$newPoint, {
+    message(paste(as.character(Sys.time()), 'input$newPoint was changed to:', '\t',input$newPoint, '\t'))
     rv$slideShow <- 0 
     newPoint <- matrix(c(input$newPoint[['x']], input$newPoint[['y']]),1, 2)
     rv$centers <- rbind(rv$centers, newPoint/sampleImageSize())
   })
   
   observeEvent(input$endPoint, {
+    message(paste(as.character(Sys.time()), 'input$endPoint was changed to:', '\t',input$endPoint, '\t'))
     rv$slideShow <- 0
     pnts <- rv$centers
     tbl <- as.data.table(na.omit(cbind(pnts,cumsum(is.na(pnts[,1]))+1 )))
@@ -616,11 +692,13 @@ shinyServer(function(input, output, session) {
   
   
   observeEvent(input$clearCanvas, {
+    message(paste(as.character(Sys.time()), 'input$clearCanvas was changed to:', '\t',input$clearCanvas, '\t'))
     rv$slideShow <- 0 
     rv$centers <- matrix(numeric(), 0, 2)
   })
   
   observeEvent(input$undoCanvas, {
+    message(paste(as.character(Sys.time()), 'input$undoCanvas was changed to:', '\t',input$undoCanvas, '\t'))
     rv$slideShow <- 0 
     if (nrow(rv$centers) > 2)
       rv$centers <- rv$centers[-nrow(rv$centers),]
@@ -634,6 +712,7 @@ shinyServer(function(input, output, session) {
   # Save ROI List
   # ----------------------------------------------------------------------
   observeEvent(input$saveROI,{
+    message(paste(as.character(Sys.time()), 'input$saveROI was changed to:', '\t',input$saveROI, '\t'))
     rv$slideShow <- 0 
     if(length(rv$MASKs)==0) return()
     systime <- format(Sys.time(), '%Y-%m-%d %H:%M:%S')
@@ -718,6 +797,7 @@ shinyServer(function(input, output, session) {
   # Email ROI List
   # ----------------------------------------------------------------------
   observeEvent(input$emailROI,{
+    message(paste(as.character(Sys.time()), 'input$emailROI was changed to:', '\t',input$emailROI, '\t'))
     rv$slideShow <- 0 
     if(length(rv$MASKs)==0) return()
     
@@ -785,6 +865,8 @@ shinyServer(function(input, output, session) {
   
   
   tsYearDayRange <- reactive({
+    message(paste(as.character(Sys.time()), 'tsYearDayRange reactive experssion was called.\t'))
+    
     if(input$ccRange=="week")
       return(imgDT()[Site==input$siteName&Year==yearID()&DOY%in%(doyID()[1]:(doyID()[1]+7)),YearDOY])
     else if(input$ccRange=="year")
@@ -794,11 +876,15 @@ shinyServer(function(input, output, session) {
       return(imgDT()[Site==input$siteName,YearDOY])
   })
   
-  paths <- reactive(
+  paths <- reactive({
+    message(paste(as.character(Sys.time()), 'paths reactive experssion was called.\t'))
+    
     imgDT()[Site==input$siteName&YearDOY%in%tsYearDayRange(), .(paths=path[1]),.(conT, Year, DOY, Date)]
-  )
+  })
   
   ccVals <- eventReactive(input$startExtractCC,{
+    message(paste(as.character(Sys.time()), 'ccVals-startExtractCC eventReactive experssion was called.\t'))
+    
     if(is.null(curMask())|length(paths()$path)==0) {
       return(data.frame(rcc=NA, gcc=NA, bcc=NA))
     }
@@ -822,6 +908,8 @@ shinyServer(function(input, output, session) {
   })
   
   ccTime <- eventReactive(input$startExtractCC,{
+    message(paste(as.character(Sys.time()), 'ccTime-startExtractCC eventReactive experssion was called.\t'))
+    
     if(is.null(curMask())) {
       return(NA)
     }
@@ -918,6 +1006,7 @@ shinyServer(function(input, output, session) {
   # Accept canvas
   # ----------------------------------------------------------------------
   observeEvent(input$acceptCanvas,{
+    message(paste(as.character(Sys.time()), 'input$acceptCanvas was changed to:', '\t',input$acceptCanvas, '\t'))
     rv$slideShow <- 0 
     if(is.null(rv$centers)) {
       showModal(strong(modalDialog('First draw a polgon by clicking on the image!', 
@@ -1017,36 +1106,36 @@ shinyServer(function(input, output, session) {
       res=96,
       height = function(){floor(session$clientData$output_maskPlot_width/1.35)},
       {
-      par(mar=c(0,0,0,0))
-      plot(1,
-           type='n',
-           xaxs='i',yaxs='i',
-           xaxt='n',yaxt='n',
-           xlab='',ylab='',
-           bty='o')
-      
-      if(is.null(curMask())) {
-        text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No mask was generated!', font=2, adj=.5)
+        par(mar=c(0,0,0,0))
+        plot(1,
+             type='n',
+             xaxs='i',yaxs='i',
+             xaxt='n',yaxt='n',
+             xlab='',ylab='',
+             bty='o')
         
-        return()
-      }
-      mask <- curMask()
-      res <- dim(mask)
-      
-      wd <- getwd()
-      setwd(tmpDir())
-      
-      plot(NA,xlim=c(1,res[2]),ylim=c(1,res[1]), type='n',
-           xaxs='i',yaxs='i',xaxt='n',yaxt='n',xlab='',ylab='',bty='o')
-      dummy=0
-      writeTIFF(mask*1, '.tmpraster.tif')
-      rmask <- raster('.tmpraster.tif')
-      rmask[rmask!=0] <- NA
-      
-      plot(rmask,legend=F, add=T, col='black')
-      file.remove('.tmpraster.tif')
-      setwd(wd)
-    })
+        if(is.null(curMask())) {
+          text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No mask was generated!', font=2, adj=.5)
+          
+          return()
+        }
+        mask <- curMask()
+        res <- dim(mask)
+        
+        wd <- getwd()
+        setwd(tmpDir())
+        
+        plot(NA,xlim=c(1,res[2]),ylim=c(1,res[1]), type='n',
+             xaxs='i',yaxs='i',xaxt='n',yaxt='n',xlab='',ylab='',bty='o')
+        dummy=0
+        writeTIFF(mask*1, '.tmpraster.tif')
+        rmask <- raster('.tmpraster.tif')
+        rmask[rmask!=0] <- NA
+        
+        plot(rmask,legend=F, add=T, col='black')
+        file.remove('.tmpraster.tif')
+        setwd(wd)
+      })
   
   # ----------------------------------------------------------------------
   # Download timeseries
@@ -1066,6 +1155,7 @@ shinyServer(function(input, output, session) {
   )
   
   observeEvent(input$password,{
+    message(paste(as.character(Sys.time()), 'input$password was changed to:', '\t', rep('*', length(input$password)), '\t'))
     filepass <- '.key.psw2'
     
     if(file.exists(filepass)){
@@ -1095,6 +1185,7 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   
   observeEvent(input$errorSend,{
+    message(paste(as.character(Sys.time()), 'input$errorSend was changed to:', '\t',input$errorSend, '\t'))
     msg <- paste0(
       '---------\n',
       'Submit time: \t', as.character(Sys.time()), '\n',
@@ -1128,6 +1219,7 @@ shinyServer(function(input, output, session) {
   
   observeEvent(input$errorTime, 
                {
+                 message(paste(as.character(Sys.time()), 'input$errorTime was changed to:', '\t',input$errorTime, '\t'))
                  asText <- input$errorTime
                  asTextNew <- fixFormatTime(asText)
                  if(asTextNew!=asText) updateTextInput(session, 'errorTime', value = asTextNew)
@@ -1139,64 +1231,6 @@ shinyServer(function(input, output, session) {
   message(paste('\n--------------------------------------------------------------------\n', 
                 as.character(Sys.time()),'New session just started!',
                 '\n--------------------------------------------------------------------\n'))
-  observeEvent(input$siteName, message(paste(as.character(Sys.time()), 'input$siteName was changed to:', '\t',input$siteName, '\t')))
-  observeEvent(input$siteDescription, message(paste(as.character(Sys.time()), 'input$siteDescription was changed to:', '\t',input$siteDescription, '\t')))
-  observeEvent(input$vegType, message(paste(as.character(Sys.time()), 'input$vegType was changed to:', '\t',input$vegType, '\t')))
-  observeEvent(input$roiName, message(paste(as.character(Sys.time()), 'input$roiName was changed to:', '\t',input$roiName, '\t')))
-  observeEvent(input$roiOwner, message(paste(as.character(Sys.time()), 'input$roiOwner was changed to:', '\t',input$roiOwner, '\t')))
-  observeEvent(input$roiColors, message(paste(as.character(Sys.time()), 'input$roiColors was changed to:', '\t',input$roiColors, '\t')))
-  
-  observeEvent(input$back, message(paste(as.character(Sys.time()), 'input$back was changed to:', '\t',input$back, '\t')))
-  observeEvent(input$backplay, message(paste(as.character(Sys.time()), 'input$backplay was changed to:', '\t',input$backplay, '\t')))
-  observeEvent(input$forw, message(paste(as.character(Sys.time()), 'input$forw was changed to:', '\t',input$forw, '\t')))
-  observeEvent(input$play, message(paste(as.character(Sys.time()), 'input$play was changed to:', '\t',input$play, '\t')))
-  observeEvent(input$pause, message(paste(as.character(Sys.time()), 'input$pause was changed to:', '\t',input$pause, '\t')))
-  
-  observeEvent(input$acceptCanvas, message(paste(as.character(Sys.time()), 'input$acceptCanvas was changed to:', '\t',input$acceptCanvas, '\t')))
-  observeEvent(input$undoCanvas, message(paste(as.character(Sys.time()), 'input$undoCanvas was changed to:', '\t',input$undoCanvas, '\t')))
-  observeEvent(input$clearCanvas, message(paste(as.character(Sys.time()), 'input$clearCanvas was changed to:', '\t',input$clearCanvas, '\t')))
-  
-  observeEvent(input$nextSite, message(paste(as.character(Sys.time()), 'input$nextSite was changed to:', '\t',input$nextSite, '\t')))
-  observeEvent(input$previousSite, message(paste(as.character(Sys.time()), 'input$previousSite was changed to:', '\t',input$previousSite, '\t')))
-  
-  observeEvent(input$emailROI, message(paste(as.character(Sys.time()), 'input$emailROI was changed to:', '\t',input$emailROI, '\t')))
-  observeEvent(input$saveROI, message(paste(as.character(Sys.time()), 'input$previousSite was changed to:', '\t',input$saveROI, '\t')))
-  observeEvent(input$password, message(paste(as.character(Sys.time()), 'input$password was changed to: ****', '\t')))
-  
-  observeEvent(input$gotoDate, message(paste(as.character(Sys.time()), 'input$gotoDate was changed to:', '\t',as.character(input$gotoDate), '\t')))
-  observeEvent(input$contID, message(paste(as.character(Sys.time()), 'input$contID was changed to:', '\t',input$contID, '\t')))
-  observeEvent(input$gotoDateButton, message(paste(as.character(Sys.time()), 'input$gotoDateButton was changed to:', '\t',input$gotoDateButton, '\t')))
-  
-  observeEvent(input$ccRange, message(paste(as.character(Sys.time()), 'input$ccRange was changed to:', '\t',input$ccRange, '\t')))
-  observeEvent(input$startExtractCC, message(paste(as.character(Sys.time()), 'input$startExtractCC was changed to:', '\t',input$startExtractCC, '\t')))
-  observeEvent(input$ccBand, message(paste(as.character(Sys.time()), 'input$ccBand was changed to:', '\t',input$ccBand, '\t')))
-  
-  observeEvent(input$maskEndDate, message(paste(as.character(Sys.time()), 'input$maskEndDate was changed to:', '\t',as.character(input$maskEndDate), '\t')))
-  observeEvent(input$maskEndTime, message(paste(as.character(Sys.time()), 'input$maskEndTime was changed to:', '\t',input$maskEndTime, '\t')))
-  observeEvent(input$maskName, message(paste(as.character(Sys.time()), 'input$maskName was changed to:', '\t',input$maskName, '\t')))
-  observeEvent(input$maskStartDate, message(paste(as.character(Sys.time()), 'input$maskStartDate was changed to:', '\t',as.character(input$maskStartDate), '\t')))
-  observeEvent(input$maskStartTime, message(paste(as.character(Sys.time()), 'input$maskStartTime was changed to:', '\t',input$maskStartTime, '\t')))
-  observeEvent(input$matchEnd, message(paste(as.character(Sys.time()), 'input$matchEnd was changed to:', '\t',input$matchEnd, '\t')))
-  observeEvent(input$matchStart, message(paste(as.character(Sys.time()), 'input$matchStart was changed to:', '\t',input$matchStart, '\t')))
-  observeEvent(input$matchStart, message(paste(as.character(Sys.time()), 'input$matchStart was changed to:', '\t',input$matchStart, '\t')))
-  observeEvent(input$openEnd, message(paste(as.character(Sys.time()), 'input$openEnd was changed to:', '\t',input$openEnd, '\t')))
-  
-  observeEvent(input$errorBrowser, message(paste(as.character(Sys.time()), 'input$errorBrowser was changed to:', '\t',input$errorBrowser, '\t')))
-  observeEvent(input$errorDate, message(paste(as.character(Sys.time()), 'input$errorDate was changed to:', '\t',as.character(input$errorDate), '\t')))
-  observeEvent(input$errorEmail, message(paste(as.character(Sys.time()), 'input$errorEmail was changed to:', '\t',input$errorEmail, '\t')))
-  observeEvent(input$errorMessage, message(paste(as.character(Sys.time()), 'input$errorMessage was changed to:', '\t',input$errorMessage, '\t')))
-  observeEvent(input$errorOS, message(paste(as.character(Sys.time()), 'input$errorOS was changed to:', '\t',input$errorOS, '\t')))
-  observeEvent(input$errorSend, message(paste(as.character(Sys.time()), 'input$errorSend was changed to:', '\t',input$errorSend, '\t')))
-  observeEvent(input$errorSite, message(paste(as.character(Sys.time()), 'input$errorSite was changed to:', '\t',input$errorSite, '\t')))
-  observeEvent(input$errorTime, message(paste(as.character(Sys.time()), 'input$errorTime was changed to:', '\t',input$errorTime, '\t')))
-  observeEvent(input$errorType, message(paste(as.character(Sys.time()), 'input$errorType was changed to:', '\t',input$errorType, '\t')))
-  observeEvent(input$errorUser, message(paste(as.character(Sys.time()), 'input$errorUser was changed to:', '\t',input$errorUser, '\t')))
-  
-  observeEvent(input$siteInfo, message(paste(as.character(Sys.time()), 'input$siteInfo was changed to:', '\t',input$siteInfo, '\t')))
-  observeEvent(input$modalSiteInfo, message(paste(as.character(Sys.time()), 'input$modalSiteInfo was changed to:', '\t',input$modalSiteInfo, '\t')))
-  
-  # observeEvent(input$newPoint, message(paste(as.character(Sys.time()), 'input$newPoint was changed to:', '\t',input$newPoint, '\t')))
-  
   shinyjs::disable("downloadTSData")
   shinyjs::disable("saveROI")
   shinyjs::disable("downloadROI")
