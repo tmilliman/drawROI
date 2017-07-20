@@ -32,7 +32,7 @@ fluidPage(
                                    selectInput("siteName", "Site", choices = if(getwd()==bijanWD)'acadia'else'ahwahnee')
                             ),
                             br(),
-                            column(2, strong(actionButton('siteInfo', label = NULL, icon = icon('info'), width = '100%', style="border-color: #f5f5f5; align:center; background-color:#f5f5f5; color:#337ab7; font-size: 200%")),
+                            column(2, strong(actionButton('siteInfo', label = NULL, icon = icon('info'), width = '100%', style="border-color: #f5f5f5; align:center; background-color:#f5f5f5; color:#337ab7; font-size: 200%;font-weight: bold;")),
                                    bsModal("modalSiteInfo", "Site Info", "siteInfo", 
                                            size = "medium",
                                            footer = NULL, 
@@ -53,13 +53,13 @@ fluidPage(
                           textOutput('sampleImagePath'),
                           br(),
                           fluidRow(
-                            column(6, actionButton( 'matchStart', 'Match start', width = '100%', style='background-color:#666; color:#fff')),
-                            column(6, actionButton( 'matchEnd', 'Match end', width = '100%', style='background-color:#666; color:#fff'))
+                            column(6, actionButton( 'matchStart', 'Match start', width = '100%', style='background-color:#666; color:#fff;font-weight: bold;')),
+                            column(6, actionButton( 'matchEnd', 'Match end', width = '100%', style='background-color:#666; color:#fff;font-weight: bold;'))
                           ),
                           br(),
                           
                           fluidRow(
-                            column(1, strong('from', style='font-size:70%')),
+                            column(1, strong('from', style='font-size:70%;font-weight: bold;')),
                             column(5, dateInput('maskStartDate', label = NULL, value =  '2001-01-01', startview = 'day')),
                             column(4, textInput('maskStartTime', label = NULL, value = '00:08:00')),
                             column(1, '')
@@ -93,8 +93,8 @@ fluidPage(
                fluidRow( 
                  column(3, 
                         fluidRow( 
-                          column(8, strong(dateInput('gotoDate', label = ''), style='font-size:40%')),
-                          column(4, actionButton('gotoDateButton', label = NULL, icon = icon('refresh'), width = '100%', style="border-color: #fff; align:center; font-size: 200%"))
+                          column(8, strong(dateInput('gotoDate', label = ''), style='font-size:40%;font-weight: bold;')),
+                          column(4, actionButton('gotoDateButton', label = NULL, icon = icon('refresh'), width = '100%', style="border-color: #fff; align:center; font-size: 200%;font-weight: bold;"))
                         )
                  ),
                  column(9, sliderInput(inputId = "contID",
@@ -130,9 +130,9 @@ fluidPage(
                  column(1, strong()),
                  column(5, 
                         fluidRow(
-                          column(4, actionButton("clearCanvas", "Erase", icon = icon('eraser'), class="btn-primary", width = "100%")),
-                          column(4, actionButton("undoCanvas", "Undo", icon = icon('undo'), class="btn-primary", width = "100%")),
-                          column(4, actionButton("acceptCanvas", "Accept", icon = icon('thumbs-up'), class="btn-primary", width = "100%"))
+                          column(4, actionButton("clearCanvas", "Erase", icon = icon('eraser'), class="btn-primary", width = "100%", style='font-weight: bold;')),
+                          column(4, actionButton("undoCanvas", "Undo", icon = icon('undo'), class="btn-primary", width = "100%", style='font-weight: bold;')),
+                          column(4, actionButton("acceptCanvas", "Accept", icon = icon('thumbs-up'), class="btn-primary", width = "100%", style='font-weight: bold;'))
                         )),
                  column(5,
                         fluidRow(
@@ -146,18 +146,20 @@ fluidPage(
                hr(),
                
                fluidRow(
-                 column(3, radioButtons('ccRange', label = NULL, choices = c('Week', 'Month', 'Year', 'Entire data'), width = "330px",inline = F)),
-                 column(3, checkboxGroupInput('ccBand', label = NULL, choices = c(Red='R',Green='G',Blue='B'), selected = c('R','G','B'), width = '100%', inline = F)),
-                 column(4, 
-                        actionButton("startExtractCC", "Extract time series", class="btn-primary", icon = icon('line-chart'), onclick="Shiny.onInputChange('stopThis',false)", width = "170px"),
-                        br(),
-                        br(),
-                        br(),
+                 column(2, 
+                        radioButtons('ccRange', label = NULL, choices = c('Week', 'Month', 'Year', 'Entire data'), width = "330px",inline = F),
+                        
+                        actionButton("startExtractCC", "Extract", icon = icon('line-chart'), onclick="Shiny.onInputChange('stopThis',false)", width = "110px", style="background-color:#666; color:#fff;font-weight: bold;"),
+                        hr(),
+                        checkboxGroupInput('ccBand', label = NULL, choices = c(Red='R',Green='G',Blue='B'), selected = c('R','G','B'), width = '100%', inline = F),
+                        hr(),
                         downloadButton("downloadTSData", "Download\t")
-                        )
-               ),
+                 ),
+                 column(10, plotlyOutput(outputId = "timeSeriesPlotly", height = "500px", width = "100%"))
+                 
+               )
                
-               plotlyOutput(outputId = "timeSeriesPlotly", height = "500px", width = "100%")
+               
              )
     ),
     
