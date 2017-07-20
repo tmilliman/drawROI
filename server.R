@@ -367,6 +367,11 @@ shinyServer(function(input, output, session) {
   })
   
   
+  observeEvent(input$refreshROI, {
+      roiName.now <- input$roiName
+      updateSelectInput(session, 'roiName', selected = roiName.now)
+  })
+  
   roiID <- reactive({
     message(paste(as.character(Sys.time()), 'roiID reactive experssion was called.\t'))
     
