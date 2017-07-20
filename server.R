@@ -1231,6 +1231,26 @@ shinyServer(function(input, output, session) {
   message(paste('\n--------------------------------------------------------------------\n', 
                 as.character(Sys.time()),'New session just started!',
                 '\n--------------------------------------------------------------------\n'))
+  observeEvent(input$siteDescription, message(paste(as.character(Sys.time()), 'input$siteDescription was changed to:', '\t',input$siteDescription, '\t')))
+  observeEvent(input$roiOwner, message(paste(as.character(Sys.time()), 'input$roiOwner was changed to:', '\t',input$roiOwner, '\t')))
+  observeEvent(input$roiColors, message(paste(as.character(Sys.time()), 'input$roiColors was changed to:', '\t',input$roiColors, '\t')))
+  observeEvent(input$ccRange, message(paste(as.character(Sys.time()), 'input$ccRange was changed to:', '\t',input$ccRange, '\t')))
+  observeEvent(input$ccBand, message(paste(as.character(Sys.time()), 'input$ccBand was changed to:', '\t',input$ccBand, '\t')))
+  observeEvent(input$openEnd, message(paste(as.character(Sys.time()), 'input$openEnd was changed to:', '\t',input$openEnd, '\t')))
+  observeEvent(input$errorBrowser, message(paste(as.character(Sys.time()), 'input$errorBrowser was changed to:', '\t',input$errorBrowser, '\t')))
+  observeEvent(input$errorDate, message(paste(as.character(Sys.time()), 'input$errorDate was changed to:', '\t',as.character(input$errorDate), '\t')))
+  observeEvent(input$errorEmail, message(paste(as.character(Sys.time()), 'input$errorEmail was changed to:', '\t',input$errorEmail, '\t')))
+  observeEvent(input$errorMessage, message(paste(as.character(Sys.time()), 'input$errorMessage was changed to:', '\t',input$errorMessage, '\t')))
+  observeEvent(input$errorOS, message(paste(as.character(Sys.time()), 'input$errorOS was changed to:', '\t',input$errorOS, '\t')))
+  observeEvent(input$errorSend, message(paste(as.character(Sys.time()), 'input$errorSend was changed to:', '\t',input$errorSend, '\t')))
+  observeEvent(input$errorSite, message(paste(as.character(Sys.time()), 'input$errorSite was changed to:', '\t',input$errorSite, '\t')))
+  observeEvent(input$errorTime, message(paste(as.character(Sys.time()), 'input$errorTime was changed to:', '\t',input$errorTime, '\t')))
+  observeEvent(input$errorType, message(paste(as.character(Sys.time()), 'input$errorType was changed to:', '\t',input$errorType, '\t')))
+  observeEvent(input$errorUser, message(paste(as.character(Sys.time()), 'input$errorUser was changed to:', '\t',input$errorUser, '\t')))
+  observeEvent(input$siteInfo, message(paste(as.character(Sys.time()), 'input$siteInfo was changed to:', '\t',input$siteInfo, '\t')))
+  observeEvent(input$modalSiteInfo, message(paste(as.character(Sys.time()), 'input$modalSiteInfo was changed to:', '\t',input$modalSiteInfo, '\t')))
+  
+  
   shinyjs::disable("downloadTSData")
   shinyjs::disable("saveROI")
   shinyjs::disable("downloadROI")
