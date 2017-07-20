@@ -121,7 +121,7 @@ fluidPage(
                ),
                fluidRow(
                  column(1, actionButton('previousSite', label = NULL, icon = icon('arrow-circle-left'), width = '100%',  style="border-color: #fff; font-size: 175%")),
-                 column(5, plotOutput("imagePlot", click = "newPoint", dblclick = 'endPoint', height = 'auto')),
+                 column(5, plotOutput("imagePlot", click = "newPoint", dblclick = 'gapPoint', height = 'auto')),
                  column(5, plotOutput("maskPlot", height = 'auto')),
                  column(1, actionButton('nextSite', label = NULL, icon = icon('arrow-circle-right'), width = '100%',  style="border-color: #fff; font-size: 175%"))
                ),

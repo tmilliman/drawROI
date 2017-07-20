@@ -671,18 +671,27 @@ shinyServer(function(input, output, session) {
     # updateSelectInput(session, inputId = 'viewDay', selected = tmpmask$sampleday)
   })
   
-  observeEvent(input$newPoint, {
-    if(nrow(input$newPoint)>0)
-      message(paste(as.character(Sys.time()), 'input$newPoint was updated with:', '\t',input$newPoint[nrow(input$newPoint), ], '\t'))
+  observeEvent(rv$centers, {
+    n <- nrow(rv$centers)
+    if(n>0)
+      message(paste(as.character(Sys.time()), 'rv$centers was updated with:', '\t',rv$centers[n,1], rv$centers[n,2], '\t'))
     else
-      message(paste(as.character(Sys.time()), 'input$newPoint was reset.\t'))
+      message(paste(as.character(Sys.time()), 'rv$centers was reset.\t'))
+    
+  })
+  
+  observeEvent(input$newPoint, {
+    dummy <- 0
+    message(paste(as.character(Sys.time()), 'input$newPoint was updated with:', '\t',input$newPoint$x, input$newPoint$y, '\t'))
     rv$slideShow <- 0 
     newPoint <- matrix(c(input$newPoint[['x']], input$newPoint[['y']]),1, 2)
     rv$centers <- rbind(rv$centers, newPoint/sampleImageSize())
   })
   
-  observeEvent(input$endPoint, {
-    message(paste(as.character(Sys.time()), 'input$endPoint was changed to:', '\t',input$endPoint, '\t'))
+  observeEvent(input$gapPoint, {
+    if(nrow(rv$centers)<3) return()
+    dummy <- 0
+    message(paste(as.character(Sys.time()), 'input$gapPoint was updated with:', '\t',input$gapPoint$x, input$gapPoint$y, '\t'))
     rv$slideShow <- 0
     pnts <- rv$centers
     tbl <- as.data.table(na.omit(cbind(pnts,cumsum(is.na(pnts[,1]))+1 )))
