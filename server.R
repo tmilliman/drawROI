@@ -877,7 +877,19 @@ shinyServer(function(input, output, session) {
   # tsYearDayRange
   # ----------------------------------------------------------------------
   
-  
+  observeEvent(input$ccRange,{
+    if(input$ccRange=="week") return()
+    updateRadioButtons(session, inputId = 'ccRange', selected = 'week')
+    showModal(strong(
+      modalDialog(HTML('Extracting on-the-fly time series for long ranges is inactive now. <br>
+                      We are working on this to make it faster.'),
+                  easyClose = T,
+                  fade = T,
+                  size = 'm',
+                  style='background-color:#3b3a35; color:#fce319; ',
+                  footer = NULL
+      )))
+  })
   tsYearDayRange <- reactive({
     message(paste(as.character(Sys.time()), 'tsYearDayRange reactive experssion was called.\t'))
     
@@ -1275,15 +1287,15 @@ shinyServer(function(input, output, session) {
   
   removeModal()
   
-  # showModal(strong(
-  #   modalDialog(HTML('This is the beta version of PhenoCam ROI app. Thanks for helping us to improve it. <br> 
-  #               Please do not share with others.'),
-  #               easyClose = T, 
-  #               fade = T,
-  #               size = 'm',
-  #               style='background-color:#3b3a35; color:#fce319; ',
-  #               footer = NULL
-  #   )))
+  showModal(strong(
+    modalDialog(HTML('This is the beta version of PhenoCam ROI app. Thanks for helping us to improve it. <br>
+                Please do not share with others.'),
+                easyClose = T,
+                fade = T,
+                size = 'm',
+                style='background-color:#3b3a35; color:#fce319; ',
+                footer = NULL
+    )))
   
 })
 
