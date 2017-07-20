@@ -672,7 +672,7 @@ shinyServer(function(input, output, session) {
   })
   
   observeEvent(input$newPoint, {
-    message(paste(as.character(Sys.time()), 'input$newPoint was changed to:', '\t',input$newPoint, '\t'))
+    message(paste(as.character(Sys.time()), 'input$newPoint was updated with:', '\t',input$newPoint[nrow(input$newPoint), ], '\t'))
     rv$slideShow <- 0 
     newPoint <- matrix(c(input$newPoint[['x']], input$newPoint[['y']]),1, 2)
     rv$centers <- rbind(rv$centers, newPoint/sampleImageSize())
