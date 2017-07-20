@@ -37,8 +37,8 @@ fluidPage(
                                            size = "medium",
                                            footer = NULL, 
                                            tableOutput("tblSiteInfo")
-                                           )
                                    )
+                            )
                           ),
                           selectInput("roiName", "ROI", 'New ROI'),
                           selectInput("vegType", "Vegetation Type", choices = list('Agriculture (AG)'='AG')),
@@ -179,7 +179,14 @@ fluidPage(
                  textAreaInput('errorMessage', label = 'Explain the error please.', cols = 200, rows = 20) 
                )               
              )
+    ),
+    
+    tabPanel('Simple Tutorial', 
+             fluidPage(
+             HTML('<img src="phenoCamROI.guide.png"  alt="This is alternate text">', width='100%')
+             )
     )
+    
   )
 )
 
