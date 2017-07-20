@@ -689,7 +689,8 @@ shinyServer(function(input, output, session) {
   })
   
   observeEvent(input$gapPoint, {
-    if(nrow(rv$centers)<3) return()
+    n <- nrow(rv$centers)
+    if(n<3) return()
     dummy <- 0
     message(paste(as.character(Sys.time()), 'input$gapPoint was updated with:', '\t',input$gapPoint$x, input$gapPoint$y, '\t'))
     rv$slideShow <- 0
@@ -699,7 +700,8 @@ shinyServer(function(input, output, session) {
     tbln <- table(tbl$g)
     if(tbln[length(tbln)]<3) return()
     newPoint <- matrix(c(NA, NA),1, 2)
-    rv$centers <- rbind(rv$centers, newPoint)
+    if(!is.na(rv$centers[n,1]))
+      rv$centers <- rbind(rv$centers, newPoint)
   })
   
   
@@ -1247,7 +1249,7 @@ shinyServer(function(input, output, session) {
   observeEvent(input$roiOwner, message(paste(as.character(Sys.time()), 'input$roiOwner was changed to:', '\t',input$roiOwner, '\t')))
   observeEvent(input$roiColors, message(paste(as.character(Sys.time()), 'input$roiColors was changed to:', '\t',input$roiColors, '\t')))
   observeEvent(input$ccRange, message(paste(as.character(Sys.time()), 'input$ccRange was changed to:', '\t',input$ccRange, '\t')))
-  observeEvent(input$ccBand, message(paste(as.character(Sys.time()), 'input$ccBand was changed to:', '\t',input$ccBand, '\t')))
+  observeEvent(input$ccBand, message(paste(as.character(Sys.time()), 'input$ccBand was changed to:', '\t',paste(input$ccBand, collapse = ', '), '\t')))
   observeEvent(input$openEnd, message(paste(as.character(Sys.time()), 'input$openEnd was changed to:', '\t',input$openEnd, '\t')))
   observeEvent(input$errorBrowser, message(paste(as.character(Sys.time()), 'input$errorBrowser was changed to:', '\t',input$errorBrowser, '\t')))
   observeEvent(input$errorDate, message(paste(as.character(Sys.time()), 'input$errorDate was changed to:', '\t',as.character(input$errorDate), '\t')))
