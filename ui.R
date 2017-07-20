@@ -183,7 +183,7 @@ fluidPage(
     
     tabPanel('Simple Tutorial', 
              fluidPage(
-             HTML('<img src="phenoCamROI.guide.png"  alt="This is alternate text">', width='100%')
+             HTML('<img src="phenoCamROI.guide.png"  alt="This is alternate text" , width="100%">')
              )
     )
     
