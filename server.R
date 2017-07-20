@@ -667,8 +667,6 @@ shinyServer(function(input, output, session) {
     tmpID <- dayYearIDTable()[Year==as.numeric(yearID())&DOY==as.numeric(doyID()), ID]
     if(length(tmpID)==0) tmpID <- 1
     rv$ID <- tmpID[1]
-    # updateSelectInput(session, inputId = 'year', selected = tmpmask$sampleyear)
-    # updateSelectInput(session, inputId = 'viewDay', selected = tmpmask$sampleday)
   })
   
   observeEvent(rv$centers, {
@@ -878,10 +876,9 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   
   observeEvent(input$ccRange,{
-    if(input$ccRange=="week") return()
-    updateRadioButtons(session, inputId = 'ccRange', selected = 'week')
+    if(input$ccRange%in%c("Week", "Month")) return()
     showModal(strong(
-      modalDialog(HTML('Extracting on-the-fly time series for long ranges is inactive now. <br>
+      modalDialog(HTML('Extracting on-the-fly time series for long ranges is disabled now. <br>
                       We are working on this to make it faster.'),
                   easyClose = T,
                   fade = T,
@@ -889,16 +886,19 @@ shinyServer(function(input, output, session) {
                   style='background-color:#3b3a35; color:#fce319; ',
                   footer = NULL
       )))
+    updateRadioButtons(session, inputId = 'ccRange', selected = 'Week')
+    
   })
   tsYearDayRange <- reactive({
     message(paste(as.character(Sys.time()), 'tsYearDayRange reactive experssion was called.\t'))
     
-    if(input$ccRange=="week")
-      return(imgDT()[Site==input$siteName&Year==yearID()&DOY%in%(doyID()[1]:(doyID()[1]+7)),YearDOY])
-    else if(input$ccRange=="year")
-      # return(1:365)
-      return(imgDT()[Site==input$siteName&Year==yearID(),YearDOY])
-    else if(input$ccRange=="all")
+    if(input$ccRange=="Week")
+      return(imgDT()[Site==input$siteName&Date%in%(input$gotoDate + (1:7)),YearDOY])
+    else if(input$ccRange=="Month")
+      return(imgDT()[Site==input$siteName&Date%in%(input$gotoDate + (1:30)),YearDOY])
+    else if(input$ccRange=="Year")
+      return(imgDT()[Site==input$siteName&Date%in%(input$gotoDate + (1:365)),YearDOY])
+    else if(input$ccRange=="Entire data")
       return(imgDT()[Site==input$siteName,YearDOY])
   })
   

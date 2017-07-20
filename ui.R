@@ -146,10 +146,15 @@ fluidPage(
                hr(),
                
                fluidRow(
-                 column(3, radioButtons('ccRange', label = NULL, choices = c('week', 'year', 'all'), width = "330px",inline = T)),
-                 column(3, actionButton("startExtractCC", "Extract time series", class="btn-primary", icon = icon('line-chart'), onclick="Shiny.onInputChange('stopThis',false)", width = "100%")),
-                 column(3, checkboxGroupInput('ccBand', label = NULL, choices = c('R','G','B'), selected = c('R','G','B'), width = '100%', inline = T)),
-                 column(3, downloadButton("downloadTSData", "Download"))
+                 column(3, radioButtons('ccRange', label = NULL, choices = c('Week', 'Month', 'Year', 'Entire data'), width = "330px",inline = F)),
+                 column(3, checkboxGroupInput('ccBand', label = NULL, choices = c(Red='R',Green='G',Blue='B'), selected = c('R','G','B'), width = '100%', inline = F)),
+                 column(4, 
+                        actionButton("startExtractCC", "Extract time series", class="btn-primary", icon = icon('line-chart'), onclick="Shiny.onInputChange('stopThis',false)", width = "170px"),
+                        br(),
+                        br(),
+                        br(),
+                        downloadButton("downloadTSData", "Download\t")
+                        )
                ),
                
                plotlyOutput(outputId = "timeSeriesPlotly", height = "500px", width = "100%")
@@ -183,7 +188,7 @@ fluidPage(
     
     tabPanel('Simple Tutorial', 
              fluidPage(
-             HTML('<img src="phenoCamROI.guide.png"  alt="This is alternate text" , width="100%">')
+               HTML('<img src="phenoCamROI.guide.png"  alt="This is alternate text" , width="100%">')
              )
     )
     
