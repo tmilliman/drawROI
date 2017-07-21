@@ -881,7 +881,7 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   
   observeEvent(input$ccRange,{
-    if(input$ccRange%in%c("Week", "Month")&!passwordCorrect()) return()
+    if(input$ccRange%in%c("Week", "Month")|passwordCorrect()) return()
     showModal(strong(
       modalDialog(HTML('Extracting on-the-fly time series for long ranges is disabled now. <br>
                       We are working on this to make it faster.'),
