@@ -49,7 +49,7 @@ shinyServer(function(input, output, session) {
       shinyjs::disable('maskEndDate')
       shinyjs::disable('maskEndTime')
       updateDateInput(session, 'maskEndDate', value = '9999-12-31')
-      updateTextInput(session, 'maskEndTime', value = '23:59:59')
+      updateTextInput(session, 'maskEndTime', value = '00:00:00')
     }else{
       shinyjs::enable('maskEndDate')
       shinyjs::enable('maskEndTime')
@@ -881,7 +881,7 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   
   observeEvent(input$ccRange,{
-    if(input$ccRange%in%c("Week", "Month")) return()
+    if(input$ccRange%in%c("Week", "Month")&!passwordCorrect()) return()
     showModal(strong(
       modalDialog(HTML('Extracting on-the-fly time series for long ranges is disabled now. <br>
                       We are working on this to make it faster.'),
@@ -1187,30 +1187,33 @@ shinyServer(function(input, output, session) {
   
   observeEvent(input$password,{
     message(paste(as.character(Sys.time()), 'input$password was changed to:', '\t', rep('*', length(input$password)), '\t'))
-    filepass <- '.key.psw2'
     
-    if(file.exists(filepass)){
-      fcon <- try(file(filepass, 'r'), silent = F)
-      tmppass <- readLines(fcon)
-      close(fcon)
-    }else{
-      showModal(strong(modalDialog("Connection to the passfile was failed!",
-                                   style='background-color:#3b3a35; color:#fce319; ',
-                                   easyClose = T,
-                                   size = 's',
-                                   footer = NULL
-      )))
-      return()
-    }
-    
-    if(input$password==tmppass){
+    if(passwordCorrect()){
       shinyjs::enable("saveROI")
     }else{
       shinyjs::disable("saveROI")
     }
   })
   
-  
+  passwordCorrect <- reactive(label = 'passReactiveLabel', {
+    message(paste(as.character(Sys.time()), 'passwordCorrect reactive experssion was called.\t'))
+    
+    filepass <- '.key.psw'
+    if(file.exists(filepass)){
+      fcon <- try(file(filepass, 'r'), silent = F)
+      tmppass <- readLines(fcon)
+      close(fcon)
+      if(input$password==tmppass) return(T)
+    }else
+      showModal(strong(modalDialog("Connection to the passfile was failed!",
+                                   style='background-color:#3b3a35; color:#fce319; ',
+                                   easyClose = T,
+                                   size = 's',
+                                   footer = NULL
+      )))
+    
+    return(F)
+  })
   # ----------------------------------------------------------------------
   # Email error
   # ----------------------------------------------------------------------
