@@ -1304,6 +1304,9 @@ shinyServer(function(input, output, session) {
                 style='background-color:#3b3a35; color:#fce319; ',
                 footer = NULL
     )))
+  message(paste('\n--------------------------------------------------------------------\n', 
+                as.character(Sys.time()),'Initial setup was completed!',
+                '\n--------------------------------------------------------------------\n'))
   
 })
 
