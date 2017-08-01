@@ -30,6 +30,9 @@ if(getwd()==bijanWD)
 
 
 shinyServer(function(input, output, session) {
+  message(paste('\n--------------------------------------------------------------------\n', 
+                as.character(Sys.time()),'New session just started!',
+                '\n--------------------------------------------------------------------\n'))
   
   showModal(strong(
     modalDialog("Please wait for initial configurations ...",
@@ -1262,9 +1265,6 @@ shinyServer(function(input, output, session) {
   
   ##LOG
   
-  observe(message(paste('\n--------------------------------------------------------------------\n', 
-                as.character(Sys.time()),'New session just started!',
-                '\n--------------------------------------------------------------------\n')))
   observeEvent(input$siteDescription, message(paste(as.character(Sys.time()), 'input$siteDescription was changed to:', '\t',input$siteDescription, '\t')))
   observeEvent(input$roiOwner, message(paste(as.character(Sys.time()), 'input$roiOwner was changed to:', '\t',input$roiOwner, '\t')))
   observeEvent(input$roiColors, message(paste(as.character(Sys.time()), 'input$roiColors was changed to:', '\t',input$roiColors, '\t')))
@@ -1304,9 +1304,9 @@ shinyServer(function(input, output, session) {
                 style='background-color:#3b3a35; color:#fce319; ',
                 footer = NULL
     )))
-  message(paste('\n--------------------------------------------------------------------\n',
+  observe(message(paste('\n--------------------------------------------------------------------\n',
                 as.character(Sys.time()),'Initial setup was completed!',
-                '\n--------------------------------------------------------------------\n'))
+                '\n--------------------------------------------------------------------\n')))
 
 })
 
