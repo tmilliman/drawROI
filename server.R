@@ -757,6 +757,8 @@ shinyServer(function(input, output, session) {
     
     writeROIListFile(ROIList, path = roipath(),  roifilename)
     # writeROIListFile(ROIList, path = '/tmp/ROI/',  roifilename)
+    tmp.rv.ROIs <- c(dir(roipath(), pattern = 'roi.csv$'), "New ROI")
+    if(!identical(rv$ROIs, tmp.rv.ROIs)) rv$ROIs <- tmp.rv.ROIs
     updateSelectInput(session, inputId = 'roiName', selected = roifilename)
     
     showModal(strong(modalDialog("ROI was saved in the database!",
