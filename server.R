@@ -273,9 +273,8 @@ shinyServer(function(input, output, session) {
       rv$ROIs <- tmp.rv.ROIs
 
       message(paste(as.character(Sys.time()), 'rv$ROIs observed experssion was called.\t'))
-      if(length(rv$ROIs)==1)roiNameSel <- 'New ROI'
-      if(length(rv$ROIs)>1) roiNameSel <- rv$ROIs[length(rv$ROIs)-1]
-      dummy <- 0
+      roiNameSel <- 'New ROI'
+      # if(length(rv$ROIs)>1) roiNameSel <- rv$ROIs[length(rv$ROIs)-1]
       dummy <- 0
       
       updateSelectInput(session, 'roiName', choices = rv$ROIs)
