@@ -756,17 +756,20 @@ shinyServer(function(input, output, session) {
     roifilename <- paste0(roiLabel(),'_roi.csv')
     
     writeROIListFile(ROIList, path = roipath(),  roifilename)
-    # writeROIListFile(ROIList, path = '/tmp/ROI/',  roifilename)
-    tmp.rv.ROIs <- c(dir(roipath(), pattern = 'roi.csv$'), "New ROI")
-    if(!identical(rv$ROIs, tmp.rv.ROIs)) rv$ROIs <- tmp.rv.ROIs
-    updateSelectInput(session, inputId = 'roiName', selected = roifilename)
-    
     showModal(strong(modalDialog("ROI was saved in the database!",
                                  style='background-color:#3b3a35; color:#fce319; ',
                                  easyClose = T,
                                  size = 's',
                                  footer = NULL
     )))
+    
+    # writeROIListFile(ROIList, path = '/tmp/ROI/',  roifilename)
+    tmp.rv.ROIs <- c(dir(roipath(), pattern = 'roi.csv$'), "New ROI")
+    if(!identical(rv$ROIs, tmp.rv.ROIs)) rv$ROIs <- tmp.rv.ROIs
+    
+    updateSelectInput(session, inputId = 'roiName', selected = roifilename)
+    
+
   })
   
   
