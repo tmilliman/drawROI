@@ -757,6 +757,7 @@ shinyServer(function(input, output, session) {
     
     writeROIListFile(ROIList, path = roipath(),  roifilename)
     # writeROIListFile(ROIList, path = '/tmp/ROI/',  roifilename)
+    updateSelectInput(session, inputId = 'roiName', selected = roifilename)
     
     showModal(strong(modalDialog("ROI was saved in the database!",
                                  style='background-color:#3b3a35; color:#fce319; ',
