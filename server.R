@@ -1189,7 +1189,7 @@ shinyServer(function(input, output, session) {
   )
   
   observeEvent(input$password,{
-    message(paste(as.character(Sys.time()), 'input$password was changed to:', '\t', rep('*', length(input$password)), '\t'))
+    message(paste(as.character(Sys.time()), 'input$password was changed to:', '\t', rep('*', nchar(input$password)), '\t'))
     
     if(passwordCorrect()){
       shinyjs::enable("saveROI")
