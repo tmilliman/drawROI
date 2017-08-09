@@ -766,8 +766,10 @@ shinyServer(function(input, output, session) {
     # writeROIListFile(ROIList, path = '/tmp/ROI/',  roifilename)
     tmp.rv.ROIs <- c(dir(roipath(), pattern = 'roi.csv$'), "New ROI")
     if(!identical(rv$ROIs, tmp.rv.ROIs)) rv$ROIs <- tmp.rv.ROIs
+    message(paste(as.character(Sys.time()), 'rv$ROIs was changed to:', '\t',rv$ROIs , '\t'))
     
     updateSelectInput(session, inputId = 'roiName', selected = roifilename)
+    message(paste(as.character(Sys.time()), 'input$roiName was changed to:', '\t', roifilename,' or ', input$roiName, '\t'))
     
 
   })
