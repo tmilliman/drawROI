@@ -279,8 +279,10 @@ fixFormatTime <- function(asText){
 
 parseROI <- function(roifilename, roipath){
   # fls <- dir(roipath, gsub(pattern = 'roi.csv', '', roifilename))
+  fname <- paste0(roipath, roifilename)
+  if(!file.exists(fname)) return(NULL)
   
-  roilines <- readLines(paste0(roipath, roifilename))
+  roilines <- readLines(fname)
   
   wEmptyLine <- roilines%in%c('', ' ',  '  ')
   wCommented <- as.vector(sapply(roilines, grepl,  pattern = '^#'))

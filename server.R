@@ -271,14 +271,26 @@ shinyServer(function(input, output, session) {
       message(paste(as.character(Sys.time()), 'dir roi.csv observed experssion was called.\t'))
       
       rv$ROIs <- tmp.rv.ROIs
-    }
+
+      message(paste(as.character(Sys.time()), 'rv$ROIs observed experssion was called.\t'))
+      if(length(rv$ROIs)==1)roiNameSel <- 'New ROI'
+      if(length(rv$ROIs)>1) roiNameSel <- rv$ROIs[length(rv$ROIs)-1]
+      dummy <- 0
+      dummy <- 0
+      
+      updateSelectInput(session, 'roiName', choices = rv$ROIs)
+      updateSelectInput(session, 'roiName', selected = roiNameSel)
+      
+      }
   }
   )
   
-  observe({
-    message(paste(as.character(Sys.time()), 'rv$ROIs observed experssion was called.\t'))
-    updateSelectInput(session, 'roiName', choices = rv$ROIs, selected = 'New ROI')
-  })
+  # observe({
+  #   message(paste(as.character(Sys.time()), 'rv$ROIs observed experssion was called.\t'))
+  #   if(length(rv$ROIs)==1)roiNameSel <- 'New ROI'
+  #   if(length(rv$ROIs)>1) roiNameSel <- rv$ROIs[length(rv$ROIs)-1]
+  #   updateSelectInput(session, 'roiName', choices = rv$ROIs, selected = roiNameSel)
+  # })
   
   
   # ----------------------------------------------------------------------
@@ -327,9 +339,10 @@ shinyServer(function(input, output, session) {
     shinyjs::disable('vegType')
     dummy=0
     dummy=0
-    rv$parsedROIList <- parseROI(roifilename=input$roiName,
+    tmp <- parseROI(roifilename=input$roiName,
                                  roipath = roipath())
-    
+    if(is.null(tmp)) return()
+    rv$parsedROIList <- tmp
     updateSelectInput(session, inputId = 'vegType', selected =  rv$parsedROIList$vegType)
     updateTextInput(session, inputId = 'siteDescription', value = rv$parsedROIList$Description)
     updateTextInput(session, inputId = 'roiOwner', value = rv$parsedROIList$Owner)
@@ -377,7 +390,7 @@ shinyServer(function(input, output, session) {
   
   roiID <- reactive({
     message(paste(as.character(Sys.time()), 'roiID reactive experssion was called.\t'))
-    
+    dummy <- 0
     if(input$roiName=='New ROI') {
       return(rv$nroi)
     }
@@ -770,9 +783,10 @@ shinyServer(function(input, output, session) {
     tmp.rv.ROIs <- c(dir(roipath(), pattern = 'roi.csv$'), "New ROI")
     if(!identical(rv$ROIs, tmp.rv.ROIs)) rv$ROIs <- tmp.rv.ROIs
     message(paste(as.character(Sys.time()), 'rv$ROIs was changed to:', '\t',rv$ROIs , '\t'))
-    
+    dummy <- 0
+    updateSelectInput(session, inputId = 'roiName', choices = rv$ROIs)
     updateSelectInput(session, inputId = 'roiName', selected = roifilename)
-    message(paste(as.character(Sys.time()), 'input$roiName was changed to:', '\t', roifilename,' or ', input$roiName, '\t'))
+    # message(paste(as.character(Sys.time()), 'input$roiName was changed to:', '\t', roifilename,' or ', input$roiName, '\t'))
     
 
   })
@@ -1200,7 +1214,7 @@ shinyServer(function(input, output, session) {
   )
   
   observeEvent(input$password,{
-    message(paste(as.character(Sys.time()), 'input$password was changed to:', '\t', rep('*', nchar(input$password)), '\t'))
+    message(paste(as.character(Sys.time()), 'input$password was changed to:', '\t', gsub(pattern = '.', replacement = '*', input$password), '\t'))
     
     if(passwordCorrect()){
       shinyjs::enable("saveROI")
