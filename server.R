@@ -756,12 +756,15 @@ shinyServer(function(input, output, session) {
     roifilename <- paste0(roiLabel(),'_roi.csv')
     
     writeROIListFile(ROIList, path = roipath(),  roifilename)
+    
     showModal(strong(modalDialog("ROI was saved in the database!",
                                  style='background-color:#3b3a35; color:#fce319; ',
                                  easyClose = T,
                                  size = 's',
                                  footer = NULL
     )))
+    message(paste(as.character(Sys.time()), 'roipath is', '\t',roipath() , '\t'))
+    message(paste(as.character(Sys.time()), 'roifilename is', '\t',roifilename , '\t'))
     
     # writeROIListFile(ROIList, path = '/tmp/ROI/',  roifilename)
     tmp.rv.ROIs <- c(dir(roipath(), pattern = 'roi.csv$'), "New ROI")
