@@ -83,18 +83,26 @@ extractCCC <- function(path, mmsk){
                    m = as.vector(msk))
   DT[m==0, m:=NA]
   
-  DT[,rcc:= r/(r+g+b)]
-  DT[,gcc:= g/(r+g+b)]
-  DT[,bcc:= b/(r+g+b)]
+  R <- DT[, mean(m*r, na.rm=T)]
+  G <- DT[, mean(m*g, na.rm=T)]
+  B <- DT[, mean(m*b, na.rm=T)]
   
-  DT[r+g+b==0,rcc:= 0]
-  DT[r+g+b==0,gcc:= 0]
-  DT[r+g+b==0,bcc:= 0]
+  RGB <- R + G + B
   
+  if(RGB==0) {
+    rcc <- 0
+    gcc <- 0
+    bcc <- 0
+  }else{
+    rcc <- R/RGB
+    gcc <- G/RGB
+    bcc <- B/RGB
+  }
+
   list(DT = DT,
-       rcc = DT[,mean(m*rcc, na.rm=T)],
-       gcc = DT[,mean(m*gcc, na.rm=T)],
-       bcc = DT[,mean(m*bcc, na.rm=T)])
+       rcc = rcc,
+       gcc = gcc,
+       bcc = bcc)
 }
 
 
