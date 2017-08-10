@@ -932,15 +932,16 @@ shinyServer(function(input, output, session) {
   })
   tsYearDayRange <- reactive({
     printLog(paste('tsYearDayRange reactive experssion was called.\t'))
+    frq <- as.numeric(input$ccFrequency)
     
     if(input$ccRange=="Week")
-      return(imgDT()[Site==input$siteName&Date%in%(input$gotoDate + (1:7)),YearDOY])
+      return(imgDT()[Site==input$siteName&Date%in%(input$gotoDate + seq(1, 7, frq)),YearDOY])
     else if(input$ccRange=="Month")
-      return(imgDT()[Site==input$siteName&Date%in%(input$gotoDate + (1:30)),YearDOY])
+      return(imgDT()[Site==input$siteName&Date%in%(input$gotoDate + seq(1, 30, frq)),YearDOY])
     else if(input$ccRange=="Year")
-      return(imgDT()[Site==input$siteName&Date%in%(input$gotoDate + (1:365)),YearDOY])
+      return(imgDT()[Site==input$siteName&Date%in%(input$gotoDate + seq(1, 365, frq)),YearDOY])
     else if(input$ccRange=="Entire data")
-      return(imgDT()[Site==input$siteName,YearDOY])
+      return(imgDT()[Site==input$siteName&Date%in%(min(Date) + seq(1, 10000, frq)),YearDOY])
   })
   
   paths <- reactive({

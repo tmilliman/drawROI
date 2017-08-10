@@ -22,6 +22,7 @@ bijanWD <- "/Users/bijan/Projects/drawROI"
 
 fluidPage(
   shinyjs::useShinyjs(),  
+  tags$head(tags$style(HTML( "#Select1 ~ .selectize-control.single .selectize-input {border: 1px solid #fff;}"))),
   tabsetPanel(
     tabPanel('ROI Tool',
              
@@ -154,6 +155,8 @@ fluidPage(
                fluidRow(
                  column(2, 
                         radioButtons('ccRange', label = NULL, choices = c('Week', 'Month', 'Year', 'Entire data'), width = "330px",inline = F),
+                        
+                        selectInput('ccFrequency', label = 'Frequency', choices = c(1:7, 10, 15, 20, 30), selected = 1, width = '50px'),
                         
                         actionButton("startExtractCC", "Extract", icon = icon('line-chart'), onclick="Shiny.onInputChange('stopThis',false)", width = "110px", style="background-color:#666; color:#fff;font-weight: bold;"),
                         hr(),
