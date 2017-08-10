@@ -43,7 +43,9 @@ fluidPage(
                           fluidRow(
                             column(10, selectInput("roiName", "ROI", 'New ROI')),
                             br(),
-                            column(2, actionButton('refreshROI', label = NULL, icon = icon('refresh'), width = '100%', style="border-color: #f5f5f5; align:center; background-color:#f5f5f5; color:#337ab7; font-size: 150%;font-weight: bold;"))
+                           
+                            # column(2, actionButton('refreshROI', label = NULL, icon = icon('refresh'), width = '100%', style="border-color: #f5f5f5; align:center; background-color:#f5f5f5; color:#337ab7; font-size: 150%;font-weight: bold;"))
+                            column(2, br(), strong(textOutput('noROI')))
                           ),
                           selectInput("vegType", "Vegetation Type", choices = list('Agriculture (AG)'='AG')),
                           textInput('siteDescription','Description', placeholder = 'Enter a description for the ROI'),

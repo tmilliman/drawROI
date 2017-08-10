@@ -381,7 +381,7 @@ shinyServer(function(input, output, session) {
     }
   })
   
-  
+  output$noROI <- renderText(rv$nroi- 1)
   observeEvent(input$refreshROI, {
       roiName.now <- input$roiName
       updateSelectInput(session, 'roiName', selected = roiName.now)
