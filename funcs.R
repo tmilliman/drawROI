@@ -421,3 +421,9 @@ getIMG.DT <- function(sites, midddayListPath){
   imgDT <- parseIMG.DT(imgDT)
   imgDT
 }
+
+
+
+printLog <- function(msg){
+  message(paste(as.character(Sys.time()), msg, '\t'))
+}
