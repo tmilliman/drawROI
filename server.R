@@ -381,7 +381,10 @@ shinyServer(function(input, output, session) {
     }
   })
   
-  output$noROI <- renderText(length(dir(roipath(), pattern = 'roi.csv$')))
+  output$noROI <- renderText({
+    autoInvalidate()
+    length(dir(roipath(), pattern = 'roi.csv$'))
+    })
   observeEvent(input$refreshROI, {
       roiName.now <- input$roiName
       updateSelectInput(session, 'roiName', selected = roiName.now)
