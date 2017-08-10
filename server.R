@@ -226,10 +226,14 @@ shinyServer(function(input, output, session) {
                                     spacing = 's',
                                     options = list( lengthChange = FALSE),{
                                       dummy <- 1
-                                      dummy <- 1
                                       inf <- siteInfo()
                                       wNULL <- which(sapply(inf, is.null))
                                       for(wi in wNULL)inf[wi] <- 'N.A.'
+                                      inf$contact1 <- gsub(inf$contact1, pattern = ' AT ', replacement = '@')
+                                      inf$contact2 <- gsub(inf$contact2, pattern = ' AT ', replacement = '@')
+                                      inf$contact1 <- gsub(inf$contact1, pattern = ' DOT ', replacement = '.', fixed = T)
+                                      inf$contact2 <- gsub(inf$contact2, pattern = ' DOT ', replacement = '.', fixed = T)
+                                      dummy <- 1
                                       
                                       x <- data.frame(Site = inf$site, 
                                                       Site.Type = inf$site_type,
@@ -240,7 +244,9 @@ shinyServer(function(input, output, session) {
                                                       Longitude = paste0(inf$lon, ' °'),
                                                       Elevation = paste0(inf$elev, ' m'),
                                                       Descriotion = inf$site_description,
-                                                      Primary.Vegetation = inf$primary_veg_type
+                                                      Primary.Vegetation = inf$primary_veg_type,
+                                                      Contact1 = inf$contact1,
+                                                      Contact2 = inf$contact2
                                       )
                                       
                                       tx <- t(x)
