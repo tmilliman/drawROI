@@ -152,8 +152,8 @@ extractCCCTimeSeries <- function(rmsk, paths, PLUS=F, session=shiny::getDefaultR
   mmm <- cbind(m, m, m)
   
   n <- length(paths)
-  CCCT <- as.data.table(matrix(0, nrow=n, ncol=3))
-  colnames(CCCT) <- c('rcc','gcc','bcc')
+  CCCT <- matrix(0, nrow=n, ncol=3)
+  
   
   # extractCCCFunc <- extractCCC
   # if(PLUS) extractCCCFunc <- extractCCC.Plus
@@ -163,12 +163,14 @@ extractCCCTimeSeries <- function(rmsk, paths, PLUS=F, session=shiny::getDefaultR
                for(i in 1:n){
                  if(isTRUE(session$input$stopThis))break
                  ccc <- extractCCC(paths[i], mmm)
-                 CCCT[i,] <- as.data.table(ccc[c("rcc", "gcc", "bcc")])
+                 CCCT[i,] <- as.numeric((ccc[c("rcc", "gcc", "bcc")]))
                  incProgress(1/n)
                  # Sys.sleep(1)
                  httpuv:::service()
                }
   )
+  CCCT <- as.data.table(CCCT)
+  colnames(CCCT) <- c('rcc','gcc','bcc')
   CCCT
 }
 
