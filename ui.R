@@ -17,7 +17,6 @@ library(tiff)
 library(data.table)
 library(lubridate)
 library(plotly)
-bijanWD <- "/Users/bijan/Projects/drawROI"
 
 
 fluidPage(
@@ -30,7 +29,7 @@ fluidPage(
              sidebarPanel(width = 4,
                           fluidRow(
                             column(10, 
-                                   selectInput("siteName", "Site", choices = if(getwd()==bijanWD)'acadia'else'ahwahnee')
+                                   selectInput("siteName", "Site", choices = if(TEST_MODE)'acadia'else'ahwahnee')
                             ),
                             br(),
                             column(2, strong(actionButton('siteInfo', label = NULL, icon = icon('info'), width = '100%', style="border-color: #f5f5f5; align:center; background-color:#f5f5f5; color:#337ab7; font-size: 200%;font-weight: bold;")),

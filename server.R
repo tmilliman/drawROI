@@ -22,13 +22,6 @@ library(plotly)
 source('funcs.R')
 
 
-midddayListPath <- '/home/bijan/middayList/'
-bijanWD <- "/Users/bijan/Projects/drawROI"
-
-if(getwd()==bijanWD) 
-  midddayListPath <- 'midddayListPath/'
-
-
 shinyServer(function(input, output, session) {
   message(paste('\n--------------------------------------------------------------------\n', 
                 as.character(Sys.time()),'New session just started!',
@@ -117,8 +110,7 @@ shinyServer(function(input, output, session) {
     phenoSitesList <- sapply(rv$phenoSites, function(x){x$site})
     names(rv$phenoSites) <- phenoSitesList
     phenoSitesList <- phenoSitesList[-which(phenoSitesList=='HF_Vivotek')]
-    if(getwd()==bijanWD) 
-      phenoSitesList <- c('dukehw','harvard')
+    if(TEST_MODE) phenoSitesList <- c('dukehw','harvard')
     
     rv$sitesList <- phenoSitesList
     
@@ -128,8 +120,7 @@ shinyServer(function(input, output, session) {
     printLog(paste('rv$sitesList initial observed experssion was called.\t'))
     
     updateSelectInput(session, inputId = 'siteName', choices = rv$sitesList)
-    if(getwd()!=bijanWD) 
-      updateSelectInput(session, inputId = 'siteName', selected = 'ahwahnee')
+    if(!TEST_MODE) updateSelectInput(session, inputId = 'siteName', selected = 'ahwahnee')
   })
   
   observeEvent(input$siteName, {
@@ -264,8 +255,7 @@ shinyServer(function(input, output, session) {
     # tmp <- ('/home/shiny/drawROI/ROI/')
     # tmp <- tempdir()
     
-    if(getwd()==bijanWD) 
-      tmp <- (paste0('phenocamdata/data/archive/', input$siteName,'/ROI/'))
+    if(TEST_MODE) tmp <- (paste0('phenocamdata/data/archive/', input$siteName,'/ROI/'))
     return(tmp)
   }  )
   
