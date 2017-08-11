@@ -917,9 +917,19 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   
   observeEvent(input$ccRange,{
-    if(input$ccRange%in%c("Week", "Month")|passwordCorrect()) return()
+    dummy <- 0
+    n <- length(tsYearDayRange())
+    
+    if(n<=53|passwordCorrect()) return()
+    # if(input$ccRange%in%c("Week", "Month")|passwordCorrect()) return()
+    
+    if(input$ccRange=="Year"){
+      updateSelectInput(session, 'ccFrequency', selected = 7)
+    }else if(input$ccRange=="Entire data"){
+      updateSelectInput(session, 'ccFrequency', selected = 30)
+    }
     showModal(strong(
-      modalDialog(HTML('Extracting on-the-fly time series for long ranges is disabled now. <br>
+      modalDialog(HTML('Time series interval was changed to make this process faster.<br>
                       We are working on this to make it faster.'),
                   easyClose = T,
                   fade = T,
@@ -927,9 +937,10 @@ shinyServer(function(input, output, session) {
                   style='background-color:#3b3a35; color:#fce319; ',
                   footer = NULL
       )))
-    updateRadioButtons(session, inputId = 'ccRange', selected = 'Week')
+    # updateRadioButtons(session, inputId = 'ccRange', selected = 'Week')
     
   })
+  
   tsYearDayRange <- reactive({
     printLog(paste('tsYearDayRange reactive experssion was called.\t'))
     frq <- as.numeric(input$ccFrequency)
