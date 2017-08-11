@@ -936,13 +936,13 @@ shinyServer(function(input, output, session) {
     frq <- as.numeric(input$ccFrequency)
     
     if(input$ccRange=="Week")
-      return(imgDT()[Site==input$siteName&Date%in%(input$gotoDate + seq(1, 7, frq)),YearDOY])
+      return(imgDT()[Site==input$siteName&Date%in%(input$gotoDate + seq(0, 6, frq)),YearDOY])
     else if(input$ccRange=="Month")
-      return(imgDT()[Site==input$siteName&Date%in%(input$gotoDate + seq(1, 30, frq)),YearDOY])
+      return(imgDT()[Site==input$siteName&Date%in%(input$gotoDate + seq(0, 29, frq)),YearDOY])
     else if(input$ccRange=="Year")
-      return(imgDT()[Site==input$siteName&Date%in%(input$gotoDate + seq(1, 365, frq)),YearDOY])
+      return(imgDT()[Site==input$siteName&Date%in%(input$gotoDate + seq(0, 364, frq)),YearDOY])
     else if(input$ccRange=="Entire data")
-      return(imgDT()[Site==input$siteName&Date%in%(min(Date) + seq(1, 10000, frq)),YearDOY])
+      return(imgDT()[Site==input$siteName&Date%in%(min(Date) + seq(0, 10000, frq)),YearDOY])
   })
   
   paths <- reactive({
