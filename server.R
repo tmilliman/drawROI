@@ -914,9 +914,9 @@ shinyServer(function(input, output, session) {
     # if(input$ccRange%in%c("Week", "Month")|passwordCorrect()) return()
     
     if(input$ccRange=="Year"){
-      updateSelectInput(session, 'ccFrequency', selected = 7)
+      updateSelectInput(session, 'ccInterval', selected = 7)
     }else if(input$ccRange=="Entire data"){
-      updateSelectInput(session, 'ccFrequency', selected = 30)
+      updateSelectInput(session, 'ccInterval', selected = 30)
     }
     showModal(strong(
       modalDialog(HTML('Time series interval was changed to make this process faster.<br>
@@ -933,7 +933,7 @@ shinyServer(function(input, output, session) {
   
   tsYearDayRange <- reactive({
     printLog(paste('tsYearDayRange reactive experssion was called.\t'))
-    frq <- as.numeric(input$ccFrequency)
+    frq <- as.numeric(input$ccInterval)
     
     if(input$ccRange=="Week")
       return(imgDT()[Site==input$siteName&Date%in%(input$gotoDate + seq(0, 6, frq)),YearDOY])
