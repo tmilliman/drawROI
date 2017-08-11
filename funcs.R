@@ -73,34 +73,29 @@ draw.polygon <-
 
 
 
-extractCCC <- function(path, mmsk){
+extractCCC <- function(path, mmm){
+  
   jp <- readJPEG(path)
-  msk <- mmsk
-  # msk[is.na(msk)] <- 0
-  DT <- data.table(r = as.vector(jp[,,1]),
-                   g = as.vector(jp[,,2]),
-                   b = as.vector(jp[,,3]),
-                   m = as.vector(msk))
-  DT[m==0, m:=NA]
+  dm <- dim(jp)
+  rgb <- jp
+  dim(rgb) <- c(dm[1]*dm[2],3)
+  mrgb <- rgb*mmm
+  RGB <- colMeans(mrgb, na.rm = T)
   
-  R <- DT[, mean(m*r, na.rm=T)]
-  G <- DT[, mean(m*g, na.rm=T)]
-  B <- DT[, mean(m*b, na.rm=T)]
   
-  RGB <- R + G + B
+  RGBTOT <- sum(RGB)
   
-  if(RGB==0) {
+  if(RGBTOT==0) {
     rcc <- 0
     gcc <- 0
     bcc <- 0
   }else{
-    rcc <- R/RGB
-    gcc <- G/RGB
-    bcc <- B/RGB
+    rcc <- RGB[1]/RGBTOT
+    gcc <- RGB[2]/RGBTOT
+    bcc <- RGB[3]/RGBTOT
   }
-
-  list(DT = DT,
-       rcc = rcc,
+  
+  list(rcc = rcc,
        gcc = gcc,
        bcc = bcc)
 }
@@ -151,19 +146,23 @@ extractCCCTimeSeries <- function(rmsk, paths, PLUS=F, session=shiny::getDefaultR
   continue = TRUE
   
   mmsk <- 1-as.matrix(rmsk)
+  msk <- mmsk
+  m <- as.vector(mmsk)
+  m[m==0] <- NA
+  mmm <- cbind(m, m, m)
   
   n <- length(paths)
   CCCT <- as.data.table(matrix(0, nrow=n, ncol=3))
   colnames(CCCT) <- c('rcc','gcc','bcc')
   
-  extractCCCFunc <- extractCCC
-  if(PLUS) extractCCCFunc <- extractCCC.Plus
+  # extractCCCFunc <- extractCCC
+  # if(PLUS) extractCCCFunc <- extractCCC.Plus
   
   # if(exists('session'))
   withProgress(value = 0, message = 'Extracting CCs',
                for(i in 1:n){
                  if(isTRUE(session$input$stopThis))break
-                 ccc <- extractCCCFunc(paths[i], mmsk)
+                 ccc <- extractCCC(paths[i], mmm)
                  CCCT[i,] <- as.data.table(ccc[c("rcc", "gcc", "bcc")])
                  incProgress(1/n)
                  Sys.sleep(1)
