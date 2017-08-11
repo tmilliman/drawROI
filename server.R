@@ -906,7 +906,7 @@ shinyServer(function(input, output, session) {
   # tsYearDayRange
   # ----------------------------------------------------------------------
   
-  observeEvent(input$ccRange,{
+  observe({
     dummy <- 0
     n <- length(tsYearDayRange())
     
