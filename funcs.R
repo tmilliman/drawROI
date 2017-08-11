@@ -165,7 +165,7 @@ extractCCCTimeSeries <- function(rmsk, paths, PLUS=F, session=shiny::getDefaultR
                  ccc <- extractCCC(paths[i], mmm)
                  CCCT[i,] <- as.data.table(ccc[c("rcc", "gcc", "bcc")])
                  incProgress(1/n)
-                 Sys.sleep(1)
+                 # Sys.sleep(1)
                  httpuv:::service()
                }
   )
