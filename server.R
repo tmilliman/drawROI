@@ -930,7 +930,7 @@ shinyServer(function(input, output, session) {
     }
     showModal(strong(
       modalDialog(HTML('Time series interval was changed to make this process faster.<br>
-                      We are working on this to make it faster.'),
+                      We are working to improve the efficiency.'),
                   easyClose = T,
                   fade = T,
                   size = 'm',
