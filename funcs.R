@@ -80,9 +80,7 @@ extractCCC <- function(path, mmm){
   rgb <- jp
   dim(rgb) <- c(dm[1]*dm[2],3)
   
-  if(!identical(dim(rgb), dim(mmm))) return(list(rcc = NA,
-                                                gcc = NA,
-                                                bcc = NA))
+  if(!identical(dim(rgb), dim(mmm))) return(NULL)
     
   mrgb <- rgb*mmm
   RGB <- colMeans(mrgb, na.rm = T)
@@ -167,7 +165,8 @@ extractCCCTimeSeries <- function(rmsk, paths, PLUS=F, session=shiny::getDefaultR
                for(i in 1:n){
                  if(isTRUE(session$input$stopThis))break
                  ccc <- extractCCC(paths[i], mmm)
-                 CCCT[i,] <- as.numeric((ccc[c("rcc", "gcc", "bcc")]))
+                 if(!is.null(ccc))
+                   CCCT[i,] <- as.numeric((ccc[c("rcc", "gcc", "bcc")]))
                  incProgress(1/n)
                  # Sys.sleep(1)
                  httpuv:::service()
