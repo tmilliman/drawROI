@@ -77,13 +77,14 @@ extractCCC <- function(path, mmm){
   
   jp <- readJPEG(path)
   dm <- dim(jp)
+  message(paste(dim(dm), collapse = ' '))
   rgb <- jp
   dim(rgb) <- c(dm[1]*dm[2],3)
-  message(dim(rgb))
-  message(dim(mmm))
+  message(paste(dim(rgb), collapse = ' '))
+  message(paste(dim(mmm), collapse = ' '))
   mrgb <- rgb*mmm
   RGB <- colMeans(mrgb, na.rm = T)
-  messae(RGB)
+  message(paste(RGB, collapse = ' '))
   
   RGBTOT <- sum(RGB)
   
