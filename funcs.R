@@ -79,9 +79,11 @@ extractCCC <- function(path, mmm){
   dm <- dim(jp)
   rgb <- jp
   dim(rgb) <- c(dm[1]*dm[2],3)
+  message(dim(rgb))
+  message(dim(mmm))
   mrgb <- rgb*mmm
   RGB <- colMeans(mrgb, na.rm = T)
-  
+  messae(RGB)
   
   RGBTOT <- sum(RGB)
   
