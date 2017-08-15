@@ -970,7 +970,7 @@ shinyServer(function(input, output, session) {
                                                        style='background-color:#3b3a35; color:#fce319; ',
                                                        onclick="Shiny.onInputChange('stopThis',true)")
     )))
-    for(i in 1:length(aths()$path))printLog(paths()$path[i])
+    for(i in 1:length(paths()$path))printLog(paths()$path[i])
     cc <- extractCCCTimeSeries(isolate(curMask()), paths()$path)
     removeModal()
     cc
