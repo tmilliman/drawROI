@@ -77,15 +77,11 @@ extractCCC <- function(path, mmm){
   
   jp <- readJPEG(path)
   dm <- dim(jp)
-  printLog(paste(dim(dm), collapse = ' '))
   rgb <- jp
   dim(rgb) <- c(dm[1]*dm[2],3)
-  printLog(paste(dim(rgb), collapse = ' '))
-  printLog(paste(dim(mmm), collapse = ' '))
   mrgb <- rgb*mmm
   RGB <- colMeans(mrgb, na.rm = T)
-  printLog(paste(RGB, collapse = ' '))
-  
+
   RGBTOT <- sum(RGB)
   
   if(RGBTOT==0) {
@@ -165,9 +161,6 @@ extractCCCTimeSeries <- function(rmsk, paths, PLUS=F, session=shiny::getDefaultR
   withProgress(value = 0, message = 'Extracting CCs',
                for(i in 1:n){
                  if(isTRUE(session$input$stopThis))break
-                 printLog(paths[i])
-                 printLog(i)
-                 
                  ccc <- extractCCC(paths[i], mmm)
                  CCCT[i,] <- as.numeric((ccc[c("rcc", "gcc", "bcc")]))
                  incProgress(1/n)
