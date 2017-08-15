@@ -22,6 +22,113 @@ library(plotly)
 source('funcs.R')
 
 
+
+extractCCC <- function(path, mmm){
+  
+  jp <- readJPEG(path)
+  dm <- dim(jp)
+  rgb <- jp
+  dim(rgb) <- c(dm[1]*dm[2],3)
+  
+  if(!identical(dim(rgb), dim(mmm))) return(NULL)
+  
+  mrgb <- rgb*mmm
+  RGB <- colMeans(mrgb, na.rm = T)
+  
+  RGBTOT <- sum(RGB)
+  
+  if(RGBTOT==0) {
+    rcc <- 0
+    gcc <- 0
+    bcc <- 0
+  }else{
+    rcc <- RGB[1]/RGBTOT
+    gcc <- RGB[2]/RGBTOT
+    bcc <- RGB[3]/RGBTOT
+  }
+  
+  list(rcc = rcc,
+       gcc = gcc,
+       bcc = bcc)
+}
+
+
+
+createRasteredROI <- function(pnts, imgSize){
+  
+  pnts <- t(apply(pnts, 1, '*', imgSize))
+  ext <- extent(1, imgSize[1], 1, imgSize[2])
+  poly <- as(ext  ,"SpatialPolygons")
+  # poly@polygons[[1]]@Polygons[[1]]@coords <- as.matrix(pnts)
+  
+  tbl <- as.data.table(na.omit(cbind(pnts,cumsum(is.na(pnts[,1]))+1 )))
+  colnames(tbl) <- c('x', 'y', 'g')
+  ng <- table(tbl$g)
+  
+  polyList <- list()
+  np <- length(ng[which(ng>=3)])
+  
+  for(gi in 1:np)
+    polyList[[gi]] <- as.matrix(tbl[g==gi, .(x,y)])
+  
+  polys <- SpatialPolygons(
+    lapply(1:np,
+           function(x){
+             p <- slot(poly@polygons[[1]], "Polygons")[[1]]
+             slot(p, "coords") <- polyList[[x]]  
+             pp <- Polygons(list(p), ID = x)
+             return(pp)
+           })
+  )
+  
+  r <- rasterize(polys, raster(ext, nrow = imgSize[1], ncol = imgSize[2]))
+  r[!is.na(r)] <- 1
+  
+  m1 <- as.matrix(r)
+  m <- m1
+  m[m1==0|is.na(m1)] <- 1
+  m[m1!=0] <- 0
+  m
+}
+
+
+
+extractCCCTimeSeries <- function(rmsk, paths, PLUS=F, session=shiny::getDefaultReactiveDomain()){
+  
+  continue = TRUE
+  
+  mmsk <- 1-as.matrix(rmsk)
+  msk <- mmsk
+  m <- as.vector(mmsk)
+  m[m==0] <- NA
+  mmm <- cbind(m, m, m)
+  
+  n <- length(paths)
+  CCCT <- matrix(0, nrow=n, ncol=3)
+  
+  
+  # extractCCCFunc <- extractCCC
+  # if(PLUS) extractCCCFunc <- extractCCC.Plus
+  
+  # if(exists('session'))
+  withProgress(value = 0, message = 'Extracting CCs',
+               for(i in 1:n){
+                 if(isTRUE(session$input$stopThis))break
+                 ccc <- extractCCC(paths[i], mmm)
+                 if(!is.null(ccc))
+                   CCCT[i,] <- as.numeric((ccc[c("rcc", "gcc", "bcc")]))
+                 incProgress(1/n)
+                 # Sys.sleep(1)
+                 httpuv:::service()
+               }
+  )
+  CCCT <- as.data.table(CCCT)
+  colnames(CCCT) <- c('rcc','gcc','bcc')
+  CCCT
+}
+
+
+
 shinyServer(function(input, output, session) {
   message(paste('\n--------------------------------------------------------------------\n', 
                 as.character(Sys.time()),'New session just started!',
