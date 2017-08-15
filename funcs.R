@@ -79,6 +79,11 @@ extractCCC <- function(path, mmm){
   dm <- dim(jp)
   rgb <- jp
   dim(rgb) <- c(dm[1]*dm[2],3)
+  
+  if(identical(dim(rgb), dim(mmm))) return(list(rcc = NULL,
+                                                gcc = NULL,
+                                                bcc = NULL))
+    
   mrgb <- rgb*mmm
   RGB <- colMeans(mrgb, na.rm = T)
 
