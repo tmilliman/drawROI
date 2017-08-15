@@ -80,9 +80,9 @@ extractCCC <- function(path, mmm){
   rgb <- jp
   dim(rgb) <- c(dm[1]*dm[2],3)
   
-  if(identical(dim(rgb), dim(mmm))) return(list(rcc = NULL,
-                                                gcc = NULL,
-                                                bcc = NULL))
+  if(identical(dim(rgb), dim(mmm))) return(list(rcc = NA,
+                                                gcc = NA,
+                                                bcc = NA))
     
   mrgb <- rgb*mmm
   RGB <- colMeans(mrgb, na.rm = T)
@@ -156,7 +156,7 @@ extractCCCTimeSeries <- function(rmsk, paths, PLUS=F, session=shiny::getDefaultR
   mmm <- cbind(m, m, m)
   
   n <- length(paths)
-  CCCT <- matrix(0, nrow=n, ncol=3)
+  CCCT <- matrix(NA, nrow=n, ncol=3)
   
   
   # extractCCCFunc <- extractCCC
