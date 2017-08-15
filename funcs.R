@@ -154,7 +154,7 @@ extractCCCTimeSeries <- function(rmsk, paths, PLUS=F, session=shiny::getDefaultR
   mmm <- cbind(m, m, m)
   
   n <- length(paths)
-  CCCT <- matrix(NA, nrow=n, ncol=3)
+  CCCT <- matrix(0, nrow=n, ncol=3)
   
   
   # extractCCCFunc <- extractCCC
