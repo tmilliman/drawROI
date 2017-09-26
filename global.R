@@ -2,8 +2,7 @@
 midddayListPath <- '/home/shiny/middayList/'
 
 TEST_MODE <- FALSE
-if(getwd()=='/Users/bijan/Projects/drawROI')TEST_MODE <- TRUE
+if(getwd()=='/home/bijan/Projects/drawROI') TEST_MODE <- TRUE
 
-
-if(TEST_MODE) midddayListPath <- 'midddayListPath/'
+if(TEST_MODE) midddayListPath <- '/mnt/klima/home/shiny/middayList/'
 

@@ -404,12 +404,13 @@ getIMG.DT <- function(sites, midddayListPath){
   for(site in sites){
     tbl <- read.table(paste0(midddayListPath, site), header = F, colClasses = 'character', col.names = 'path')
     imgDT.tmp <- as.data.table(tbl)
+    if(TEST_MODE) imgDT.tmp$path <- paste0('/mnt/klima', imgDT.tmp$path)
     imgDT <- rbind(imgDT, imgDT.tmp)
   }
   
   
   splt <- imgDT[, tstrsplit(path, split = '/')]
-  
+  if(TEST_MODE) splt <- splt[,-c(2:3)]
   colnames(splt) <- c('empty','data','archive','site','year','month','filenames') 
   splt[, newpath:=paste(empty, data, archive, site, 'originals', year, month, filenames, sep='/')]
   

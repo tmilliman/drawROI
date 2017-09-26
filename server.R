@@ -1,3 +1,4 @@
+library(rgdal)
 library(shiny)
 library(shinyTime)
 library(shinyjs)
@@ -112,7 +113,7 @@ shinyServer(function(input, output, session) {
     phenoSitesList <- sapply(rv$phenoSites, function(x){x$site})
     names(rv$phenoSites) <- phenoSitesList
     phenoSitesList <- phenoSitesList[-which(phenoSitesList=='HF_Vivotek')]
-    if(TEST_MODE) phenoSitesList <- c('dukehw','harvard')
+    # if(TEST_MODE) phenoSitesList <- c('dukehw','harvard')
     
     rv$sitesList <- phenoSitesList
     
@@ -257,7 +258,7 @@ shinyServer(function(input, output, session) {
     # tmp <- ('/home/shiny/drawROI/ROI/')
     # tmp <- tempdir()
     
-    if(TEST_MODE) tmp <- (paste0('phenocamdata/data/archive/', input$siteName,'/ROI/'))
+    if(TEST_MODE) tmp <- (paste0('/mnt/klima/data/archive/', input$siteName,'/ROI/'))
     return(tmp)
   }  )
   
