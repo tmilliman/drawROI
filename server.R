@@ -121,9 +121,7 @@ shinyServer(function(input, output, session) {
   
   observe({
     printLog(paste('rv$sitesList initial observed experssion was called.\t'))
-    
     updateSelectInput(session, inputId = 'siteName', choices = rv$sitesList)
-    if(!TEST_MODE) updateSelectInput(session, inputId = 'siteName', selected = 'ahwahnee')
   })
   
   observeEvent(input$siteName, {
@@ -253,12 +251,8 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   roipath <- reactive({
     printLog(paste('roipath reactive experssion was called.\t'))
+    tmp <- (paste0(mountPath, '/data/archive/', input$siteName,'/ROI/'))
     
-    tmp <- (paste0('/data/archive/', input$siteName,'/ROI/'))
-    # tmp <- ('/home/shiny/drawROI/ROI/')
-    # tmp <- tempdir()
-    
-    if(TEST_MODE) tmp <- (paste0('/mnt/klima/data/archive/', input$siteName,'/ROI/'))
     return(tmp)
   }  )
   
