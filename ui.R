@@ -142,7 +142,9 @@ fluidPage(
                         )),
                  column(5,
                         fluidRow(
-                          column( 5, colourpicker::colourInput(inputId = 'roiColors', allowTransparent=T, transparentText = 'clear', label = NULL,value = '#ab5222', showColour = 'background')),
+                          column( 5, colourpicker::colourInput(inputId = 'roiColors', allowTransparent=T, 
+                                                               # transparentText = 'clear', 
+                                                               label = NULL,value = '#ab5222', showColour = 'background')),
                           column( 7, p())
                         )
                  ),
