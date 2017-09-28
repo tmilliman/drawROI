@@ -31,12 +31,12 @@ plotJPEG <- function(path, add=FALSE)
 
 
 draw.polygon <-
-  function (col = "#80303080", lty = 1, ...) 
+  function (col = "#80303080", lty = 1, ...)
   {
-    
+
     xy <- locator(2)
     lines(xy$x, xy$y, lty = lty)
-    
+
     while(is.list(c1 <- locator(1))) {
       xy$x <- c(xy$x, c1$x)
       xy$y <- c(xy$y, c1$y)
@@ -45,7 +45,7 @@ draw.polygon <-
     xy <- data.frame(xy)
     xy <- rbind(xy, xy[1, ])
     polygon(xy$x, xy$y, lty = lty, col = col, ...)
-    
+
     invisible(xy)
   }
 
@@ -54,38 +54,38 @@ draw.polygon <-
 
 # extractCCC.Plus <- function(path, mmsk){
 #   jp <- readJPEG(path)
-#   
+#
 #   jp.m <- apply(jp, 3, '*', mmsk)
-#   
+#
 #   DT <- data.table(r = jp.m[,1],
 #                    g = jp.m[,2],
 #                    b = jp.m[,3])
-#   
-#   DT[,c('rcc', 'gcc', 'bcc'):= .(r/(r+g+b), 
-#                                  g/(r+g+b), 
+#
+#   DT[,c('rcc', 'gcc', 'bcc'):= .(r/(r+g+b),
+#                                  g/(r+g+b),
 #                                  b/(r+g+b))]
-#   
+#
 #   list(rcc = DT[,mean(rcc, na.rm=T)],
 #        gcc = DT[,mean(gcc, na.rm=T)],
 #        bcc = DT[,mean(bcc, na.rm=T)])
 # }
-# 
+#
 
 
 extractCCC <- function(path, mmm){
-  
+
   jp <- readJPEG(path)
   dm <- dim(jp)
   rgb <- jp
   dim(rgb) <- c(dm[1]*dm[2],3)
-  
+
   if(!identical(dim(rgb), dim(mmm))) return(NULL)
-  
+
   mrgb <- rgb*mmm
   RGB <- colMeans(mrgb, na.rm = T)
-  
+
   RGBTOT <- sum(RGB)
-  
+
   if(RGBTOT==0) {
     rcc <- 0
     gcc <- 0
@@ -95,7 +95,7 @@ extractCCC <- function(path, mmm){
     gcc <- RGB[2]/RGBTOT
     bcc <- RGB[3]/RGBTOT
   }
-  
+
   list(rcc = rcc,
        gcc = gcc,
        bcc = bcc)
@@ -104,35 +104,35 @@ extractCCC <- function(path, mmm){
 
 
 createRasteredROI <- function(pnts, imgSize){
-  
+
   pnts <- t(apply(pnts, 1, '*', imgSize))
   ext <- extent(1, imgSize[1], 1, imgSize[2])
   poly <- as(ext  ,"SpatialPolygons")
   # poly@polygons[[1]]@Polygons[[1]]@coords <- as.matrix(pnts)
-  
+
   tbl <- as.data.table(na.omit(cbind(pnts,cumsum(is.na(pnts[,1]))+1 )))
   colnames(tbl) <- c('x', 'y', 'g')
   ng <- table(tbl$g)
-  
+
   polyList <- list()
   np <- length(ng[which(ng>=3)])
-  
+
   for(gi in 1:np)
     polyList[[gi]] <- as.matrix(tbl[g==gi, .(x,y)])
-  
+
   polys <- SpatialPolygons(
     lapply(1:np,
            function(x){
              p <- slot(poly@polygons[[1]], "Polygons")[[1]]
-             slot(p, "coords") <- polyList[[x]]  
+             slot(p, "coords") <- polyList[[x]]
              pp <- Polygons(list(p), ID = x)
              return(pp)
            })
   )
-  
+
   r <- rasterize(polys, raster(ext, nrow = imgSize[1], ncol = imgSize[2]))
   r[!is.na(r)] <- 1
-  
+
   m1 <- as.matrix(r)
   m <- m1
   m[m1==0|is.na(m1)] <- 1
@@ -143,22 +143,22 @@ createRasteredROI <- function(pnts, imgSize){
 
 
 extractCCCTimeSeries <- function(rmsk, paths, PLUS=F, session=shiny::getDefaultReactiveDomain()){
-  
+
   continue = TRUE
-  
+
   mmsk <- 1-as.matrix(rmsk)
   msk <- mmsk
   m <- as.vector(mmsk)
   m[m==0] <- NA
   mmm <- cbind(m, m, m)
-  
+
   n <- length(paths)
   CCCT <- matrix(NA, nrow=n, ncol=3)
-  
-  
+
+
   # extractCCCFunc <- extractCCC
   # if(PLUS) extractCCCFunc <- extractCCC.Plus
-  
+
   # if(exists('session'))
   withProgress(value = 0, message = 'Extracting CCs',
                for(i in 1:n){
@@ -179,12 +179,12 @@ extractCCCTimeSeries <- function(rmsk, paths, PLUS=F, session=shiny::getDefaultR
 
 
 writeROIListFile <- function(ROIList, path='ROI/', roifilename){
-  
+
   updateTime <- Sys.time()
   hdrText <- paste0('#\n# ROI List for ', ROIList$siteName,
                     '\n#',
                     '\n# Site: ', ROIList$siteName,
-                    '\n# Veg Type: ', ROIList$vegType, 
+                    '\n# Veg Type: ', ROIList$vegType,
                     '\n# ROI ID Number: ', sprintf('%04d', ROIList$ID),
                     '\n# Owner: ', ROIList$Owner,
                     '\n# Creation Date: ', ROIList$createDate,
@@ -193,10 +193,10 @@ writeROIListFile <- function(ROIList, path='ROI/', roifilename){
                     '\n# Update Time: ', strftime(updateTime, format = '%H:%M:%S'),
                     '\n# Description: ', ROIList$Description,
                     '\n#\n')
-  
-  
+
+
   bdyText <- 'start_date,start_time,end_date,end_time,maskfile,sample_image\n'
-  
+
   for(i in 1:length(ROIList$masks)){
     # m <- as.matrix(ROIList$masks[[i]]$rasteredMask)
     m <- ROIList$masks[[i]]$rasteredMask
@@ -207,26 +207,26 @@ writeROIListFile <- function(ROIList, path='ROI/', roifilename){
     #                 sprintf('%04d', ROIList$ID), '_',
     #                 sprintf('%02d', i)
     # )
-    
+
     rName <- names(ROIList$masks)[i]
-    
+
     writeTIFF(m*1 , where = paste0(path, rName,'.tif'))
-    
+
     maskpoints <- ROIList$masks[[i]]$maskpoints
     maskpoints <- rbind(dim(m), maskpoints)
     if(nrow(maskpoints)>3)
       write.table(maskpoints, file = paste0(path, rName,'_vector.csv'), col.names = F, row.names = F, sep = ',')
     # }
     # for(i in 1:length(ROIList$masks)){
-    
+
     bdyLine <- paste( ROIList$masks[[i]]$startdate,
                       ROIList$masks[[i]]$starttime,
-                      ROIList$masks[[i]]$enddate, 
+                      ROIList$masks[[i]]$enddate,
                       ROIList$masks[[i]]$endtime,
                       paste0(rName,'.tif'),
                       ROIList$masks[[i]]$sampleImage, sep = ',')
-    
-    
+
+
     bdyText <- paste0(bdyText, bdyLine, '\n')
   }
   allText <- paste0(hdrText, bdyText)
@@ -252,7 +252,7 @@ filePathParse <- function(filenames)
   imgDT[,Minute:=floor((HHMMSS%%10000)/100)]
   imgDT[,Second:=HHMMSS%%100]
   imgDT[,DOY:=yday(ISOdate(Year, Month, Day))]
-  
+
   imgDT[,DOY:=yday(ISOdate(Year, Month, Day))]
   imgDT[,Date:=date(ISOdate(Year, Month, Day))]
   imgDT[,DateTime:=ISOdatetime(Year, Month, Day, Hour, Minute, Second)]
@@ -267,17 +267,17 @@ fixFormatTime <- function(asText){
   asSplit <- unlist(strsplit(asText, ':'))
   for(i in 1:length(asSplit))
     if(any(!unlist(strsplit(asSplit[i], ''))%in%as.character(0:9))) asSplit[i] <- 0
-    
+
     asNum <- as.numeric(asSplit)
     if(length(asNum)>3) asNum <- asNum[1:3]
     if(length(asNum)==0) asNum <- c(0, 0, 0)
     if(length(asNum)==1) asNum <- c(asNum[1], 0,0)
     if(length(asNum)==2) asNum <- c(asNum[1:2], 0)
-    
+
     asNum[1] <- min(23, max(asNum[1], 0))
     asNum[2] <- min(59, max(asNum[2], 0))
     asNum[3] <- min(59, max(asNum[3], 0))
-    
+
     asTextNew <- sapply(asNum, sprintf, fmt='%02d')
     asTextNew <- paste(asTextNew, collapse = ':')
     asTextNew
@@ -291,34 +291,34 @@ parseROI <- function(roifilename, roipath){
   # fls <- dir(roipath, gsub(pattern = 'roi.csv', '', roifilename))
   fname <- paste0(roipath, roifilename)
   if(!file.exists(fname)) return(NULL)
-  
+
   roilines <- readLines(fname)
-  
+
   wEmptyLine <- roilines%in%c('', ' ',  '  ')
   wCommented <- as.vector(sapply(roilines, grepl,  pattern = '^#'))
   wNotSkip <- !(wEmptyLine|wCommented)
-  
-  
+
+
   parseroiline <- function(roilines, property){
     wProp <- grepl(roilines, pattern = property)
     gsub(roilines[wProp], pattern = paste0('# ', property, ': '), replacement = '')
   }
-  
-  ROIList <- list(siteName = parseroiline(roilines[wCommented], 'Site'), 
-                  vegType = parseroiline(roilines[wCommented], 'Veg Type'), 
-                  ID = as.numeric(parseroiline(roilines[wCommented], 'ROI ID Number')), 
-                  Owner = parseroiline(roilines[wCommented], 'Owner'), 
-                  createDate = parseroiline(roilines[wCommented], 'Creation Date'), 
-                  createTime = parseroiline(roilines[wCommented], 'Creation Time'), 
-                  updateDate = parseroiline(roilines[wCommented], 'Update Date'), 
-                  updateTime = parseroiline(roilines[wCommented], 'Update Time'), 
-                  Description = parseroiline(roilines[wCommented], 'Description'), 
+
+  ROIList <- list(siteName = parseroiline(roilines[wCommented], 'Site'),
+                  vegType = parseroiline(roilines[wCommented], 'Veg Type'),
+                  ID = as.numeric(parseroiline(roilines[wCommented], 'ROI ID Number')),
+                  Owner = parseroiline(roilines[wCommented], 'Owner'),
+                  createDate = parseroiline(roilines[wCommented], 'Creation Date'),
+                  createTime = parseroiline(roilines[wCommented], 'Creation Time'),
+                  updateDate = parseroiline(roilines[wCommented], 'Update Date'),
+                  updateTime = parseroiline(roilines[wCommented], 'Update Time'),
+                  Description = parseroiline(roilines[wCommented], 'Description'),
                   masks = NULL)
-  
-  
+
+
   parsedMasks <- read.table(textConnection(roilines[which(wNotSkip)]), sep = ',', header = T)
   # parsedMasks <- read.csv(paste0(roipath, roifilename), skip = nskips)
-  
+
   # tifls <- fls[grepl('.tif', fls)]
   # vecls <- fls[grepl('vector.csv', fls)]
   masksList <- list()
@@ -336,28 +336,28 @@ parseROI <- function(roifilename, roipath){
       # write.table(maskpointsTmp, file =maskpointspath, col.names = F, row.names = F, sep = ',')
     }
     dummy=0
-    tmpMask <- list(maskpoints = maskpoints, 
-                    startdate = as.character(parsedMasks$start_date[i]), 
-                    enddate = as.character(parsedMasks$end_date[i]), 
-                    starttime = as.character(parsedMasks$start_time[i]), 
-                    endtime = as.character(parsedMasks$end_time[i]), 
-                    sampleyear = NULL, 
+    tmpMask <- list(maskpoints = maskpoints,
+                    startdate = as.character(parsedMasks$start_date[i]),
+                    enddate = as.character(parsedMasks$end_date[i]),
+                    starttime = as.character(parsedMasks$start_time[i]),
+                    endtime = as.character(parsedMasks$end_time[i]),
+                    sampleyear = NULL,
                     sampleday = NULL,
                     sampleImage = as.character(parsedMasks$sample_image[i]),
                     rasteredMask = as.matrix(raster(maskpath)))
     tmpMask$rasteredMask[(!is.na(tmpMask$rasteredMask))&tmpMask$rasteredMask!=0] <- 1
-    
-    
+
+
     sampleYMD <- strsplit(tmpMask$sampleImage, split = '_')[[1]][2:4]
     tmpMask$sampleyear <- as.numeric(sampleYMD)[1]
     tmpMask$sampleday <- yday(paste(sampleYMD, collapse = '-'))
-    
+
     masksList[[length(masksList)+1]] <- tmpMask
-    
+
   }
   names(masksList) <- gsub(parsedMasks$maskfile, pattern = '.tif', replacement = '')
   ROIList$masks <- masksList
-  
+
   ROIList
 }
 
@@ -368,7 +368,7 @@ parseROI <- function(roifilename, roipath){
 maskRaster2Vector <- function(r){
   r[r==0] <- 1
   r[r==255] <- NA
-  
+
   p <- rasterToPolygons(r, dissolve = T)
   c <- p@polygons[[1]]@Polygons[[1]]@coords
   c
@@ -376,7 +376,7 @@ maskRaster2Vector <- function(r){
 
 
 parseIMG.DT <- function(imgDT){
-  
+
   imgDT[,c('Site', 'Year', 'Month','Day','HHMMSS'):=as.data.table(matrix(unlist(strsplit(gsub(filenames, pattern = '.jpg', replacement = ''), split = '_')), ncol=5, byrow = T))]
   imgDT[,Year:=as.numeric(Year)]
   imgDT[,Month:=as.numeric(Month)]
@@ -386,7 +386,7 @@ parseIMG.DT <- function(imgDT){
   imgDT[,Minute:=floor((HHMMSS%%10000)/100)]
   imgDT[,Second:=HHMMSS%%100]
   imgDT[,DOY:=yday(ISOdate(Year, Month, Day))]
-  
+
   imgDT[,DOY:=yday(ISOdate(Year, Month, Day))]
   imgDT[,Date:=date(ISOdate(Year, Month, Day))]
   imgDT[,DateTime:=ISOdatetime(Year, Month, Day, Hour, Minute, Second)]
@@ -400,26 +400,23 @@ parseIMG.DT <- function(imgDT){
 
 getIMG.DT <- function(sites, midddayListPath){
   imgDT <- data.table()
-  
+
   for(site in sites){
     tbl <- read.table(paste0(midddayListPath, site), header = F, colClasses = 'character', col.names = 'path')
     imgDT.tmp <- as.data.table(tbl)
     imgDT.tmp$path <- paste0(mountPath, imgDT.tmp$path)
     imgDT <- rbind(imgDT, imgDT.tmp)
   }
-  
-  
+
+
   splt <- imgDT[, tstrsplit(path, split = '/')]
-  if(TEST_MODE) splt <- splt[,-c(2:3)]
-  colnames(splt) <- c('empty','data','archive','site','year','month','filenames') 
-  splt[, newpath:=paste(empty, data, archive, site, 'originals', year, month, filenames, sep='/')]
-  
+  colnames(splt) <- c('empty','data','archive','site','year','month','filenames')
+
   imgDT$filenames <- splt$filenames
   imgDT$newpath <- splt$newpath
-  
-  #imgDT[grepl(pattern = 'NEON', filenames), path:=newpath]
+
   imgDT$newpath <- NULL
-  
+
   imgDT <- imgDT[str_count(filenames, pattern = '_')==4, ]
   imgDT <- parseIMG.DT(imgDT)
   imgDT

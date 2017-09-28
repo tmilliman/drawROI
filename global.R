@@ -1,10 +1,15 @@
-TEST_MODE <- FALSE
-if(getwd()=='/home/bijan/Projects/drawROI') TEST_MODE <- TRUE
-if(getwd()=='/home/shiny/apps/drawROI') TEST_MODE <- TRUE
+## setup default archive dir
+ARCHIVE_DIR <- '/data/archive'
 
-mountPath <- ''
+## setup default app directory for debian based systems
+APP_NAME <- 'drawROI'
+APP_HOME <- paste0('/srv/shiny-server/', APP_NAME)
 
-if(TEST_MODE) mountPath <- '/mnt/klima'
+## setup KEYPASS file
+PASSWD_FILE = paste0(APP_HOME,'/.key.psw')
 
-midddayListPath <- paste0(mountPath, '/home/shiny/middayList/')
+## set list path to directory containing midday image lists
+MIDDAY_LIST_PATH <- paste0(APP_HOME,'/middayList/')
 
+## flag for test mode
+TEST_MODE <- TRUE
