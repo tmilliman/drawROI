@@ -262,7 +262,7 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   roipath <- reactive({
     printLog(paste('roipath reactive experssion was called.\t'))
-    tmp <- (paste0(ARCHIVE_DIR, input$siteName,'/ROI/'))
+    tmp <- (paste0(ARCHIVE_DIR, '/', input$siteName,'/ROI/'))
 
     return(tmp)
   }  )
