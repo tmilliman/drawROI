@@ -404,7 +404,6 @@ getIMG.DT <- function(sites, midddayListPath){
   for(site in sites){
     tbl <- read.table(paste0(midddayListPath, site), header = F, colClasses = 'character', col.names = 'path')
     imgDT.tmp <- as.data.table(tbl)
-    imgDT.tmp$path <- paste0(mountPath, imgDT.tmp$path)
     imgDT <- rbind(imgDT, imgDT.tmp)
   }
 

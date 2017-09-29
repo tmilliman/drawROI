@@ -78,7 +78,6 @@ shinyServer(function(input, output, session) {
                        sitesList = vector(),
                        parsedROIList = NULL,
                        phenoSites = siteListJSON)
-  )
 
   autoInvalidate <- reactiveTimer(1000)
 
@@ -112,7 +111,7 @@ shinyServer(function(input, output, session) {
     printLog(paste('imgDT reactive experssion was called.\t'))
 
     dummy <- 0
-    getIMG.DT(input$siteName, midddayListPath)
+    getIMG.DT(input$siteName, middayListPath)
 
   })
 
